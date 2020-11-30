@@ -1,5 +1,5 @@
 
-# Authors: Danielle M. Becker*, Emma L. Strand, Nyssa J. Silbiger, and and Hollie M. Putnam
+### Authors: Danielle M. Becker*, Emma L. Strand, Nyssa J. Silbiger, and and Hollie M. Putnam
 
 Journal: TBD
 
