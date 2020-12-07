@@ -564,10 +564,10 @@ sbatch /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/SAMtoBAM.sh
 ```
 
 ### Remove Sam files to save space
-`
+```
 rm /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/*.sam
 
-`
+```
 
 
 # 7) Perform gene counts with stringTie
@@ -673,7 +673,7 @@ module load StringTie/1.3.5-foss-2018b
 module load Python/2.7.15-foss-2018b
 
 
-python /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/prepDE.py -g /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/Poc_gene_count_matrix.csv -i /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/samplelist.txt
+python prepDE.py  -i samplelist.txt -g Poc_gene_count_matrix.csv
 ```
 
 ```
