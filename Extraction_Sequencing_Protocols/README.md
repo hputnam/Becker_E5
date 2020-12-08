@@ -1,4 +1,4 @@
-# Notebook posts for mtORF, RNASeq, and WGBS collection, extraction, and sequencing protocols
+# Notebook posts for mtORF, RNASeq, and WGBS extraction, and sequencing protocols
 
 All following protocols, prep, and extractions conducted by two amazing Putnam Lab team members: [Maggie Schedl](https://github.com/meschedl) and [Emma Strand](https://github.com/emmastrand)
 
