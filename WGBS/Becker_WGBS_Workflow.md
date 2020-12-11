@@ -126,6 +126,11 @@ d6a96b7d73725da74ebfe76b865b47d3  |`30_R2_001.fastq.gz`|d6a96b7d73725da74ebfe76b
 0be0e18cebf3b0c52711a1cd15535bb8  |`32_R1_001.fastq.gz`|0be0e18cebf3b0c52711a1cd15535bb8
 92afdc0db53a918b1bfd15c2c2ff4943  |`32_R2_001.fastq.gz`|92afdc0db53a918b1bfd15c2c2ff4943
 
+## Count the number of reads per sample
+zcat *fastq.gz | echo $((`wc -l`/4)) > rawread.counts.txt
+This counts reads in goups of 4 lines per read
+This should match with the Genewiz summary
+
 
 ```
 cd /data/putnamlab/hputnam/Becker_E5
@@ -182,16 +187,110 @@ nextflow run nf-core/methylseq -profile singularity \
 ```
 sbatch /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/methylseq.sh
 ```
+- slurm-16249.out
+
+
+### Run timed out
+
+ - resumed run with longer time using code below in slurm-16594.out 
+
+```
+nano /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/methylseq_resume.sh
+```
+
+```
+#!/bin/bash
+#SBATCH -t 120:00:00
+#SBATCH --nodes=1 --ntasks-per-node=10
+#SBATCH --mem=500GB
+#SBATCH --account=putnamlab
+#SBATCH --export=NONE
+#SBATCH -D /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/
+#SBATCH -p putnamlab
+#SBATCH --cpus-per-task=3
+
+# load modules needed
+
+module load Nextflow
+
+# run nextflow methylseq
+
+nextflow run nf-core/methylseq -resume \
+-profile singularity \
+--aligner bismark \
+--fasta /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.fasta \
+--save_reference \
+--reads '/data/putnamlab/KITT/hputnam/20201206_Becker_WGBS/*_R{1,2}_001.fastq.gz' \
+--clip_r1 10 \
+--clip_r2 10 \
+--three_prime_clip_r1 10 --three_prime_clip_r2 10 \
+--non_directional \
+--cytosine_report \
+--relax_mismatches \
+--unmapped \
+--outdir Becker_WGBS
+
+```
+
+```
+sbatch /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/methylseq_resume.sh
+```
+
+
+
 
 
 ## Library E8 - sample 19 failed
- has weird library reults from tapestation
- has lower quality than all other libraries
- has high GC content
- has low duplication content
- has very high adapter content
+ - has weird library reults from tapestation
+ - has lower quality than all other libraries
+ - has high GC content
+ - has low duplication content
+ - has very high adapter content
+ 
+ It seems this library failed at the prep step. perhaps too little or poor quality DNA?
+ We will move ahead with the other 31 libraries for analysis.
 
 
+Library 2 (sample E7) and Library 16 (Sample C28) have low coverage and high duplication in MethylSeq MultiQc report
 
+## Merge strands 
+
+The Bismark [coverage2cytosine](https://github.com/FelixKrueger/Bismark/blob/master/coverage2cytosine) command re-reads the genome-wide report and merges methylation evidence of both top and bottom strand.
+
+```
+nano /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/cov_to_cyto.sh
+```
+
+```
+#!/bin/bash
+#SBATCH -t 120:00:00
+#SBATCH --nodes=1 --ntasks-per-node=10
+#SBATCH --mem=500GB
+#SBATCH --account=putnamlab
+#SBATCH --export=NONE
+#SBATCH -D /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/
+#SBATCH -p putnamlab
+#SBATCH --cpus-per-task=3
+
+# load modules needed
+
+module load Bismark/0.20.1-foss-2018b
+
+# run coverage2cytosine merge of strands
+
+ find /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/bismark_methylation_calls/methylation_coverage/*deduplicated.bismark.cov.gz \
+ | xargs basename -s _R1_001_val_1_bismark_bt2_pe.deduplicated.bismark.cov.gz \
+ | xargs -I{} coverage2cytosine \
+ --genome_folder /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/reference_genome/BismarkIndex \
+ -o {} \
+ --merge_CpG \
+ --zero_based \
+ /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/bismark_methylation_calls/methylation_coverage/{}_R1_001_val_1_bismark_bt2_pe.deduplicated.bismark.cov.gz
+
+```
+
+```
+sbatch /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/cov_to_cyto.sh
+```
 
 
