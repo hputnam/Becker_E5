@@ -293,4 +293,172 @@ module load Bismark/0.20.1-foss-2018b
 sbatch /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/cov_to_cyto.sh
 ```
 
+# Create files for statistical analysis
 
+# run loop to filter CpGs for 5x coverage
+
+
+for f in *merged_CpG_evidence.cov
+do
+  STEM=$(basename "${f}" .CpG_report.merged_CpG_evidence.cov)
+  cat "${f}" | awk -F $'\t' 'BEGIN {OFS = FS} {if ($5+$6 >= 5) {print $1, $2, $3, $4, $5, $6}}' \
+  > "${STEM}"_5x.tab
+done
+
+# run loop to filter CpGs for 10x coverage
+
+
+for f in *merged_CpG_evidence.cov
+do
+  STEM=$(basename "${f}" .CpG_report.merged_CpG_evidence.cov)
+  cat "${f}" | awk -F $'\t' 'BEGIN {OFS = FS} {if ($5+$6 >= 10) {print $1, $2, $3, $4, $5, $6}}' \
+  > "${STEM}"_10x.tab
+done
+
+```
+wc -l *5x.tab
+```
+
+```   
+5650793 10_5x.tab
+4445225 11_5x.tab
+6214291 12_5x.tab
+4537224 13_5x.tab
+5792624 14_5x.tab
+5310753 15_5x.tab
+5966510 1_5x.tab
+2247820 16_5x.tab
+5538829 17_5x.tab
+4581541 18_5x.tab
+   6632 19_5x.tab
+5177825 20_5x.tab
+6711526 21_5x.tab
+4912535 22_5x.tab
+5606601 23_5x.tab
+5173314 24_5x.tab
+6130324 25_5x.tab
+ 541141 2_5x.tab
+5705061 26_5x.tab
+6983120 27_5x.tab
+6258204 28_5x.tab
+6021709 29_5x.tab
+4558106 30_5x.tab
+5705620 31_5x.tab
+6790513 32_5x.tab
+5687903 3_5x.tab
+5580876 4_5x.tab
+4123978 5_5x.tab
+4254063 6_5x.tab
+5736001 7_5x.tab
+4843732 8_5x.tab
+5138423 9_5x.tab
+161932817 total
+
+
+wc -l *10x.tab
+
+   2545720 10_10x.tab
+   3012855 1_10x.tab
+   1201637 11_10x.tab
+   3483529 12_10x.tab
+   1315708 13_10x.tab
+   2903726 14_10x.tab
+   2098508 15_10x.tab
+    351245 16_10x.tab
+   2418593 17_10x.tab
+   1393271 18_10x.tab
+      2389 19_10x.tab
+   2249149 20_10x.tab
+     48301 2_10x.tab
+   4451413 21_10x.tab
+   1663741 22_10x.tab
+   2505402 23_10x.tab
+   2074085 24_10x.tab
+   3450513 25_10x.tab
+   2793280 26_10x.tab
+   5113183 27_10x.tab
+   3634844 28_10x.tab
+   3268323 29_10x.tab
+   1380396 30_10x.tab
+   2640988 3_10x.tab
+   2472008 31_10x.tab
+   4433221 32_10x.tab
+   2454172 4_10x.tab
+   1043789 5_10x.tab
+   1128028 6_10x.tab
+   2681849 7_10x.tab
+   1572925 8_10x.tab
+   1943521 9_10x.tab
+  73730312 total
+```
+
+
+### Samples 19, 16, and 2 have low data coverage
+
+
+# create a file with positions found in all samples at specified coverage
+
+
+```
+nano /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/10x_intersect.sh
+```
+
+```
+#!/bin/bash
+#SBATCH -t 120:00:00
+#SBATCH --nodes=1 --ntasks-per-node=10
+#SBATCH --mem=500GB
+#SBATCH --account=putnamlab
+#SBATCH --export=NONE
+#SBATCH -D /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/
+#SBATCH -p putnamlab
+#SBATCH --cpus-per-task=3
+
+# load modules needed
+
+module load BEDTools/2.27.1-foss-2018b
+
+multiIntersectBed -i \
+/data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/1_10x.tab  /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/3_10x.tab  /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/4_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/5_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/6_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/7_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/8_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/9_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/10_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/11_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/12_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/13_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/14_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/15_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/17_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/18_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/20_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/21_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/22_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/23_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/24_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/25_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/26_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/27_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/28_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/29_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/30_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/31_10x.tab /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/32_10x.tab > /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/CpG.29samps.10x.tab
+
+cat /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/CpG.29samps.10x.tab | awk '$4 ==28' > /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/CpG.filt.29samps.10x.tab 
+
+``` 
+
+```
+sbatch /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/10x_intersect.sh
+```
+
+
+
+# Use intersectBed to find where loci and genes intersect, allowing loci to be mapped to annotated genes
+
+```
+nano /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/5x_gene_intersect.sh
+```
+
+
+for i in /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*5x.bed
+do
+  intersectBed \
+  -wb \
+  -a /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/${i} \
+  -b RAnalysis/Data/Genome/Pver_genome_assembly_v1.0.gff3 \
+  > /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/${i}_gene
+done
+
+#intersect with file to subset only those positions found in all samples
+
+for i in /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*_gene
+do
+  intersectBed \
+  -a ${i} \
+  -b /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/CpG.filtered.5x.bed  \
+  > /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/${i}_CpG.bed
+done
+
+```
+
+```
+nano /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/5x_gene_intersect.sh
+```
