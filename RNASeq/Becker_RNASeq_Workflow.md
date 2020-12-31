@@ -67,8 +67,8 @@ cd data
 mkdir raw
 mkdir refs
 
-ln -s ../../../../KITT/hputnam/20201124_Becker_RNASeq/*.fastq.gz ./raw/
-ln -s ../../../../REFS/Pverr/ ./ref/
+ln -s ../../../../../KITT/hputnam/20201209_Becker_RNASeq_combo/combo/*.fastq.gz ./raw/
+ln -s ../../../../../REFS/Pverr/ ./refs/
 ```
 
 # 2) Check file integrity 
@@ -82,238 +82,175 @@ ls -1 | wc -l
 b) Verify data transfer integrity with md5sum
 
 ```
-nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/check_transfer.sh
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/check_transfer.sh
 ```
 
 ```
-#!/bin/bash
-#SBATCH -t 24:00:00
-#SBATCH --nodes=1 --ntasks-per-node=1
-#SBATCH --export=NONE
-#SBATCH --mem=100GB
-#SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw
+#!/bin/bash ###creating slurm script
+#SBATCH -t 24:00:00 ###give script 24 hours to run
+#SBATCH --nodes=1 --ntasks-per-node=1 ###on server, different nodes you can use for processing power, node just do one task 
+#SBATCH --export=NONE 
+#SBATCH --mem=100GB ###in server allocate 100GB amount of memory
+#SBATCH --account=putnamlab ###primary account
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw ###path
 
-md5sum /data/putnamlab/KITT/hputnam/20201124_Becker_RNASeq/*.gz > URIcheckmd5.md5
-
-```
+md5sum /dbecks/Becker_E5/Becker_RNASeq/data/*.gz > URIcheckmd5.md5
 
 ```
-sbatch ../../scripts/check_transfer.sh 
+
+```
+sbatch check_transfer.sh 
+
+###Submitted batch job 1816196 20201230
 ```
 
 ### Checksum from Genewiz
 ```
-
-34d81ff7934fb0b46e0eae693b48e917  C17_R1_001.fastq.gz
-e4b8193cc41a76fc6804d158ca391145  C17_R2_001.fastq.gz
-9642a7849e9687b697a06624641bedd2  C18_R1_001.fastq.gz
-ff551943373f1e66102ccb5cbac94977  C18_R2_001.fastq.gz
-ca0e0391351b0c41eed5edf15c8661ea  C19_R1_001.fastq.gz
-6e1360fe186f2700747fcd2113b681b9  C19_R2_001.fastq.gz
-22f7d0701bf574e95f8b84f5f8a08f8b  C20_R1_001.fastq.gz
-8f63713efe5128c7101a3cdad365d684  C20_R2_001.fastq.gz
-0c71965c534a2ebf1b38cb97b7f879a0  C21_R1_001.fastq.gz
-b7df9377b56654d0e8d8c1ab42b60853  C21_R2_001.fastq.gz
-cb1bf0af9c614c4ecdf9936ab038b89c  C22_R1_001.fastq.gz
-6fe6527212de3b8306d13f8222302f57  C22_R2_001.fastq.gz
-91ead175cd247cd5b8dc530c6abcc9e5  C23_R1_001.fastq.gz
-ec668bb851766ef36d3c7ba7943bcf8e  C23_R2_001.fastq.gz
-4d117bcfc72763a7db319a8fd13ed908  C24_R1_001.fastq.gz
-b86a886e1dd61ea6f385898623e7af9e  C24_R2_001.fastq.gz
-932b47049b4e8e90280f299428a597a4  C25_R1_001.fastq.gz
-d2c313c69347dbb255c6106abc4d22f8  C25_R2_001.fastq.gz
-98552602cac6bdbed1bb2008991f727b  C26_R1_001.fastq.gz
-56600a80d327a943c1ecda670bc71ed3  C26_R2_001.fastq.gz
-d540c45f1148373b99c1db4e43f60850  C27_R1_001.fastq.gz
-cb8dda30d5900a8d42a90c7d1dda9744  C27_R2_001.fastq.gz
-7ad2c8e05101f77a822715b79783db72  C28_R1_001.fastq.gz
-15932d696eb051ba8af9f95381b2c0ee  C28_R2_001.fastq.gz
-67da8fa379000428ee2b726d5b6d2c3f  C29_R1_001.fastq.gz
-fc32dc17927c41680c7153b6578b0705  C29_R2_001.fastq.gz
-e1971e0cb3bf6d888feac28d53cd8706  C30_R1_001.fastq.gz
-1ebf88060ca850b8e77bf664ea97b10e  C30_R2_001.fastq.gz
-8da01ecfc3147c2b64c9dfba6aa5738a  C31_R1_001.fastq.gz
-99d44c69480270acdbd12c432a51ec33  C31_R2_001.fastq.gz
-9b21a38a31156fdee7dc1958d0600bbe  C32_R1_001.fastq.gz
-41d7fa676d75b0bb57e8fc7a01e3ec13  C32_R2_001.fastq.gz
-387531bdfa3d8f7930a1f0c25548e429  E10_R1_001.fastq.gz
-b8484541ab8dae01cc75e5d289a49c61  E10_R2_001.fastq.gz
-1c428b3f05ff5c1e02a8c5769bf29ccd  E11_R1_001.fastq.gz
-3e6c5eb4320363328a9be320cf885873  E11_R2_001.fastq.gz
-956104a0993692ff076a054b19a24961  E12_R1_001.fastq.gz
-edc41bfcc4daa59e89dfabb909ca4e4d  E12_R2_001.fastq.gz
-43d09374f4005122d7639b0b6853fb52  E13_R1_001.fastq.gz
-ecb847106b11106cc82225c8901f3377  E13_R2_001.fastq.gz
-92c4bf857a315cf84e00e2b2c749a188  E14_R1_001.fastq.gz
-1901fbdf138e13782842899a01692139  E14_R2_001.fastq.gz
-f5758d5b2ca705bb6367a254da0f39a0  E15_R1_001.fastq.gz
-087911a4cdcb1cf776a38c2a590cf8d1  E15_R2_001.fastq.gz
-6c5eb3478cbedee31e0d3263b685ffd7  E16_R1_001.fastq.gz
-1fea0b437baa7c034cf188045678eec9  E16_R2_001.fastq.gz
-1da4e491aaab9f8dd31ec1cceb9df6e4  E1_R1_001.fastq.gz
-f648c57469094634c5db06399de71adf  E1_R2_001.fastq.gz
-bdb29d094b4e99accb4901129f5632cc  E2_R1_001.fastq.gz
-7a901ba3ffb15757fa1f35d6fdd77977  E2_R2_001.fastq.gz
-57003d309200f5e00bc1ae0ef7efc569  E3_R1_001.fastq.gz
-945adabf4bb06a71750c8a7dcb2ffad4  E3_R2_001.fastq.gz
-9c1a16d8efaf9e8b393c57e59cf582ed  E4_R1_001.fastq.gz
-3ec5d310d5ca71be11fb61da8f89e16b  E4_R2_001.fastq.gz
-bcbd03903528b4d23694aeac58cba29b  E5_R1_001.fastq.gz
-729188fdac7ca7d5b984cd92c7cacf80  E5_R2_001.fastq.gz
-03188b855cddf9c4310f2068b43461b6  E6_R1_001.fastq.gz
-0a4f9de84fe32baea6f7cab4e3fa67a4  E6_R2_001.fastq.gz
-a8f4c26ff35730b89ea72913a56721a7  E7_R1_001.fastq.gz
-91502a50cf91652e37f305edd986774b  E7_R2_001.fastq.gz
-8a6e9fc499a8fca32614cd0e0e86fb1d  E8_R1_001.fastq.gz
-cd7de23f56172a399144a2dc6ae7911b  E8_R2_001.fastq.gz
-e0e620f5822277987ec718839df370de  E9_R1_001.fastq.gz
-871c3316046af6bbdbef3cf80ce90d91  E9_R2_001.fastq.gz
+317dd03e9704a73347c5ccabb86d1e18  C17_R1_001.fastq.gz
+b6368b2789cfacc8e8adbadf45d6c533  C17_R2_001.fastq.gz
+adb1af7c62b309f7100117f50ebe846d  C18_R1_001.fastq.gz
+776842109ee56cd4619d5dec08fe005e  C18_R2_001.fastq.gz
+a6d48537ec697d2040798a302bfa0aa1  C19_R1_001.fastq.gz
+9b46b63800d83940b53196dccd4eda53  C19_R2_001.fastq.gz
+e2a63dca87aa53b4756d51edb02b377f  C20_R1_001.fastq.gz
+b2752d8b60c97f754cc24ededc1bf053  C20_R2_001.fastq.gz
+f659265a858c029bfb4d2764da76701a  C21_R1_001.fastq.gz
+712ffc2eb87aadd42d50f9c10c7c9b81  C21_R2_001.fastq.gz
+3fe2c3f4c39c06adca53440c037d48fe  C22_R1_001.fastq.gz
+ff775c4de3ad8a585f64367cc78e467d  C22_R2_001.fastq.gz
+2f4f97aa4dd101b5a14ab0a4284f0816  C23_R1_001.fastq.gz
+aabac96314290241fda7e7413d716b2c  C23_R2_001.fastq.gz
+94fa7191998ac59d2e89851b5fb15431  C24_R1_001.fastq.gz
+921198dae25a3c4515be0d534281a685  C24_R2_001.fastq.gz
+feb863a003dfff84ca3868ec5b674e02  C25_R1_001.fastq.gz
+3ae4179cd04cdf04bd5873ba5d6a0534  C25_R2_001.fastq.gz
+225bafe67a42557b7a34ac201cf88273  C26_R1_001.fastq.gz
+15aee2823967a782a859c039610b0b23  C26_R2_001.fastq.gz
+82ec398d754d52fef140a325c80ee289  C27_R1_001.fastq.gz
+8aebf98f2af591cf8a1149f263f6d86d  C27_R2_001.fastq.gz
+1bf51f4961df4b7da8f284cd7202f6d3  C28_R1_001.fastq.gz
+1b4cc1e1be421387abfd7da8d490235b  C28_R2_001.fastq.gz
+f02e752d98e9a0168286becf52203c0f  C29_R1_001.fastq.gz
+fd280e79ecaa4a51a1670293c742d5fd  C29_R2_001.fastq.gz
+27153ad98aa8735c3474bd72dfe041cd  C30_R1_001.fastq.gz
+8d977f9ebebea4c26c0cfc9bf7033a9b  C30_R2_001.fastq.gz
+b6a2cf9d02329c3c73c4ec02c1441660  C31_R1_001.fastq.gz
+52cdaf65c3cb976c168478678131066f  C31_R2_001.fastq.gz
+cdfc0509137d2b8624a236b2ded04a47  C32_R1_001.fastq.gz
+9148b0e6bbc9b7520c7e1c6caae13fc8  C32_R2_001.fastq.gz
+8854b4f07a80e5c0e49a136bb5c76e75  E10_R1_001.fastq.gz
+1cccd8da94d4a8a79f1681edc9349166  E10_R2_001.fastq.gz
+e7277e7ac17b4643e748e1a3e00dfb04  E11_R1_001.fastq.gz
+3ff35b0852ea83593dd438dcbb2deddd  E11_R2_001.fastq.gz
+50ab9cee762e076b5183de2c8fc66f02  E12_R1_001.fastq.gz
+e188fc0f1f0ecd1feb581dd01574667c  E12_R2_001.fastq.gz
+af969bcc9b91dfd59c48f8cb87fb6317  E13_R1_001.fastq.gz
+7759be7b6477a401e4ffcf385b80f51e  E13_R2_001.fastq.gz
+c0d20187ee3403b1a1e4687afbd2fd91  E14_R1_001.fastq.gz
+80f122aca444d7ebdfc153d73666cf4b  E14_R2_001.fastq.gz
+a7632155416f4de7c80f0f1466c21457  E15_R1_001.fastq.gz
+9eec50018582ad56cc2ad05970da7b90  E15_R2_001.fastq.gz
+1f782733b62f17958a813d09793922f0  E16_R1_001.fastq.gz
+91f58b438ae17444c510a6636bf244ce  E16_R2_001.fastq.gz
+bf0038545deef9b4729b8b322ab5f33b  E1_R1_001.fastq.gz
+f3e8fab360a0986397ad1e6dd6a85afd  E1_R2_001.fastq.gz
+13cc2a96b34654c62eae372ebd8109ea  E2_R1_001.fastq.gz
+a55437f2ba10eac88e70994622c20cc2  E2_R2_001.fastq.gz
+be0aa42447cfa4e52e47e4c1587f07f6  E3_R1_001.fastq.gz
+0dd2317421ce84e9ec1d9a029752a9b3  E3_R2_001.fastq.gz
+44b7219ff47447522e24bb6d10ec871c  E4_R1_001.fastq.gz
+6a9249b714e0a1596bad222d94bcca09  E4_R2_001.fastq.gz
+beedc3c1f5d7918166f8f26d867cdb12  E5_R1_001.fastq.gz
+f45e1969d25e3e07b993672b3a6ef8f7  E5_R2_001.fastq.gz
+3792a2a487030d0b3c4ad7fe95bff398  E6_R1_001.fastq.gz
+004eb857e060728c619262f7287ec273  E6_R2_001.fastq.gz
+fd8d4df782b0142bea08adf04edbe835  E7_R1_001.fastq.gz
+c21ffd9c4d24181ff6f5e8bf02c83a95  E7_R2_001.fastq.gz
+0852370e047f41a248ca7e7014ad88dc  E8_R1_001.fastq.gz
+b6e5da4446b5bccb63e46661e9b1e293  E8_R2_001.fastq.gz
+1ecdc2f728e6ce233c9495a2c3bb97f5  E9_R1_001.fastq.gz
+be19f114b314fdc30dd39962aa12a3dc  E9_R2_001.fastq.gz
 ```
-
-### Checksum from files on Bluewaves
+c) Cross-reference the checksum document from GENEWIZ with the data we have on our computer
 
 ```
-34d81ff7934fb0b46e0eae693b48e917  C17_R1_001.fastq.gz
-e4b8193cc41a76fc6804d158ca391145  C17_R2_001.fastq.gz  
-9642a7849e9687b697a06624641bedd2  C18_R1_001.fastq.gz  
-ff551943373f1e66102ccb5cbac94977  C18_R2_001.fastq.gz
-ca0e0391351b0c41eed5edf15c8661ea  C19_R1_001.fastq.gz
-6e1360fe186f2700747fcd2113b681b9  C19_R2_001.fastq.gz
-22f7d0701bf574e95f8b84f5f8a08f8b  C20_R1_001.fastq.gz
-8f63713efe5128c7101a3cdad365d684  C20_R2_001.fastq.gz
-0c71965c534a2ebf1b38cb97b7f879a0  C21_R1_001.fastq.gz
-b7df9377b56654d0e8d8c1ab42b60853  C21_R2_001.fastq.gz
-cb1bf0af9c614c4ecdf9936ab038b89c  C22_R1_001.fastq.gz
-6fe6527212de3b8306d13f8222302f57  C22_R2_001.fastq.gz
-91ead175cd247cd5b8dc530c6abcc9e5  C23_R1_001.fastq.gz
-ec668bb851766ef36d3c7ba7943bcf8e  C23_R2_001.fastq.gz
-4d117bcfc72763a7db319a8fd13ed908  C24_R1_001.fastq.gz
-b86a886e1dd61ea6f385898623e7af9e  C24_R2_001.fastq.gz
-932b47049b4e8e90280f299428a597a4  C25_R1_001.fastq.gz
-d2c313c69347dbb255c6106abc4d22f8  C25_R2_001.fastq.gz
-98552602cac6bdbed1bb2008991f727b  C26_R1_001.fastq.gz
-56600a80d327a943c1ecda670bc71ed3  C26_R2_001.fastq.gz
-d540c45f1148373b99c1db4e43f60850  C27_R1_001.fastq.gz
-cb8dda30d5900a8d42a90c7d1dda9744  C27_R2_001.fastq.gz
-7ad2c8e05101f77a822715b79783db72  C28_R1_001.fastq.gz
-15932d696eb051ba8af9f95381b2c0ee  C28_R2_001.fastq.gz
-67da8fa379000428ee2b726d5b6d2c3f  C29_R1_001.fastq.gz
-fc32dc17927c41680c7153b6578b0705  C29_R2_001.fastq.gz
-e1971e0cb3bf6d888feac28d53cd8706  C30_R1_001.fastq.gz
-1ebf88060ca850b8e77bf664ea97b10e  C30_R2_001.fastq.gz
-8da01ecfc3147c2b64c9dfba6aa5738a  C31_R1_001.fastq.gz
-99d44c69480270acdbd12c432a51ec33  C31_R2_001.fastq.gz
-9b21a38a31156fdee7dc1958d0600bbe  C32_R1_001.fastq.gz
-41d7fa676d75b0bb57e8fc7a01e3ec13  C32_R2_001.fastq.gz
-387531bdfa3d8f7930a1f0c25548e429  E10_R1_001.fastq.gz
-b8484541ab8dae01cc75e5d289a49c61  E10_R2_001.fastq.gz
-1c428b3f05ff5c1e02a8c5769bf29ccd  E11_R1_001.fastq.gz
-3e6c5eb4320363328a9be320cf885873  E11_R2_001.fastq.gz
-956104a0993692ff076a054b19a24961  E12_R1_001.fastq.gz
-edc41bfcc4daa59e89dfabb909ca4e4d  E12_R2_001.fastq.gz
-43d09374f4005122d7639b0b6853fb52  E13_R1_001.fastq.gz
-ecb847106b11106cc82225c8901f3377  E13_R2_001.fastq.gz
-92c4bf857a315cf84e00e2b2c749a188  E14_R1_001.fastq.gz
-1901fbdf138e13782842899a01692139  E14_R2_001.fastq.gz
-f5758d5b2ca705bb6367a254da0f39a0  E15_R1_001.fastq.gz
-087911a4cdcb1cf776a38c2a590cf8d1  E15_R2_001.fastq.gz
-6c5eb3478cbedee31e0d3263b685ffd7  E16_R1_001.fastq.gz
-1fea0b437baa7c034cf188045678eec9  E16_R2_001.fastq.gz
-1da4e491aaab9f8dd31ec1cceb9df6e4  E1_R1_001.fastq.gz
-f648c57469094634c5db06399de71adf  E1_R2_001.fastq.gz
-bdb29d094b4e99accb4901129f5632cc  E2_R1_001.fastq.gz
-7a901ba3ffb15757fa1f35d6fdd77977  E2_R2_001.fastq.gz
-57003d309200f5e00bc1ae0ef7efc569  E3_R1_001.fastq.gz
-945adabf4bb06a71750c8a7dcb2ffad4  E3_R2_001.fastq.gz
-9c1a16d8efaf9e8b393c57e59cf582ed  E4_R1_001.fastq.gz
-3ec5d310d5ca71be11fb61da8f89e16b  E4_R2_001.fastq.gz
-bcbd03903528b4d23694aeac58cba29b  E5_R1_001.fastq.gz
-729188fdac7ca7d5b984cd92c7cacf80  E5_R2_001.fastq.gz
-03188b855cddf9c4310f2068b43461b6  E6_R1_001.fastq.gz
-0a4f9de84fe32baea6f7cab4e3fa67a4  E6_R2_001.fastq.gz
-a8f4c26ff35730b89ea72913a56721a7  E7_R1_001.fastq.gz
-91502a50cf91652e37f305edd986774b  E7_R2_001.fastq.gz
-8a6e9fc499a8fca32614cd0e0e86fb1d  E8_R1_001.fastq.gz
-cd7de23f56172a399144a2dc6ae7911b  E8_R2_001.fastq.gz
-e0e620f5822277987ec718839df370de  E9_R1_001.fastq.gz
-871c3316046af6bbdbef3cf80ce90d91  E9_R2_001.fastq.gz
-```
-
-c) Count number of reads per file 
-
-check for code after @ in fastq.gz files(e.g.,@GWNJ).
+###with a small amount of files, able to first cross-check that the sequences matched between both files on the desktop
+###used the code below in terminal to cross-check the files and compare for sanity check
 
 ```
-zgrep -c "@GWNJ" /data/putnamlab/KITT/hputnam/20201124_Becker_RNASeq/*.gz > raw_seq_counts
+
+d) Count number of reads per file using the code after @ in fastq.gz files (e.g.,@GWNJ).
+
+```
+zgrep -c "@GWNJ" *.gz > raw_seq_counts
 
 ```
 
 ```
-C17_R1_001.fastq.gz:11581540
-C17_R2_001.fastq.gz:11581540
-C18_R1_001.fastq.gz:10322369
-C18_R2_001.fastq.gz:10322369
-C19_R1_001.fastq.gz:11407222
-C19_R2_001.fastq.gz:11407222
-C20_R1_001.fastq.gz:10991646
-C20_R2_001.fastq.gz:10991646
-C21_R1_001.fastq.gz:7581776
-C21_R2_001.fastq.gz:7581776
-C22_R1_001.fastq.gz:10661421
-C22_R2_001.fastq.gz:10661421
-C23_R1_001.fastq.gz:9669778
-C23_R2_001.fastq.gz:9669778
-C24_R1_001.fastq.gz:10109664
-C24_R2_001.fastq.gz:10109664
-C25_R1_001.fastq.gz:13384360
-C25_R2_001.fastq.gz:13384360
-C26_R1_001.fastq.gz:10513807
-C26_R2_001.fastq.gz:10513807
-C27_R1_001.fastq.gz:11612160
-C27_R2_001.fastq.gz:11612160
-C28_R1_001.fastq.gz:10592999
-C28_R2_001.fastq.gz:10592999
-C29_R1_001.fastq.gz:8311723
-C29_R2_001.fastq.gz:8311723
-C30_R1_001.fastq.gz:12019128
-C30_R2_001.fastq.gz:12019128
-C31_R1_001.fastq.gz:11231196
-C31_R2_001.fastq.gz:11231196
-C32_R1_001.fastq.gz:12874230
-C32_R2_001.fastq.gz:12874230
-E10_R1_001.fastq.gz:13305449
-E10_R2_001.fastq.gz:13305449
-E11_R1_001.fastq.gz:8574604
-E11_R2_001.fastq.gz:8574604
-E12_R1_001.fastq.gz:13030583
-E12_R2_001.fastq.gz:13030583
-E13_R1_001.fastq.gz:11433773
-E13_R2_001.fastq.gz:11433773
-E14_R1_001.fastq.gz:10220049
-E14_R2_001.fastq.gz:10220049
-E15_R1_001.fastq.gz:11311009
-E15_R2_001.fastq.gz:11311009
-E16_R1_001.fastq.gz:13487378
-E16_R2_001.fastq.gz:13487378
-E1_R1_001.fastq.gz:11547975
-E1_R2_001.fastq.gz:11547975
-E2_R1_001.fastq.gz:10754697
-E2_R2_001.fastq.gz:10754697
-E3_R1_001.fastq.gz:11691716
-E3_R2_001.fastq.gz:11691716
-E4_R1_001.fastq.gz:9886838
-E4_R2_001.fastq.gz:9886838
-E5_R1_001.fastq.gz:7511858
-E5_R2_001.fastq.gz:7511858
-E6_R1_001.fastq.gz:11549219
-E6_R2_001.fastq.gz:11549219
-E7_R1_001.fastq.gz:11170722
-E7_R2_001.fastq.gz:11170722
-E8_R1_001.fastq.gz:10598636
-E8_R2_001.fastq.gz:10598636
-E9_R1_001.fastq.gz:11268722
-E9_R2_001.fastq.gz:11268722
+C17_R1_001.fastq.gz:25158606
+C17_R2_001.fastq.gz:25158606
+C18_R1_001.fastq.gz:22733345
+C18_R2_001.fastq.gz:22733345
+C19_R1_001.fastq.gz:24846067
+C19_R2_001.fastq.gz:24846067
+C20_R1_001.fastq.gz:24030431
+C20_R2_001.fastq.gz:24030431
+C21_R1_001.fastq.gz:16484060
+C21_R2_001.fastq.gz:16484060
+C22_R1_001.fastq.gz:22990550
+C22_R2_001.fastq.gz:22990550
+C23_R1_001.fastq.gz:20905338
+C23_R2_001.fastq.gz:20905338
+C24_R1_001.fastq.gz:22578178
+C24_R2_001.fastq.gz:22578178
+C25_R1_001.fastq.gz:29417106
+C25_R2_001.fastq.gz:29417106
+C26_R1_001.fastq.gz:23267238
+C26_R2_001.fastq.gz:23267238
+C27_R1_001.fastq.gz:24990687
+C27_R2_001.fastq.gz:24990687
+C28_R1_001.fastq.gz:23396439
+C28_R2_001.fastq.gz:23396439
+C29_R1_001.fastq.gz:17900262
+C29_R2_001.fastq.gz:17900262
+C30_R1_001.fastq.gz:26361873
+C30_R2_001.fastq.gz:26361873
+C31_R1_001.fastq.gz:24642131
+C31_R2_001.fastq.gz:24642131
+C32_R1_001.fastq.gz:27076800
+C32_R2_001.fastq.gz:27076800
+E10_R1_001.fastq.gz:29131006
+E10_R2_001.fastq.gz:29131006
+E11_R1_001.fastq.gz:18568153
+E11_R2_001.fastq.gz:18568153
+E12_R1_001.fastq.gz:27805087
+E12_R2_001.fastq.gz:27805087
+E13_R1_001.fastq.gz:24455094
+E13_R2_001.fastq.gz:24455094
+E14_R1_001.fastq.gz:22630044
+E14_R2_001.fastq.gz:22630044
+E15_R1_001.fastq.gz:23796710
+E15_R2_001.fastq.gz:23796710
+E16_R1_001.fastq.gz:29523059
+E16_R2_001.fastq.gz:29523059
+E1_R1_001.fastq.gz:25368402
+E1_R2_001.fastq.gz:25368402
+E2_R1_001.fastq.gz:23770610
+E2_R2_001.fastq.gz:23770610
+E3_R1_001.fastq.gz:25641209
+E3_R2_001.fastq.gz:25641209
+E4_R1_001.fastq.gz:21751368
+E4_R2_001.fastq.gz:21751368
+E5_R1_001.fastq.gz:16381619
+E5_R2_001.fastq.gz:16381619
+E6_R1_001.fastq.gz:24937261
+E6_R2_001.fastq.gz:24937261
+E7_R1_001.fastq.gz:24020166
+E7_R2_001.fastq.gz:24020166
+E8_R1_001.fastq.gz:23675842
+E8_R2_001.fastq.gz:23675842
+E9_R1_001.fastq.gz:25068848
+E9_R2_001.fastq.gz:25068848
 ```
 
 
@@ -324,7 +261,7 @@ a) Make folders for raw FastQC results and scripts
 b) Write script for checking quality with FastQC and submit as job on bluewaves
 
 ```
-nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/fastqc_raw.sh
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_raw.sh
 ```
 
 ```  
@@ -334,39 +271,39 @@ nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/fastqc_raw.sh
 #SBATCH --export=NONE
 #SBATCH --mem=100GB
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
 
 module load all/FastQC/0.11.9-Java-11
 
-for file in /data/putnamlab/KITT/hputnam/20201124_Becker_RNASeq/*.gz
+for file in /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/*.gz
 do
-fastqc $file --outdir /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw/qc
+fastqc $file --outdir /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc
 done
 ```
 
 ```
-sbatch /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/fastqc_raw.sh
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_raw.sh
 ```
 
 
 c) Make sure all files were processed
 
 ```
-/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw/qc ls -1 | wc -l 
+/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc ls -1 | wc -l 
 ```
 
 ## Combined QC output into 1 file with MultiQC
 
 ```
 module load MultiQC/1.7-foss-2018b-Python-2.7.15
-multiqc /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw/qc
+multiqc /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc
 
 ```
 
 c) Copy MultiQC files to local computer
 
 ```
-scp -r hputnam@bluewaves.uri.edu:/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw/qc/*.html /Users/hputnam/MyProjects/Becker_E5/qc
+scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/qc
 
 ```
 
@@ -387,7 +324,7 @@ cd trimmed
 c) Write script for Trimming and run on bluewaves
 
 ```
-nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/trim.sh
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/trim.sh
 ```
 
 ```
@@ -397,7 +334,7 @@ nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/trim.sh
 #SBATCH --export=NONE
 #SBATCH --mem=100GB
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
 
 module load fastp/0.19.7-foss-2018b
 
@@ -408,7 +345,7 @@ fastp --in1 /data/putnamlab/KITT/hputnam/20201124_Becker_RNASeq/${file}_R1_001.f
 done
 ```
 ```
-sbatch /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/trim.sh
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/trim.sh
 ```
 
 
@@ -417,13 +354,13 @@ sbatch /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/trim.sh
 a) Check number of files 
 
 ```
-/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/trimmed/ ls -1 | wc -l
+/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/ ls -1 | wc -l
 ```
 
 b) Check number of reads
 
 ```
-zgrep -c "@GWNJ" /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/trimmed/*.gz > trimmed_seq_counts
+zgrep -c "@GWNJ" /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/*.gz > trimmed_seq_counts
 
 
 c) Run FastQC on trimmed data
@@ -431,7 +368,8 @@ c) Run FastQC on trimmed data
 mkdir trimmed_qc
 
 ```
-nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/fastqc_trimmed.sh
+```
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_trimmed.sh
 ```
 
 ```  
@@ -441,28 +379,31 @@ nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/fastqc_trimmed.s
 #SBATCH --export=NONE
 #SBATCH --mem=100GB
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
 
 module load all/FastQC/0.11.9-Java-11
 
-for file in /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/trimmed/*.gz
+for file in /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/*.gz
 do
-fastqc $file --outdir /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/trimmed/trimmed_qc
+fastqc $file --outdir /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc
 done
 ```
 
 ```
-sbatch /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/fastqc_trimmed.sh
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_trimmed.sh
 ```
-
-fastqc E16_R*_001.clean.fastq.gz --outdir /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/trimmed/trimmed_qc
-
+```
+fastqc E16_R*_001.clean.fastq.gz --outdir /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc
+```
 
 d) Run MultiQC on trimmed data 
 
-scp -r hputnam@bluewaves.uri.edu:/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/trimmed/trimmed_qc/*.html /Users/hputnam/MyProjects/Becker_E5/trimmed_qc
+```
+scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/trimmed_qc
 
-/Users/hputnam/MultiQC/scripts/multiqc .
+/Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/multiqc .
+
+```
 
 # 6) Align reads 
 
@@ -480,7 +421,7 @@ gunzip Pver_genome_assembly_v1.0.gff3.gz
 [HiSat2 Github](https://github.com/DaehwanKimLab/hisat2)
 
 ```
-nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/Hisat2_genome_build.sh
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_genome_build.sh
 ```
 
 ```
@@ -490,14 +431,15 @@ nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/Hisat2_genome_bu
 #SBATCH --export=NONE
 #SBATCH --mem=100GB
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
 
 module load HISAT2/2.1.0-foss-2018b
 
 hisat2-build -f /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.fasta ./Pver_ref
 
 ```
-sbatch /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/Hisat2_genome_build.sh
+```
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_genome_build.sh
 ```
 
 b) Align reads to genome
@@ -505,7 +447,7 @@ b) Align reads to genome
 mkdir mapped
 
 ```
-nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/Hisat2_align2.sh
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
 ```
 
 ```
@@ -515,7 +457,7 @@ nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/Hisat2_align2.sh
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
 #SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
 
@@ -529,17 +471,18 @@ done
 ```
 
 ```
-sbatch /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/Hisat2_align2.sh
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
 ```
 
 ## Sort and convert sam to bam
 
 ```
-nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/SAMtoBAM.sh
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
 ```
+```
+/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/*.sam
 
-/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/*.sam
-
+```
 ```
 #!/bin/bash
 #SBATCH -t 72:00:00
@@ -547,7 +490,7 @@ nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/SAMtoBAM.sh
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
 #SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
 
