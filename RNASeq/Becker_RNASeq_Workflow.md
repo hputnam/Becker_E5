@@ -41,7 +41,6 @@ http://pver.reefgenomics.org/download/Pver_genome_assembly_v1.0.gff3.gz
 ### Check to ensure data transfer of genome files
 reef genomics md5 checksums
 
-
 Core files	MD5 hash
 Genome scaffolds			fb4d03ba2a9016fabb284d10e513f873
 Gene models (CDS)		019359071e3ab319cd10e8f08715fc71
@@ -59,17 +58,23 @@ On Bluewaves
 ### Functional annotation
 [functional annotatino xlsx file link](https://oup.silverchair-cdn.com/oup/backfile/Content_public/Journal/gbe/12/10/10.1093_gbe_evaa184/1/evaa184_supplementary_data.zip?Expires=1608305338&Signature=q7Y3SsLOTtlk5ZF6UMMLGy~HRtUFQqRbQt8ZiasnG3EeO11vmHcNgToGSowqYxQK1vibkmPEzMWDeS6u8qG~D20t7G31abz9zbpFrdW9T0cisHAQwY5g~lyK-WRFd-EDYW1eHFI4x~vU0G0xopva7kx1KlXdWxyZW86Fr7CDckFFvav78SAvZtmcvL8WuY4tWmEf33LK4ruuX7ZndqT8k~Kzag57phDdN1qleKWmeAf2wI-Wn8B4w-gV7UU4WQV1Ybs1wwdmexfPxH-DYEuSm-3T4sFq52FW1eRa8WD0V9XDUyysgajGh3sXRxHy-hEUUdnrzlVEk9~Doo9l9IIaUA__&Key-Pair-Id=APKAIE5G5CRDK6RD3PGA)
 
-symlink files in RNASeq_Becker_E5
 
+# make folder structure
 ```
 mkdir data
 cd data
-mkdir raw
-mkdir refs
 
+<<<<<<< HEAD
 ln -s ../../../../../KITT/hputnam/20201209_Becker_RNASeq_combo/combo/*.fastq.gz ./raw/
 ln -s ../../../../../REFS/Pverr/ ./refs/
+=======
+>>>>>>> 720baf0852d2b6cf309569a6a2b229fe2467dfa3
 ```
+
+# Downloaded files
+
+## path where we stored the RAW fastq.gz files
+```/data/putnamlab/KITT/hputnam/20201209_Becker_RNASeq_combo/combo```
 
 # 2) Check file integrity 
 
@@ -94,7 +99,11 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/check_transfer.sh
 #SBATCH --account=putnamlab ###primary account
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw ###path
 
+<<<<<<< HEAD
 md5sum /dbecks/Becker_E5/Becker_RNASeq/data/*.gz > URIcheckmd5.md5
+=======
+md5sum /data/putnamlab/KITT/hputnam/20201209_Becker_RNASeq_combo/combo/*.gz > URIcheckmd5.md5
+>>>>>>> 720baf0852d2b6cf309569a6a2b229fe2467dfa3
 
 ```
 
@@ -106,6 +115,7 @@ sbatch check_transfer.sh
 
 ### Checksum from Genewiz
 ```
+<<<<<<< HEAD
 317dd03e9704a73347c5ccabb86d1e18  C17_R1_001.fastq.gz
 b6368b2789cfacc8e8adbadf45d6c533  C17_R2_001.fastq.gz
 adb1af7c62b309f7100117f50ebe846d  C18_R1_001.fastq.gz
@@ -251,7 +261,25 @@ E8_R1_001.fastq.gz:23675842
 E8_R2_001.fastq.gz:23675842
 E9_R1_001.fastq.gz:25068848
 E9_R2_001.fastq.gz:25068848
+=======
+/data/putnamlab/KITT/hputnam/20201209_Becker_RNASeq_combo/combo/md5sum_list.txt
 ```
+
+
+### Checksum from files on Bluewaves
+
+
+
+c) Count number of reads per file 
+
+check for code after @ in fastq.gz files(e.g.,@GWNJ).
+
+```
+zcat *.gz | echo $((`wc -l`/4)) > rawread.counts.txt
+
+>>>>>>> 720baf0852d2b6cf309569a6a2b229fe2467dfa3
+```
+
 
 
 # 3) Run FastQC
@@ -271,11 +299,19 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_raw.sh
 #SBATCH --export=NONE
 #SBATCH --mem=100GB
 #SBATCH --account=putnamlab
+<<<<<<< HEAD
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
 
 module load all/FastQC/0.11.9-Java-11
 
 for file in /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/*.gz
+=======
+#SBATCH -D /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/
+
+module load all/FastQC/0.11.9-Java-11
+
+for file in /data/putnamlab/KITT/hputnam/20201209_Becker_RNASeq_combo/combo/*.gz
+>>>>>>> 720baf0852d2b6cf309569a6a2b229fe2467dfa3
 do
 fastqc $file --outdir /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc
 done
