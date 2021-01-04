@@ -277,7 +277,7 @@ check for code after @ in fastq.gz files(e.g.,@GWNJ).
 ```
 zcat *.gz | echo $((`wc -l`/4)) > rawread.counts.txt
 
->>>>>>> 720baf0852d2b6cf309569a6a2b229fe2467dfa3
+>>>>>>> 1526607178
 ```
 
 
@@ -298,20 +298,17 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_raw.sh
 #SBATCH --nodes=1 --ntasks-per-node=1
 #SBATCH --export=NONE
 #SBATCH --mem=100GB
+#SBATCH --mail-type=BEGIN,END,FAIL #email you when job starts, stops and/or fails
+#SBATCH --mail-user=danielle_becker@uri.edu #your email to send notifications
 #SBATCH --account=putnamlab
-<<<<<<< HEAD
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
+#SBATCH --error="script_error" #if your job fails, the error report will be put in this file
+#SBATCH --output="output_script" #once your job is completed, any final job report comments will be put in this file
 
-module load all/FastQC/0.11.9-Java-11
+module load FastQC/0.11.8-Java-1.8
 
 for file in /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/*.gz
-=======
-#SBATCH -D /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/
 
-module load all/FastQC/0.11.9-Java-11
-
-for file in /data/putnamlab/KITT/hputnam/20201209_Becker_RNASeq_combo/combo/*.gz
->>>>>>> 720baf0852d2b6cf309569a6a2b229fe2467dfa3
 do
 fastqc $file --outdir /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc
 done
@@ -319,6 +316,8 @@ done
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_raw.sh
+
+#Submitted batch job 1816766 on 20210104
 ```
 
 
