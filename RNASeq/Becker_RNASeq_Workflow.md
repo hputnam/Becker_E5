@@ -64,11 +64,10 @@ On Bluewaves
 mkdir data
 cd data
 
-<<<<<<< HEAD
+
 ln -s ../../../../../KITT/hputnam/20201209_Becker_RNASeq_combo/combo/*.fastq.gz ./raw/
 ln -s ../../../../../REFS/Pverr/ ./refs/
-=======
->>>>>>> 720baf0852d2b6cf309569a6a2b229fe2467dfa3
+
 ```
 
 # Downloaded files
@@ -99,11 +98,11 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/check_transfer.sh
 #SBATCH --account=putnamlab ###primary account
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw ###path
 
-<<<<<<< HEAD
+
 md5sum /dbecks/Becker_E5/Becker_RNASeq/data/*.gz > URIcheckmd5.md5
-=======
+
 md5sum /data/putnamlab/KITT/hputnam/20201209_Becker_RNASeq_combo/combo/*.gz > URIcheckmd5.md5
->>>>>>> 720baf0852d2b6cf309569a6a2b229fe2467dfa3
+
 
 ```
 
@@ -324,7 +323,7 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_raw.sh
 c) Make sure all files were processed
 
 ```
-/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc ls -1 | wc -l 
+ls -1 | wc -l 
 ```
 
 ## Combined QC output into 1 file with MultiQC
@@ -341,8 +340,6 @@ c) Copy MultiQC files to local computer
 scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/qc
 
 ```
-
-The read count is lower than the reads quoted by Genewiz. They are re-sequencing to make up the difference. 
 
 
 # 4) Trim and clean reads 
