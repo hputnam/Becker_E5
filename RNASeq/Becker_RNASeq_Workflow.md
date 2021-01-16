@@ -365,19 +365,24 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/trim.sh
 #SBATCH --nodes=1 --ntasks-per-node=1
 #SBATCH --export=NONE
 #SBATCH --mem=100GB
+#SBATCH --mail-type=BEGIN,END,FAIL #email you when job starts, stops and/or fails
+#SBATCH --mail-user=danielle_becker@uri.edu #your email to send notifications
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
+#SBATCH --error="script_error" #if your job fails, the error report will be put in this file
+#SBATCH --output="output_script" #once your job is completed, any final job report comments will be put in this file
 
 module load fastp/0.19.7-foss-2018b
 
-for file in "C17" "C18" "C19" "C20" "C21" "C22" "C23" "C24" "C25" "C26" "C27" "C28" "C29" "C30" "C31" "C32" \
-"E1" "E2" "E3" "E4" "E5" "E6" "E7" "E8" "E9" "E10" "E11" "E12" "E13" "E14" "E15" "E16" \
-do
-fastp --in1 /data/putnamlab/KITT/hputnam/20201124_Becker_RNASeq/${file}_R1_001.fastq.gz --in2 /data/putnamlab/KITT/hputnam/20201124_Becker_RNASeq/${file}_R2_001.fastq.gz --out1 /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/trimmed/${file}_R1_001.clean.fastq.gz --out2 /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/trimmed/${file}_R2_001.clean.fastq.gz --qualified_quality_phred 20 --unqualified_percent_limit 10 --length_required 100 detect_adapter_for_pe --cut_right cut_right_window_size 5 cut_right_mean_quality 20
+array1=($(ls *.fastq.gz)) #Make an array of sequences to trim
+for i in ${array1[@]}; do #Make a loop that trims each file in the array
+fastp --in1 ${i} --in2 $(echo ${i}|sed s/_R1/_R2/) --out1 ../trimmed/${i} --out2 ../trimmed/$(echo ${i}|sed s/_R1/_R2/) --qualified_quality_phred 20 --unqualified_percent_limit 10 --length_required 100 detect_adapter_for_pe --cut_right cut_right_window_size 5 cut_right_mean_quality 20
 done
+
 ```
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/trim.sh
+Submitted batch job 1819574
 ```
 
 
@@ -476,8 +481,9 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_genome_buil
 
 b) Align reads to genome
 
+```
 mkdir mapped
-
+```
 ```
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
 ```
