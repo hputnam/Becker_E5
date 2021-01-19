@@ -307,7 +307,6 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_raw.sh
 module load FastQC/0.11.8-Java-1.8
 
 for file in /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/*.gz
-
 do
 fastqc $file --outdir /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc
 done
@@ -324,6 +323,7 @@ c) Make sure all files were processed
 
 ```
 ls -1 | wc -l 
+#64
 ```
 
 ## Combined QC output into 1 file with MultiQC
@@ -391,17 +391,18 @@ Submitted batch job 1819574
 a) Check number of files 
 
 ```
-/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/ ls -1 | wc -l
+ls -1 | wc -l 
+#64
 ```
 
 b) Check number of reads
 
 ```
-zgrep -c "@GWNJ" /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/*.gz > trimmed_seq_counts
-
+zgrep -c "@GWNJ" *.gz > trimmed_seq_counts
+```
 
 c) Run FastQC on trimmed data
-
+```
 mkdir trimmed_qc
 
 ```
@@ -415,8 +416,12 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_trimmed.sh
 #SBATCH --nodes=1 --ntasks-per-node=1
 #SBATCH --export=NONE
 #SBATCH --mem=100GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
+#SBATCH --error="script_error" 
+#SBATCH --output="output_script" 
 
 module load all/FastQC/0.11.9-Java-11
 
@@ -429,9 +434,7 @@ done
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_trimmed.sh
 ```
-```
-fastqc E16_R*_001.clean.fastq.gz --outdir /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc
-```
+
 
 d) Run MultiQC on trimmed data 
 
@@ -467,8 +470,12 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_genome_build.
 #SBATCH --nodes=1 --ntasks-per-node=1
 #SBATCH --export=NONE
 #SBATCH --mem=100GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
+#SBATCH --error="script_error" 
+#SBATCH --output="output_script"
 
 module load HISAT2/2.1.0-foss-2018b
 
@@ -494,17 +501,22 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
 #SBATCH --nodes=1 --ntasks-per-node=10
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
 #SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
+#SBATCH --error="script_error" 
+#SBATCH --output="output_script"
+
 
 module load HISAT2/2.1.0-foss-2018b
 
 for i in "C17" "C18" "C19" "C20" "C21" "C22" "C23" "C24" "C25" "C26" "C27" "C28" "C29" "C30" "C31" "C32" "E1" "E2" "E3" "E4" "E5" "E6" "E7" "E8" "E9" "E10" "E11" "E12" "E13" "E14" "E15" "E16"
 do
-hisat2 -p 48 --rna-strandness RF --dta -q -x /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw/Pver_ref -1 /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/trimmed/${i}_R1_001.clean.fastq.gz \
--2 /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/trimmed/${i}_R2_001.clean.fastq.gz -S /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/${i}.sam
+hisat2 -p 48 --rna-strandness RF --dta -q -x /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/Pver_ref -1 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/${i}_R1_001.clean.fastq.gz \
+-2 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/${i}_R2_001.clean.fastq.gz -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sam
 done
 ```
 
@@ -527,26 +539,30 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
 #SBATCH --nodes=1 --ntasks-per-node=10
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
 #SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
+#SBATCH --error="script_error" 
+#SBATCH --output="output_script"
 
 module load SAMtools/1.9-foss-2018b
 
 for i in "C17" "C18" "C19" "C20" "C21" "C22" "C23" "C24" "C25" "C26" "C27" "C28" "C29" "C30" "C31" "C32" "E1" "E2" "E3" "E4" "E5" "E6" "E7" "E8" "E9" "E10" "E11" "E12" "E13" "E14" "E15" "E16"
 do
-samtools view -b -S /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/${i}.sam | samtools sort -o /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/${i}.sorted.bam -O bam
+samtools view -b -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sam | samtools sort -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sorted.bam -O bam
 done
 ```
 
 ```
-sbatch /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/SAMtoBAM.sh
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
 ```
 
 ### Remove Sam files to save space
 ```
-rm /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/*.sam
+rm /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/mapped/*.sam
 
 ```
 
@@ -563,7 +579,7 @@ cd counts
 b) Assemble and estimate reads 
 
 ```
-nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/StringTie_Assemble.sh
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.sh
 ```
 
 ```
@@ -572,22 +588,26 @@ nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/StringTie_Assemb
 #SBATCH --nodes=1 --ntasks-per-node=10
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
 #SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
+#SBATCH --error="script_error" 
+#SBATCH --output="output_script"
 
 module load StringTie/1.3.5-foss-2018b
 
 
 for i in "C17" "C18" "C19" "C20" "C21" "C22" "C23" "C24" "C25" "C26" "C27" "C28" "C29" "C30" "C31" "C32" "E1" "E2" "E3" "E4" "E5" "E6" "E7" "E8" "E9" "E10" "E11" "E12" "E13" "E14" "E15" "E16"
 do
-stringtie /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/${i}.sorted.bam -p 48 -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/${i}.gtf 
+stringtie /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sorted.bam -p 48 -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.gtf 
 done
 ```
 
 ```
-sbatch /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/StringTie_Assemble.sh
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.sh
 ```
 
 
@@ -636,7 +656,7 @@ ls *gtf > mergelist.txt
 f) Create gene matrix
 
 ```
-nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/GTFtoCounts.sh
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/GTFtoCounts.sh
 ```
 
 ```
@@ -645,10 +665,14 @@ nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/GTFtoCounts.sh
 #SBATCH --nodes=1 --ntasks-per-node=10
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
 #SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
+#SBATCH --error="script_error" 
+#SBATCH --output="output_script"
 
 module load StringTie/1.3.5-foss-2018b
 module load Python/2.7.15-foss-2018b
@@ -658,13 +682,13 @@ python prepDE.py  -i samplelist.txt -g Poc_gene_count_matrix.csv
 ```
 
 ```
-sbatch /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/GTFtoCounts.sh
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/GTFtoCounts.sh
 ```
 
 
 g) Secure-copy gene counts onto local computer
 
 ```
-scp jillashey@bluewaves.uri.edu:/data/putnamlab/jillashey/Francois_data/Florida/stringTie/Ofav/GTF_merge/gene_count_ofav_matrix.csv /Users/jillashey/Desktop/Putnamlab/Repositories/SedimentStress/SedimentStress/Output/DESeq2/star/
+scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/Poc_gene_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
 ```
 
