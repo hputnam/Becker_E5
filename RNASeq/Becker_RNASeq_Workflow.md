@@ -419,11 +419,11 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_trimmed.sh
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc
 #SBATCH --error="script_error" 
 #SBATCH --output="output_script" 
 
-module load all/FastQC/0.11.9-Java-11
+module load FastQC/0.11.8-Java-1.8
 
 for file in /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/*.gz
 do
@@ -433,15 +433,17 @@ done
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_trimmed.sh
+Submitted batch job 1834516
 ```
 
 
 d) Run MultiQC on trimmed data 
-
+```
+module load MultiQC/1.7-foss-2018b-Python-2.7.15
+multiqc /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc
+```
 ```
 scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/trimmed_qc
-
-/Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/multiqc .
 
 ```
 
@@ -473,7 +475,7 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_genome_build.
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed
 #SBATCH --error="script_error" 
 #SBATCH --output="output_script"
 
@@ -504,7 +506,7 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed
 #SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
 #SBATCH --error="script_error" 
@@ -513,8 +515,8 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
 
 module load HISAT2/2.1.0-foss-2018b
 
-for i in "C17" "C18" "C19" "C20" "C21" "C22" "C23" "C24" "C25" "C26" "C27" "C28" "C29" "C30" "C31" "C32" "E1" "E2" "E3" "E4" "E5" "E6" "E7" "E8" "E9" "E10" "E11" "E12" "E13" "E14" "E15" "E16"
-do
+array1=($(ls *.fastq.gz)) #Make an array of trimmed sequences 
+for i in ${array1[@]}; do 
 hisat2 -p 48 --rna-strandness RF --dta -q -x /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/Pver_ref -1 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/${i}_R1_001.clean.fastq.gz \
 -2 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/${i}_R2_001.clean.fastq.gz -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sam
 done
@@ -542,7 +544,7 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed
 #SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
 #SBATCH --error="script_error" 
@@ -550,8 +552,8 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
 
 module load SAMtools/1.9-foss-2018b
 
-for i in "C17" "C18" "C19" "C20" "C21" "C22" "C23" "C24" "C25" "C26" "C27" "C28" "C29" "C30" "C31" "C32" "E1" "E2" "E3" "E4" "E5" "E6" "E7" "E8" "E9" "E10" "E11" "E12" "E13" "E14" "E15" "E16"
-do
+array1=($(ls *.fastq.gz)) #Make an array of trimmed sequences 
+for i in ${array1[@]}; do
 samtools view -b -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sam | samtools sort -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sorted.bam -O bam
 done
 ```
@@ -591,7 +593,7 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.s
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed
 #SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
 #SBATCH --error="script_error" 
@@ -600,8 +602,8 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.s
 module load StringTie/1.3.5-foss-2018b
 
 
-for i in "C17" "C18" "C19" "C20" "C21" "C22" "C23" "C24" "C25" "C26" "C27" "C28" "C29" "C30" "C31" "C32" "E1" "E2" "E3" "E4" "E5" "E6" "E7" "E8" "E9" "E10" "E11" "E12" "E13" "E14" "E15" "E16"
-do
+array1=($(ls *.fastq.gz)) #Make an array of trimmed sequences 
+for i in ${array1[@]}; do
 stringtie /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sorted.bam -p 48 -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.gtf 
 done
 ```
