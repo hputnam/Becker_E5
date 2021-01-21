@@ -399,6 +399,73 @@ b) Check number of reads
 
 ```
 zgrep -c "@GWNJ" *.gz > trimmed_seq_counts
+
+C21_R1_001.fastq.gz:12569436
+C21_R2_001.fastq.gz:12569436
+C23_R1_001.fastq.gz:15920237
+C18_R1_001.fastq.gz:17448563
+C23_R2_001.fastq.gz:15920237
+C22_R1_001.fastq.gz:17783162
+C20_R1_001.fastq.gz:18346189
+C22_R2_001.fastq.gz:17783162
+C26_R2_001.fastq.gz:17679573
+C18_R2_001.fastq.gz:17448563
+C24_R1_001.fastq.gz:17244418
+C26_R1_001.fastq.gz:17679573
+C19_R2_001.fastq.gz:18977336
+C24_R2_001.fastq.gz:17244418
+C20_R2_001.fastq.gz:18346189
+C19_R1_001.fastq.gz:18977336
+C17_R1_001.fastq.gz:19053464
+C17_R2_001.fastq.gz:19053464
+C25_R1_001.fastq.gz:22683683
+C25_R2_001.fastq.gz:22683683
+C29_R1_001.fastq.gz:13714128
+C27_R1_001.fastq.gz:18756419
+C29_R2_001.fastq.gz:13714128
+C27_R2_001.fastq.gz:18756419
+C28_R1_001.fastq.gz:18131021
+E11_R1_001.fastq.gz:14185860
+E11_R2_001.fastq.gz:14185860
+C28_R2_001.fastq.gz:18131021
+C31_R1_001.fastq.gz:18796208
+C30_R1_001.fastq.gz:20242216
+C31_R2_001.fastq.gz:18796208
+C30_R2_001.fastq.gz:20242216
+C32_R1_001.fastq.gz:20583523
+C32_R2_001.fastq.gz:20583523
+E10_R1_001.fastq.gz:22441661
+E12_R1_001.fastq.gz:21608172
+E10_R2_001.fastq.gz:22441661
+E13_R1_001.fastq.gz:18961264
+E12_R2_001.fastq.gz:21608172
+E13_R2_001.fastq.gz:18961264
+E14_R1_001.fastq.gz:17170729
+E14_R2_001.fastq.gz:17170729
+E15_R1_001.fastq.gz:17920244
+E15_R2_001.fastq.gz:17920244
+E1_R1_001.fastq.gz:19467393
+E5_R1_001.fastq.gz:12558989
+E1_R2_001.fastq.gz:19467393
+E4_R1_001.fastq.gz:16639960
+E16_R1_001.fastq.gz:22697805
+E5_R2_001.fastq.gz:12558989
+E2_R2_001.fastq.gz:18593178
+E4_R2_001.fastq.gz:16639960
+E3_R1_001.fastq.gz:19740214
+E2_R1_001.fastq.gz:18593178
+E16_R2_001.fastq.gz:22697805
+E3_R2_001.fastq.gz:19740214
+E7_R1_001.fastq.gz:18431790
+E6_R1_001.fastq.gz:18968203
+E6_R2_001.fastq.gz:18968203
+E7_R2_001.fastq.gz:18431790
+E8_R1_001.fastq.gz:17970740
+E8_R2_001.fastq.gz:17970740
+E9_R1_001.fastq.gz:19333946
+E9_R2_001.fastq.gz:19333946
+
+
 ```
 
 c) Run FastQC on trimmed data
@@ -475,17 +542,18 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_genome_build.
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs
 #SBATCH --error="script_error" 
 #SBATCH --output="output_script"
 
 module load HISAT2/2.1.0-foss-2018b
 
-hisat2-build -f /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.fasta ./Pver_ref
+hisat2-build -f /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/Pver_genome_assembly_v1.0.fasta ./Pver_ref
 
 ```
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_genome_build.sh
+Submitted batch job 1834918
 ```
 
 b) Align reads to genome
@@ -500,7 +568,7 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
 ```
 #!/bin/bash
 #SBATCH -t 72:00:00
-#SBATCH --nodes=1 --ntasks-per-node=10
+#SBATCH --nodes=1 --ntasks-per-node=5
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
@@ -515,25 +583,23 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
 
 module load HISAT2/2.1.0-foss-2018b
 
-array1=($(ls *.fastq.gz)) #Make an array of trimmed sequences 
+array1=($(ls *.fastq.gz)) 
 for i in ${array1[@]}; do 
-hisat2 -p 48 --rna-strandness RF --dta -q -x /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/Pver_ref -1 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/${i}_R1_001.clean.fastq.gz \
--2 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/${i}_R2_001.clean.fastq.gz -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sam
+hisat2 -p 48 --rna-strandness RF --dta -q -x /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pver_ref -1 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/_R1_001${i} \
+-2 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/_R2_001${i} -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sam
 done
 ```
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
+#Submitted batch job 1834922
+#the files ran very quickly, may be concerning?
 ```
 
 ## Sort and convert sam to bam
 
 ```
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
-```
-```
-/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/*.sam
-
 ```
 ```
 #!/bin/bash
@@ -544,7 +610,7 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/
 #SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
 #SBATCH --error="script_error" 
@@ -552,7 +618,7 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
 
 module load SAMtools/1.9-foss-2018b
 
-array1=($(ls *.fastq.gz)) #Make an array of trimmed sequences 
+array1=($(ls *.fastq.gz)) 
 for i in ${array1[@]}; do
 samtools view -b -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sam | samtools sort -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sorted.bam -O bam
 done
@@ -602,7 +668,7 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.s
 module load StringTie/1.3.5-foss-2018b
 
 
-array1=($(ls *.fastq.gz)) #Make an array of trimmed sequences 
+array1=($(ls *.fastq.gz)) 
 for i in ${array1[@]}; do
 stringtie /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sorted.bam -p 48 -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.gtf 
 done
@@ -619,6 +685,7 @@ c) Merge stringTie gtf results
 ```
 ls *gtf > mergelist.txt
 
+```
 ```
  nano samplelist.txt
  
@@ -654,7 +721,9 @@ ls *gtf > mergelist.txt
  E14	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E14.gtf    
  E15	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E15.gtf  
  E16	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E16.gtf    
-   
+
+```
+
 f) Create gene matrix
 
 ```
