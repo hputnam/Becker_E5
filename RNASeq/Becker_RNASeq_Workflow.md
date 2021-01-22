@@ -585,15 +585,15 @@ module load HISAT2/2.1.0-foss-2018b
 
 array1=($(ls *.fastq.gz)) 
 for i in ${array1[@]}; do 
-hisat2 -p 48 --rna-strandness RF --dta -q -x /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pver_ref -1 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/_R1_001${i} \
--2 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/_R2_001${i} -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sam
+hisat2 -p 48 --rna-strandness RF --dta -q -x /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pver_ref -1 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/${i} \
+-2 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/$(echo ${i}|sed s/_R1/_R2/) -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sam
 done
 ```
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
-#Submitted batch job 1834922
-#the files ran very quickly, may be concerning?
+#Submitted batch job 1834952
+
 ```
 
 ## Sort and convert sam to bam
@@ -604,28 +604,29 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
 ```
 #!/bin/bash
 #SBATCH -t 72:00:00
-#SBATCH --nodes=1 --ntasks-per-node=10
+#SBATCH --nodes=1 --ntasks-per-node=5
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/
-#SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
 #SBATCH --error="script_error" 
 #SBATCH --output="output_script"
 
 module load SAMtools/1.9-foss-2018b
 
-array1=($(ls *.fastq.gz)) 
+array1=($(ls *.fastq.gz.sam))  
 for i in ${array1[@]}; do
-samtools view -b -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sam | samtools sort -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sorted.bam -O bam
+samtools view -b -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i} | samtools sort -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sorted.bam -O bam
 done
 ```
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
+
+
 ```
 
 ### Remove Sam files to save space
