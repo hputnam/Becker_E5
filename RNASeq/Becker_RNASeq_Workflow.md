@@ -600,6 +600,8 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
 
 ```
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
+
+#There will be lots of .tmp file versions in your folder, this is normal while this script runs and they should delete at the end to make one sorted.bam file
 ```
 ```
 #!/bin/bash
@@ -617,15 +619,14 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
 
 module load SAMtools/1.9-foss-2018b
 
-array1=($(ls *.fastq.gz.sam))  
+array1=($(ls *.sam))  
 for i in ${array1[@]}; do
-samtools view -b -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i} | samtools sort -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sorted.bam -O bam
+samtools sort -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sorted.bam -O bam /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}  
 done
 ```
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
-
 
 ```
 
