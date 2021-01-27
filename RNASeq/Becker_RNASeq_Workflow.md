@@ -583,7 +583,10 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
 
 module load HISAT2/2.1.0-foss-2018b
 
-array1=($(ls *.fastq.gz)) 
+#Aligning paired end reads
+#Has the R1 in array1 because the sed in the for loop changes it to an R2. SAM files are of both forward and reverse reads
+
+array1=($(ls *_R1_001.fastq.gz)) 
 for i in ${array1[@]}; do 
 hisat2 -p 48 --rna-strandness RF --dta -q -x /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pver_ref -1 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/${i} \
 -2 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/$(echo ${i}|sed s/_R1/_R2/) -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sam
@@ -592,8 +595,7 @@ done
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
-#Submitted batch job 1834952
-
+#Submitted batch job 19930
 ```
 
 ## Sort and convert sam to bam
