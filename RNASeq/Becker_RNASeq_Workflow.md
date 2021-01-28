@@ -596,6 +596,7 @@ done
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
 #Submitted batch job 19930
+
 ```
 
 ## Sort and convert sam to bam
@@ -608,7 +609,7 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
 ```
 #!/bin/bash
 #SBATCH -t 72:00:00
-#SBATCH --nodes=1 --ntasks-per-node=5
+#SBATCH --nodes=1 --ntasks-per-node=8
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
@@ -623,18 +624,18 @@ module load SAMtools/1.9-foss-2018b
 
 array1=($(ls *.sam))  
 for i in ${array1[@]}; do
-samtools sort -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sorted.bam -O bam /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}  
+samtools sort -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sorted.bam /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}  
 done
 ```
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
-
+#Submitted batch job 19931
 ```
 
 ### Remove Sam files to save space
 ```
-rm /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/mapped/*.sam
+rm /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/*.sam
 
 ```
 
@@ -657,13 +658,13 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.s
 ```
 #!/bin/bash
 #SBATCH -t 72:00:00
-#SBATCH --nodes=1 --ntasks-per-node=10
+#SBATCH --nodes=1 --ntasks-per-node=8
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
 #SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
 #SBATCH --error="script_error" 
@@ -672,16 +673,16 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.s
 module load StringTie/1.3.5-foss-2018b
 
 
-array1=($(ls *.fastq.gz)) 
+array1=($(ls *.bam)) 
 for i in ${array1[@]}; do
-stringtie /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sorted.bam -p 48 -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.gtf 
+stringtie -p 48 --rf -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/${i}.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}
 done
 ```
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.sh
+#Submitted batch job 19957
 ```
-
 
 
 c) Merge stringTie gtf results 
