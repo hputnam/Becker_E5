@@ -687,64 +687,76 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble
 
 c) Merge stringTie gtf results 
 
+#in this step we are making a file with all the gtf names and stringtie will merge them all together for a master lis for your specific genes
+
 ```
 ls *gtf > mergelist.txt
+cat mergelist.txt
+
+module load StringTie/2.1.1-GCCcore-7.3.0
+
+stringtie --merge -p 8 -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o stringtie_merged.gtf mergelist.txt
 
 ```
-```
- nano samplelist.txt
- 
- C17	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C17.gtf
- C18	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C18.gtf
- C19	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C19.gtf
- C20	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C20.gtf
- C21	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C21.gtf
- C22	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C22.gtf
- C23	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C23.gtf
- C24	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C24.gtf
- C25	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C25.gtf
- C26	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C26.gtf
- C27	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C27.gtf
- C28	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C28.gtf
- C29	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C29.gtf
- C30	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C30.gtf
- C31	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C31.gtf
- C32	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/C32.gtf
- E1		/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E1.gtf
- E2		/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E2.gtf
- E3		/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E3.gtf
- E4		/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E4.gtf
- E5		/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E5.gtf
- E6		/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E6.gtf
- E7		/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E7.gtf
- E8		/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E8.gtf
- E9		/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E9.gtf
- E10	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E10.gtf  
- E11	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E11.gtf     
- E12	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E12.gtf    
- E13	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E13.gtf    
- E14	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E14.gtf    
- E15	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E15.gtf  
- E16	/data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/data/mapped/E16.gtf    
+d) Assess assembly quality
 
 ```
+module load gffcompare/0.11.5-foss-2018b
 
+gffcompare -r /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o merged stringtie_merged.gtf
+
+```
+e) Re-estimate assembly
+
+```
+module load StringTie/2.1.1-GCCcore-7.3.0
+
+F=/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/
+
+array1=($(ls $F/*bam))
+for i in ${array1[@]}
+do
+stringtie -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o ${i}.merge.gtf ${i}
+echo "${i}"
+done
+
+#Submitted job 1836926
+
+# move merged GTF files to their own folder 
+mv *merge.gtf ../GTF_merge
+
+```
 f) Create gene matrix
 
+
 ```
+#making a sample txt file with all gtf file names
+
+F=/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge
+
+array2=($(ls *merge.gtf))
+
+for i in ${array2[@]}
+do
+echo "${i} $F${i}" >> sample_list.txt
+done
+```
+```
+#create gene matrix
+
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/GTFtoCounts.sh
 ```
 
 ```
 #!/bin/bash
 #SBATCH -t 72:00:00
-#SBATCH --nodes=1 --ntasks-per-node=10
+#SBATCH --nodes=1 --ntasks-per-node=8
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge
 #SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
 #SBATCH --error="script_error" 
@@ -755,6 +767,7 @@ module load Python/2.7.15-foss-2018b
 
 
 python prepDE.py  -i samplelist.txt -g Poc_gene_count_matrix.csv
+
 ```
 
 ```
