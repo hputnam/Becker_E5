@@ -798,14 +798,34 @@ E9_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Bec
 ```
 ```
 #create gene matrix
+```
 
-module load StringTie/2.1.1-GCCcore-7.3.0
-module load Python/2.7.15-foss-2018b
+```
+nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/GTFtoCounts.sh
+```
 
-F=/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge
+```
+#!/bin/bash
+#SBATCH -t 72:00:00
+#SBATCH --nodes=1 --ntasks-per-node=5
+#SBATCH --export=NONE
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu
+#SBATCH --account=putnamlab
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge
+#SBATCH --cpus-per-task=3
+#SBATCH --error="script_error"
+#SBATCH --output="output_script"
 
-# get prepDE.py function here (https://github.com/gpertea/stringtie/blob/master/prepDE.py)
-python /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/prepDE.py -g Poc_gene_count_matrix.csv -i sample_list.txt
+module load StringTie/2.1.4-GCC-9.3.0
+module load Python/2.7.18-GCCcore-9.3.0
+
+python prepDE.py -g Poc_gene_count_matrix.csv -i sample_list.txt
+
+##getting error: File "prepDE.py", line 155, in <module>
+t_id=RE_TRANSCRIPT_ID.search(v[8]).group(1)
+AttributeError: 'NoneType' object has no attribute 'group'
+#Kevin said that some sections of the gtf files are corrupted and may be due to an outdated stringtie, working through this
 
 ```
 
