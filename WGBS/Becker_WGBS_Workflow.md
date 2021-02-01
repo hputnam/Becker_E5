@@ -1,7 +1,7 @@
 20201206 Becker WGBS
 
 from within home folder on Bluewaves/Andromeda
-
+```
 mkdir /data/putnamlab/hputnam/Becker_E5
 
 cd /data/putnamlab/hputnam/Becker_E5
@@ -41,24 +41,29 @@ Genewiz Sample Name | Putnam	Library Name | i7 Index Name |i7 Index Sequence |i5
 30	|C32	|i7_UDI0030	|CAAGCAGAAGACGGCATACGAGATTCCTGTAAGTGACTGGAGTTCAGACGTGT	|i5UDI0030	|AATGATACGGCGACCACCGAGATCTACACTGACAAGCACACTCTTTCCCTACACGAC
 31	|E15	|i7_UDI0031	|CAAGCAGAAGACGGCATACGAGATAGAATGCCGTGACTGGAGTTCAGACGTGT	|i5UDI0031	|AATGATACGGCGACCACCGAGATCTACACCTAGCTTGACACTCTTTCCCTACACGAC
 32	|C17	|i7_UDI0032	|CAAGCAGAAGACGGCATACGAGATGAGGCATTGTGACTGGAGTTCAGACGTGT	|i5UDI0032	|AATGATACGGCGACCACCGAGATCTACACTCGATCCAACACTCTTTCCCTACACGAC
-
+```
 # Obtain Pocillopora verrucosa genome
 [Buitrago-López et al 2020](https://academic.oup.com/gbe/article/12/10/1911/5898631)
 
 ## Location of Pocillopora verrucosa genome
+```
 cd /data/putnamlab/REFS/Pverr/
-
+```
+```
 wget http://pver.reefgenomics.org/download/Pver_genome_assembly_v1.0.fasta.gz
 gunzip Pver_genome_assembly_v1.0.fasta.gz
+```
 
 # Checking Data Transfer Fidelity
-
+```
 raw data - read only
 /data/putnamlab/KITT/hputnam/20201206_Becker_WGBS
 ```
+
+```
 md5sum *.gz > URI_md5sum.txt
 ```
-
+```
 Genewiz md5 | sample id | URI md5 
 ---|---|---|
 de7c178629f722bbe869627bf580702a  |`1_R1_001.fastq.gz`|de7c178629f722bbe869627bf580702a
@@ -125,21 +130,22 @@ d6a96b7d73725da74ebfe76b865b47d3  |`30_R2_001.fastq.gz`|d6a96b7d73725da74ebfe76b
 94a0c47fea951786bf06f93e3101f9a8  |`31_R2_001.fastq.gz`|94a0c47fea951786bf06f93e3101f9a8
 0be0e18cebf3b0c52711a1cd15535bb8  |`32_R1_001.fastq.gz`|0be0e18cebf3b0c52711a1cd15535bb8
 92afdc0db53a918b1bfd15c2c2ff4943  |`32_R2_001.fastq.gz`|92afdc0db53a918b1bfd15c2c2ff4943
-
+```
 ## Count the number of reads per sample
+```
 zcat *fastq.gz | echo $((`wc -l`/4)) > rawread.counts.txt
 This counts reads in goups of 4 lines per read
 This should match with the Genewiz summary
-
+```
 
 ```
 cd /data/putnamlab/hputnam/Becker_E5
 mkdir WGBS_Becker_E5
 cd WGBS_Becker_E5
 ```
-
+```
 /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.fasta
-
+```
 
 # Run NF Core MethylSeq
 
@@ -297,24 +303,24 @@ sbatch /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/cov_to_cyto.sh
 
 # run loop to filter CpGs for 5x coverage
 
-
+```
 for f in *merged_CpG_evidence.cov
 do
   STEM=$(basename "${f}" .CpG_report.merged_CpG_evidence.cov)
   cat "${f}" | awk -F $'\t' 'BEGIN {OFS = FS} {if ($5+$6 >= 5) {print $1, $2, $3, $4, $5, $6}}' \
   > "${STEM}"_5x.tab
 done
-
+```
 # run loop to filter CpGs for 10x coverage
 
-
+```
 for f in *merged_CpG_evidence.cov
 do
   STEM=$(basename "${f}" .CpG_report.merged_CpG_evidence.cov)
   cat "${f}" | awk -F $'\t' 'BEGIN {OFS = FS} {if ($5+$6 >= 10) {print $1, $2, $3, $4, $5, $6}}' \
   > "${STEM}"_10x.tab
 done
-
+```
 ```
 wc -l *5x.tab
 ```
@@ -437,7 +443,7 @@ sbatch /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/10x_intersect.sh
 nano /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/5x_gene_intersect.sh
 ```
 
-
+```
 for i in /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*5x.bed
 do
   intersectBed \
@@ -446,7 +452,9 @@ do
   -b RAnalysis/Data/Genome/Pver_genome_assembly_v1.0.gff3 \
   > /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/${i}_gene
 done
+```
 
+```
 #intersect with file to subset only those positions found in all samples
 
 for i in /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*_gene
@@ -456,9 +464,7 @@ do
   -b /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/CpG.filtered.5x.bed  \
   > /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/${i}_CpG.bed
 done
-
 ```
-
 ```
 nano /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/5x_gene_intersect.sh
 ```
