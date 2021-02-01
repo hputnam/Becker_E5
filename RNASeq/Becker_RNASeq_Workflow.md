@@ -804,7 +804,7 @@ module load Python/2.7.15-foss-2018b
 
 F=/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge
 
-# get prepDE.py function here (xxxx)
+# get prepDE.py function here (https://github.com/gpertea/stringtie/blob/master/prepDE.py)
 python /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/prepDE.py -g Poc_gene_count_matrix.csv -i sample_list.txt
 
 ```
