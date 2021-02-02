@@ -615,7 +615,7 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
 #SBATCH --cpus-per-task=3
 #SBATCH --error="script_error" 
 #SBATCH --output="output_script"
@@ -658,20 +658,18 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.s
 ```
 #!/bin/bash
 #SBATCH -t 72:00:00
-#SBATCH --nodes=1 --ntasks-per-node=8
+#SBATCH --nodes=1 --ntasks-per-node=5
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
-#SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
 #SBATCH --error="script_error" 
 #SBATCH --output="output_script"
 
-module load StringTie/1.3.5-foss-2018b
-
+module load StringTie/2.1.1-GCCcore-7.3.0
 
 array1=($(ls *.bam)) 
 for i in ${array1[@]}; do
@@ -681,13 +679,13 @@ done
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.sh
-#Submitted batch job 19957
+Submitted batch job 1837132
 ```
 
 
 c) Merge stringTie gtf results 
 
-#in this step we are making a file with all the gtf names and stringtie will merge them all together for a master lis for your specific genes
+#in this step we are making a file with all the gtf names and stringtie will merge them all together for a master list for your specific genes
 
 ```
 ls *gtf > mergelist.txt
@@ -709,19 +707,39 @@ gffcompare -r /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o merge
 e) Re-estimate assembly
 
 ```
+nano re_estimate.assembly.sh
+```
+```
+#!/bin/bash
+#SBATCH -t 72:00:00
+#SBATCH --nodes=1 --ntasks-per-node=5
+#SBATCH --export=NONE
+#SBATCH --mem=500GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu
+#SBATCH --account=putnamlab
+#SBATCH --cpus-per-task=3
+#SBATCH --error="script_error"
+#SBATCH --output="output_script"
+
+
 module load StringTie/2.1.1-GCCcore-7.3.0
 
-F=/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/
+F=/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
 
 array1=($(ls $F/*bam))
 for i in ${array1[@]}
 do
-stringtie -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o ${i}.merge.gtf ${i}
+stringtie -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o ${i}.merge.g$
 echo "${i}"
 done
 
-#Submitted job 1836926
-
+```
+```
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/re_estimate.assembly.sh
+Submitted batch job 1837142
+```
+```
 # move merged GTF files to their own folder 
 mv *merge.gtf ../GTF_merge
 
@@ -732,32 +750,15 @@ f) Create gene matrix
 ```
 #making a sample txt file with all gtf file names
 
-nano GTF_merge_samplelist.sh
+F=/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/
 
-#!/bin/bash
-#SBATCH -t 72:00:00
-#SBATCH --nodes=1 --ntasks-per-node=8
-#SBATCH --export=NONE
-#SBATCH --mem=500GB
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu
-#SBATCH --account=putnamlab
-#SBATCH --cpus-per-task=3
-#SBATCH --error="script_error"
-#SBATCH --output="output_script"
-
-F=/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge
-
-array2=($(ls $F/*merge.gtf))
+array2=($(ls *merge.gtf))
 for i in ${array2[@]}
 do
 echo "${i} $F${i}" >> sample_list.txt
 done
 ```
-```
-sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/TF_merge_samplelist.sh
-#Submitted batch job 19957
-```
+
 
 ```
 #sample_list.txt document
@@ -831,6 +832,7 @@ AttributeError: 'NoneType' object has no attribute 'group'
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/GTFtoCounts.sh
+Submitted batch job 1837172
 ```
 
 
