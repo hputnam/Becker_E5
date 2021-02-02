@@ -44,10 +44,10 @@ reef genomics md5 checksums
 ```
 Core files	MD5 hash
 
-Genome scaffolds		          fb4d03ba2a9016fabb284d10e513f873
-Gene models (CDS)		          019359071e3ab319cd10e8f08715fc71
-Gene models (proteins)	      438f1d59b060144961d6a499de016f55
-Gene models (GFF3)		        614efffa87f6e8098b78490a5804c857
+Genome scaffolds    fb4d03ba2a9016fabb284d10e513f873
+Gene models (CDS)   019359071e3ab319cd10e8f08715fc71
+Gene models (proteins)    438f1d59b060144961d6a499de016f55
+Gene models (GFF3)    614efffa87f6e8098b78490a5804c857
 
 Miscellaneous files	MD5 hash
 Full transcripts	            76b5d8d405798d5ca7f6f8cc4b740eb2
