@@ -41,7 +41,9 @@ http://pver.reefgenomics.org/download/Pver_genome_assembly_v1.0.gff3.gz
 ### Check to ensure data transfer of genome files
 reef genomics md5 checksums
 
+```
 Core files	MD5 hash
+
 Genome scaffolds			fb4d03ba2a9016fabb284d10e513f873
 Gene models (CDS)		019359071e3ab319cd10e8f08715fc71
 Gene models (proteins)	438f1d59b060144961d6a499de016f55
@@ -49,7 +51,7 @@ Gene models (GFF3)		614efffa87f6e8098b78490a5804c857
 
 Miscellaneous files	MD5 hash
 Full transcripts	76b5d8d405798d5ca7f6f8cc4b740eb2
-
+```
 
 On Bluewaves
 019359071e3ab319cd10e8f08715fc71  Pver_genes_names_v1.0.fna.gz
@@ -103,18 +105,17 @@ md5sum /dbecks/Becker_E5/Becker_RNASeq/data/*.gz > URIcheckmd5.md5
 
 md5sum /data/putnamlab/KITT/hputnam/20201209_Becker_RNASeq_combo/combo/*.gz > URIcheckmd5.md5
 
-
 ```
 
 ```
 sbatch check_transfer.sh 
-
-###Submitted batch job 1816196 20201230
 ```
+###Submitted batch job 1816196 20201230
+
 
 ### Checksum from Genewiz
+
 ```
-<<<<<<< HEAD
 317dd03e9704a73347c5ccabb86d1e18  C17_R1_001.fastq.gz
 b6368b2789cfacc8e8adbadf45d6c533  C17_R2_001.fastq.gz
 adb1af7c62b309f7100117f50ebe846d  C18_R1_001.fastq.gz
@@ -180,11 +181,12 @@ b6e5da4446b5bccb63e46661e9b1e293  E8_R2_001.fastq.gz
 1ecdc2f728e6ce233c9495a2c3bb97f5  E9_R1_001.fastq.gz
 be19f114b314fdc30dd39962aa12a3dc  E9_R2_001.fastq.gz
 ```
+
 c) Cross-reference the checksum document from GENEWIZ with the data we have on our computer
 
 ```
-###with a small amount of files, able to first cross-check that the sequences matched between both files on the desktop
-###used the code below in terminal to cross-check the files and compare for sanity check
+### with a small amount of files, able to first cross-check that the sequences matched between both files on the desktop
+### used the code below in terminal to cross-check the files and compare for sanity check
 
 ```
 
@@ -276,7 +278,6 @@ check for code after @ in fastq.gz files(e.g.,@GWNJ).
 ```
 zcat *.gz | echo $((`wc -l`/4)) > rawread.counts.txt
 
->>>>>>> 1526607178
 ```
 
 
@@ -314,9 +315,10 @@ done
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_raw.sh
-
-#Submitted batch job 1816766 on 20210104
 ```
+
+### Submitted batch job 1816766 on 20210104
+
 
 
 c) Make sure all files were processed
