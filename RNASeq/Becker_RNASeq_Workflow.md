@@ -644,6 +644,9 @@ rm /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/*.sam
 # 7) Perform gene counts with stringTie
 
 ```
+#Used: sed -r -e 's/(Parent=[^[:space:]]*).*/\1/' Pver_genome_assembly_v1.0.gff3 > fixed_Pver_genome_assembly_v1.0.gff3 to edit the original .gff3 file in my directory to remove the 5_prime_partial true    3_prime_partial true and space causing the file corruption issue
+```
+```
 mkdir counts
 cd counts
 
@@ -870,7 +873,6 @@ python prepDE.py -g Poc_gene_count_matrix.csv -i sample_list.txt
 t_id=RE_TRANSCRIPT_ID.search(v[8]).group(1)
 AttributeError: 'NoneType' object has no attribute 'group'
 #Kevin said that some sections of the gtf files are corrupted and may be due to an outdated stringtie, working through this
-#Used: sed -r -e 's/(Parent=[^[:space:]]*).*/\1/' Pver_genome_assembly_v1.0.gff3 > fixed_Pver_genome_assembly_v1.0.gff3 to edit the original .gff3 file in my directory to remove the 5_prime_partial true    3_prime_partial true and space causing the file corruption issue
 ```
 ```
 #testing that the fixed Pver file works:
