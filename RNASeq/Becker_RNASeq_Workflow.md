@@ -661,7 +661,6 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.s
 #SBATCH -t 72:00:00
 #SBATCH --nodes=1 --ntasks-per-node=5
 #SBATCH --export=NONE
-#SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
@@ -670,7 +669,7 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.s
 #SBATCH --error="script_error" 
 #SBATCH --output="output_script"
 
-module load StringTie/2.1.1-GCCcore-7.3.0
+module load StringTie/2.1.4-GCC-9.3.0
 
 array1=($(ls *.bam)) 
 for i in ${array1[@]}; do
@@ -680,9 +679,16 @@ done
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.sh
-Submitted batch job 1837132
+Submitted batch job 1837174
 ```
 
+```
+#testing that the fixed Pver file works:
+for i in "C17_R1_001.fastq.gz.sam.sorted.bam" 
+do 
+stringtie -p 48 --rf -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/fixed_Pver_genome_assembly_v1.0.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/${i}.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}
+done
+```
 
 c) Merge stringTie gtf results 
 
@@ -692,17 +698,37 @@ c) Merge stringTie gtf results
 ls *gtf > mergelist.txt
 cat mergelist.txt
 
-module load StringTie/2.1.1-GCCcore-7.3.0
+module load StringTie/2.1.4-GCC-9.3.0
 
 stringtie --merge -p 8 -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o stringtie_merged.gtf mergelist.txt
 
 ```
+
+```
+#testing that the fixed Pver file works:
+ls *gtf > mergelist.txt
+cat mergelist.txt
+
+module load StringTie/2.1.4-GCC-9.3.0
+
+stringtie --merge -p 8 -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/fixed_Pver_genome_assembly_v1.0.gff3 -o stringtie_merged.gtf mergelist.txt
+
+```
+
 d) Assess assembly quality
 
 ```
 module load gffcompare/0.11.5-foss-2018b
 
 gffcompare -r /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o merged stringtie_merged.gtf
+
+```
+
+```
+#testing that the fixed Pver file works:
+module load gffcompare/0.11.5-foss-2018b
+
+gffcompare -r /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/fixed_Pver_genome_assembly_v1.0.gff3 -o merged stringtie_merged.gtf
 
 ```
 e) Re-estimate assembly
@@ -724,7 +750,7 @@ nano re_estimate.assembly.sh
 #SBATCH --output="output_script"
 
 
-module load StringTie/2.1.1-GCCcore-7.3.0
+module load StringTie/2.1.4-GCC-9.3.0
 
 F=/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
 
@@ -745,9 +771,12 @@ Submitted batch job 1837142
 mv *merge.gtf ../GTF_merge
 
 ```
+
+
 f) Create gene matrix
 
-
+```
+```
 ```
 #making a sample txt file with all gtf file names
 
@@ -758,9 +787,22 @@ for i in ${array2[@]}
 do
 echo "${i} $F${i}" >> sample_list.txt
 done
+
 ```
+```
+#testing that the fixed Pver file works:
 
+F=/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/
 
+for i in "C17_R1_001.fastq.gz.sam.sorted.bam.gtf" 
+do 
+echo "${i} $F${i}" >> sample_list.txt
+done
+
+#sample_list.txt document
+C17_R1_001.fastq.gz.sam.sorted.bam.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/C17_R1_001.fastq.gz.sam.sorted.bam.gtf
+
+```
 ```
 #sample_list.txt document
 
@@ -828,7 +870,15 @@ python prepDE.py -g Poc_gene_count_matrix.csv -i sample_list.txt
 t_id=RE_TRANSCRIPT_ID.search(v[8]).group(1)
 AttributeError: 'NoneType' object has no attribute 'group'
 #Kevin said that some sections of the gtf files are corrupted and may be due to an outdated stringtie, working through this
+#Used: sed -r -e 's/(Parent=[^[:space:]]*).*/\1/' Pver_genome_assembly_v1.0.gff3 > fixed_Pver_genome_assembly_v1.0.gff3 to edit the original .gff3 file in my directory to remove the 5_prime_partial true    3_prime_partial true and space causing the file corruption issue
+```
+```
+#testing that the fixed Pver file works:
 
+module load StringTie/2.1.4-GCC-9.3.0
+module load Python/2.7.18-GCCcore-9.3.0
+
+python prepDE.py -g Poc_gene_count_matrix.csv -i sample_list.txt
 ```
 
 ```
@@ -840,6 +890,6 @@ Submitted batch job 1837172
 g) Secure-copy gene counts onto local computer
 
 ```
-scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/Poc_gene_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
+x
 ```
 
