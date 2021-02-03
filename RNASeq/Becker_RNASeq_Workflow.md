@@ -892,6 +892,6 @@ Submitted batch job 1837172
 g) Secure-copy gene counts onto local computer
 
 ```
-x
+scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/Poc_gene_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
 ```
 
