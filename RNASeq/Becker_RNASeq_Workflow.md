@@ -644,7 +644,7 @@ rm /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/*.sam
 # 7) Perform gene counts with stringTie
 
 ```
-#Used: sed -r -e 's/(Parent=[^[:space:]]*).*/\1/' Pver_genome_assembly_v1.0.gff3 > fixed_Pver_genome_assembly_v1.0.gff3 to edit the original .gff3 file in my directory to remove the 5_prime_partial true    3_prime_partial true and space causing the file corruption issue
+#Used: sed -r -e 's/(Parent=[^[:space:]]*).*/\1/' Pver_genome_assembly_v1.0.gff3 > fixed_Pver_genome_assembly_v1.0.gff3 to edit the original .gff3 file in my directory to remove the 5_prime_partial true    3_prime_partial true and space causing the file corruption issue, tested all steps below on one file (C17) and it was successful. Further issues noted in .gff3 file but going through the steps to have workflow ready.
 ```
 ```
 mkdir counts
@@ -656,6 +656,7 @@ cd counts
 b) Assemble and estimate reads 
 
 ```
+#testing that the fixed Pver file works on all steps from here to gene count matrix
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.sh
 ```
 
@@ -669,28 +670,18 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.s
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
 #SBATCH --cpus-per-task=3
-#SBATCH --error="script_error" 
-#SBATCH --output="output_script"
 
 module load StringTie/2.1.4-GCC-9.3.0
 
 array1=($(ls *.bam)) 
-for i in ${array1[@]}; do
-stringtie -p 48 --rf -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/${i}.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}
+for i in ${array1[@]}; do 
+stringtie -p 48 --rf -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/fixed_Pver_genome_assembly_v1.0.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/${i}.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}
 done
 ```
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.sh
-Submitted batch job 1837174
-```
-
-```
-#testing that the fixed Pver file works:
-for i in "C17_R1_001.fastq.gz.sam.sorted.bam" 
-do 
-stringtie -p 48 --rf -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/fixed_Pver_genome_assembly_v1.0.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/${i}.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}
-done
+Submitted batch job 1846344
 ```
 
 c) Merge stringTie gtf results 
@@ -698,17 +689,6 @@ c) Merge stringTie gtf results
 #in this step we are making a file with all the gtf names and stringtie will merge them all together for a master list for your specific genes
 
 ```
-ls *gtf > mergelist.txt
-cat mergelist.txt
-
-module load StringTie/2.1.4-GCC-9.3.0
-
-stringtie --merge -p 8 -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o stringtie_merged.gtf mergelist.txt
-
-```
-
-```
-#testing that the fixed Pver file works:
 ls *gtf > mergelist.txt
 cat mergelist.txt
 
@@ -723,17 +703,10 @@ d) Assess assembly quality
 ```
 module load gffcompare/0.11.5-foss-2018b
 
-gffcompare -r /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o merged stringtie_merged.gtf
-
-```
-
-```
-#testing that the fixed Pver file works:
-module load gffcompare/0.11.5-foss-2018b
-
 gffcompare -r /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/fixed_Pver_genome_assembly_v1.0.gff3 -o merged stringtie_merged.gtf
 
 ```
+
 e) Re-estimate assembly
 
 ```
@@ -744,30 +717,25 @@ nano re_estimate.assembly.sh
 #SBATCH -t 72:00:00
 #SBATCH --nodes=1 --ntasks-per-node=5
 #SBATCH --export=NONE
-#SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu
+#SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
 #SBATCH --cpus-per-task=3
-#SBATCH --error="script_error"
-#SBATCH --output="output_script"
-
 
 module load StringTie/2.1.4-GCC-9.3.0
 
-F=/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
 
-array1=($(ls $F/*bam))
-for i in ${array1[@]}
-do
-stringtie -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0.gff3 -o ${i}.merge.g$
+array1=($(ls *.bam)) 
+for i in ${array1[@]}; do 
+stringtie -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/fixed_Pver_genome_assembly_v1.0.gff3 -o ${i}.merge.gtf ${i}
 echo "${i}"
 done
 
 ```
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/re_estimate.assembly.sh
-Submitted batch job 1837142
+Submitted batch job 1846357
 ```
 ```
 # move merged GTF files to their own folder 
@@ -778,8 +746,7 @@ mv *merge.gtf ../GTF_merge
 
 f) Create gene matrix
 
-```
-```
+
 ```
 #making a sample txt file with all gtf file names
 
@@ -790,20 +757,6 @@ for i in ${array2[@]}
 do
 echo "${i} $F${i}" >> sample_list.txt
 done
-
-```
-```
-#testing that the fixed Pver file works:
-
-F=/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/
-
-for i in "C17_R1_001.fastq.gz.sam.sorted.bam.gtf" 
-do 
-echo "${i} $F${i}" >> sample_list.txt
-done
-
-#sample_list.txt document
-C17_R1_001.fastq.gz.sam.sorted.bam.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/C17_R1_001.fastq.gz.sam.sorted.bam.gtf
 
 ```
 ```
@@ -861,37 +814,31 @@ nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/GTFtoCounts.sh
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge
 #SBATCH --cpus-per-task=3
-#SBATCH --error="script_error"
-#SBATCH --output="output_script"
+
 
 module load StringTie/2.1.4-GCC-9.3.0
 module load Python/2.7.18-GCCcore-9.3.0
 
 python prepDE.py -g Poc_gene_count_matrix.csv -i sample_list.txt
 
-##getting error: File "prepDE.py", line 155, in <module>
-t_id=RE_TRANSCRIPT_ID.search(v[8]).group(1)
-AttributeError: 'NoneType' object has no attribute 'group'
-#Kevin said that some sections of the gtf files are corrupted and may be due to an outdated stringtie, working through this
-```
-```
-#testing that the fixed Pver file works:
-
-module load StringTie/2.1.4-GCC-9.3.0
-module load Python/2.7.18-GCCcore-9.3.0
-
-python prepDE.py -g Poc_gene_count_matrix.csv -i sample_list.txt
 ```
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/GTFtoCounts.sh
-Submitted batch job 1837172
+Submitted batch job 1846374
 ```
 
 
-g) Secure-copy gene counts onto local computer
+g) Secure-copy gene counts onto local computer, make sure to open a seperate command shell in your own computers server to copy
 
 ```
-scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/Poc_gene_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
+#copy gene count matrix
+
+scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/Poc_gene_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
+
+
+#copy transcript count matrix
+scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/transcript_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
+
 ```
 
