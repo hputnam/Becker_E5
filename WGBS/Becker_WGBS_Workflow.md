@@ -241,7 +241,7 @@ sbatch /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/methylseq_resume
 
 
 ## Library E8 - sample 19 failed
- - has weird library reults from tapestation
+ - has weird library results from tapestation
  - has lower quality than all other libraries
  - has high GC content
  - has low duplication content
