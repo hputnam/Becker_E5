@@ -530,6 +530,7 @@ gunzip Pver_genome_assembly_v1.0.gff3.gz
 [HiSat2](https://daehwankimlab.github.io/hisat2/main/)
 [HiSat2 Github](https://github.com/DaehwanKimLab/hisat2)
 
+
 ```
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_genome_build.sh
 ```
@@ -643,9 +644,14 @@ rm /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/*.sam
 
 # 7) Perform gene counts with stringTie
 
+### Needed to modify Pverr_genome_assembly file, information in this [GitHub issue](https://github.com/Putnam-Lab/Lab_Management/issues/11)
+
 ```
-#Used: sed -r -e 's/(Parent=[^[:space:]]*).*/\1/' Pver_genome_assembly_v1.0.gff3 > fixed_Pver_genome_assembly_v1.0.gff3 to edit the original .gff3 file in my directory to remove the 5_prime_partial true    3_prime_partial true and space causing the file corruption issue, tested all steps below on one file (C17) and it was successful. Further issues noted in .gff3 file but going through the steps to have workflow ready.
+##copy modified genome assembly file to bluewaves, enter this command into local computer shell
+
+scp -r /Users/Danielle/Downloads/Pver_genome_assembly_v1.0_modified.gff3 danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/
 ```
+
 ```
 mkdir counts
 cd counts
@@ -656,7 +662,6 @@ cd counts
 b) Assemble and estimate reads 
 
 ```
-#testing that the fixed Pver file works on all steps from here to gene count matrix
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.sh
 ```
 
@@ -675,13 +680,13 @@ module load StringTie/2.1.4-GCC-9.3.0
 
 array1=($(ls *.bam)) 
 for i in ${array1[@]}; do 
-stringtie -p 48 --rf -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/fixed_Pver_genome_assembly_v1.0.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/${i}.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}
+stringtie -p 48 --rf -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/Pver_genome_assembly_v1.0_modified.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/${i}.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}
 done
 ```
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.sh
-Submitted batch job 1846344
+Submitted batch job 1871636
 ```
 
 c) Merge stringTie gtf results 
@@ -694,7 +699,7 @@ cat mergelist.txt
 
 module load StringTie/2.1.4-GCC-9.3.0
 
-stringtie --merge -p 8 -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/fixed_Pver_genome_assembly_v1.0.gff3 -o stringtie_merged.gtf mergelist.txt
+stringtie --merge -p 8 -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/Pver_genome_assembly_v1.0_modified.gff3 -o stringtie_merged.gtf mergelist.txt
 
 ```
 
@@ -703,7 +708,7 @@ d) Assess assembly quality
 ```
 module load gffcompare/0.11.5-foss-2018b
 
-gffcompare -r /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/fixed_Pver_genome_assembly_v1.0.gff3 -o merged stringtie_merged.gtf
+gffcompare -r /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/Pver_genome_assembly_v1.0_modified.gff3 -o merged stringtie_merged.gtf
 
 ```
 
@@ -728,14 +733,14 @@ module load StringTie/2.1.4-GCC-9.3.0
 
 array1=($(ls *.bam)) 
 for i in ${array1[@]}; do 
-stringtie -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/fixed_Pver_genome_assembly_v1.0.gff3 -o ${i}.merge.gtf ${i}
+stringtie -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/Pver_genome_assembly_v1.0_modified.gff3 -o ${i}.merge.gtf ${i}
 echo "${i}"
 done
 
 ```
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/re_estimate.assembly.sh
-Submitted batch job 1846357
+Submitted batch job 1871641
 ```
 ```
 # move merged GTF files to their own folder 
@@ -825,11 +830,11 @@ python prepDE.py -g Poc_gene_count_matrix.csv -i sample_list.txt
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/GTFtoCounts.sh
-Submitted batch job 1846374
+Submitted batch job 1871645
 ```
 
 
-g) Secure-copy gene counts onto local computer, make sure to open a seperate command shell in your own computers server to copy
+g) Secure-copy gene counts onto local computer, make sure to open a seperate command shell outside of bluewaves on your own terminal
 
 ```
 #copy gene count matrix
