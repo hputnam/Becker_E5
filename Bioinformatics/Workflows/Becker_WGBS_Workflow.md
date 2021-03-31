@@ -394,9 +394,7 @@ done
 ```
 ```
 wc -l *5x_sorted.tab
-```
 
-```   
 5650793 10_5x_sorted.tab
 4445225 11_5x_sorted.tab
 6214291 12_5x_sorted.tab
@@ -430,7 +428,6 @@ wc -l *5x_sorted.tab
 4843732 8_5x_sorted.tab
 5138423 9_5x_sorted.tab
 161932817 total
-
 
 
 wc -l *10x_sorted.tab
@@ -477,6 +474,40 @@ wc -l *10x_sorted.tab
 
 # 6) Create a file with positions found in all samples at specified coverage
 
+
+```
+nano /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/scripts/5x_intersect.sh
+```
+
+```
+#!/bin/bash
+#SBATCH -t 72:00:00
+#SBATCH --nodes=1 --ntasks-per-node=5
+#SBATCH --export=NONE
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --account=putnamlab
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/
+#SBATCH --cpus-per-task=3
+
+
+# load modules needed
+
+module load BEDTools/2.27.1-foss-2018b
+
+multiIntersectBed -i \
+/data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/1_5x_sorted.tab  /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/3_5x_sorted.tab  /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/4_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/5_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/6_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/7_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/8_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/9_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/10_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/11_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/12_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/13_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/14_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/15_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/17_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/18_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/20_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/21_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/22_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/23_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/24_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/25_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/26_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/27_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/28_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/29_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/30_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/31_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/32_5x_sorted.tab > /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/CpG.29samps.5x_sorted.bed
+
+cat /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/CpG.29samps.5x_sorted.bed | awk '$4 ==29' > /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/CpG.filt.29samps.5x_sorted.bed 
+
+``` 
+
+```
+sbatch /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/scripts/5x_intersect.sh
+Submitted batch job 1896854
+```
+
+
 ```
 nano /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/scripts/10x_intersect.sh
 ```
@@ -510,38 +541,7 @@ Submitted batch job 1896853
 
 ```
 
-
-```
-nano /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/scripts/5x_intersect.sh
-```
-
-```
-#!/bin/bash
-#SBATCH -t 72:00:00
-#SBATCH --nodes=1 --ntasks-per-node=5
-#SBATCH --export=NONE
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
-#SBATCH --account=putnamlab
-#SBATCH -D /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/
-#SBATCH --cpus-per-task=3
-
-
-# load modules needed
-
-module load BEDTools/2.27.1-foss-2018b
-
-multiIntersectBed -i \
-/data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/1_5x_sorted.tab  /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/3_5x_sorted.tab  /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/4_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/5_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/6_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/7_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/8_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/9_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/10_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/11_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/12_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/13_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/14_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/15_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/17_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/18_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/20_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/21_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/22_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/23_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/24_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/25_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/26_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/27_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/28_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/29_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/30_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/31_5x_sorted.tab /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/32_5x_sorted.tab > /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/CpG.29samps.5x_sorted.bed
-
-cat /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/CpG.29samps.5x_sorted.bed | awk '$4 ==29' > /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/CpG.filt.29samps.5x_sorted.bed 
-
-``` 
-
-```
-sbatch /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/scripts/5x_intersect.sh
-Submitted batch job 1896854
-```
+ 
 
 # 7) Create bedgraphs post merge
 
@@ -674,7 +674,7 @@ nano /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/scripts/5x_intersect_final.
 
 module load BEDTools/2.27.1-foss-2018b
 
-for i in *_gene
+for i in *5x_sorted.tab_gene
 do
   intersectBed \
   -a ${i} \
@@ -684,7 +684,7 @@ done
 ```
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/scripts/5x_intersect_final.sh
-Submitted batch job 1893829
+Submitted batch job 1900070
 ```
 
 
@@ -707,7 +707,7 @@ nano /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/scripts/10x_intersect_final
 
 module load BEDTools/2.27.1-foss-2018b
 
-for i in *_gene
+for i in *10x_sorted.tab_gene
 do
   intersectBed \
   -a ${i} \
@@ -718,5 +718,84 @@ done
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/scripts/10x_intersect_final.sh
+Submitted batch job 1900071
 ```
 
+```
+wc -l *5x_enrichment.bed
+
+477425 10_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 11_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 12_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 13_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 14_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 15_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 1_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+288120 16_5x_sorted.tab_gene_CpG_5x_enrichment.bed #not using for downstream analysis, low coverage 
+477425 17_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 18_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+    1077 19_5x_sorted.tab_gene_CpG_5x_enrichment.bed #not using for downstream analysis, low coverage 
+477425 20_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 21_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 22_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 23_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 24_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 25_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+    94912 2_5x_sorted.tab_gene_CpG_5x_enrichment.bed #not using for downstream analysis, low coverage 
+477425 26_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 27_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 28_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 29_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 30_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 31_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 32_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 3_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 4_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 5_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 6_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 7_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 8_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+477425 9_5x_sorted.tab_gene_CpG_5x_enrichment.bed
+  14229434 total
+
+
+
+wc -l *10x_enrichment.bed
+
+38637 10_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 1_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 11_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 12_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 13_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 14_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 15_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+25858 16_10x_sorted.tab_gene_CpG_10x_enrichment.bed #not using for downstream analysis, low coverage 
+38637 17_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 18_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+    210 19_10x_sorted.tab_gene_CpG_10x_enrichment.bed #not using for downstream analysis, low coverage 
+38637 20_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+    9866 2_10x_sorted.tab_gene_CpG_10x_enrichment.bed #not using for downstream analysis, low coverage
+38637 21_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 22_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 23_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 24_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 25_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 26_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 27_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 28_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 29_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 30_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 3_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 31_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 32_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 4_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 5_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 6_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 7_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 8_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+38637 9_10x_sorted.tab_gene_CpG_10x_enrichment.bed
+  1156407 total
+
+
+
+```

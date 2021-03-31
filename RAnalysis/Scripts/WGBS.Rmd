@@ -1,0 +1,43 @@
+---
+title: "WGBS Markdown"
+author: "daniellembecker"
+date: "3/17/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Libraries
+
+```{r message = FALSE, warning = FALSE}
+library(plotrix) 
+library(ggplot2)
+library(gridExtra)
+library(seacarb) 
+library(pheatmap)
+library(tidyverse)
+library(genefilter)
+library(cowplot)
+library(lsmeans)
+library(ontologyIndex)
+library(ontologySimilarity)
+library(data.table)
+library(RColorBrewer)
+library(colorRamps)
+library(GSEABase)
+library(here)
+```
+
+
+```{r}
+#read in Pver_genome_assembly_v1.0.gff3 and filter for just genes
+
+Pver_genome_assembly_v1.0.gff3 <- read.delim("../Data/WGBS/Pver_genome_assembly_v1.0.gff3", header=F, comment.char="#") 
+
+Pver_genome_assembly_v1.0.gene.gff3 <- Pver_genome_assembly_v1.0.gff3[Pver_genome_assembly_v1.0.gff3$V3 == "gene",] 
+write_delim(Pver_genome_assembly_v1.0.gene.gff3, "../Data/WGBS/Pver_genome_assembly_v1.0.gene.gff3")
+```
+
+
