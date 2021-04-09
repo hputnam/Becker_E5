@@ -796,6 +796,9 @@ wc -l *10x_enrichment.bed
 38637 9_10x_sorted.tab_gene_CpG_10x_enrichment.bed
   1156407 total
 
+```
+# 9) Download final .bed files to desktop for statistical analysis! :)
 
-
+```
+scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*_enrichment.bed /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/WGBS
 ```
