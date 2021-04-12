@@ -91,6 +91,85 @@ meth.data.10x$Sample.ID <- gsub("/","",meth.data.10x$Sample.ID) #remove extra ch
 MD.10x <- merge(meth.data.10x,sample.info, by="Sample.ID") #combine sample info and 10x coverage megafile
 ```
 
+# Testing for Differentially Methylated Genes
+```{r}
+# Comparison of enriched vs control nutrient treatments
+# Binomial GLM to test for differentially methylated genes
+sub_meth_table.5x  <- MD.5x
+sub_meth_table.5x$group <- paste0(sub_meth_table.5x$Sample.ID, sub_meth_table.5x$gene)
 
+#filter for genes with >5 methylated positions
+min.filt.5x <- count(sub_meth_table.5x, vars = c( group))
+newdata.5x <- min.filt.5x[ which(min.filt.5x$n > 4), ]
+sub_meth_table.5x <- sub_meth_table.5x[sub_meth_table.5x$group %in% newdata.5x $vars,]
+
+# create data frame to stored results
+results.5x <- data.frame()
+gs.5x <- unique(sub_meth_table.5x$gene)
+
+#make treatment a factor 
+
+#first subset the unique dataframes and second run the GLMs
+for(i in 1:length(sub_meth_table.5x$gene)){
+  
+  #subset the dataframe gene by gene
+  sub_meth_table.5x1 <- subset(sub_meth_table.5x, gene ==gs.5x[i])
+  
+  # fit glm position model
+  fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment, 
+             data=sub_meth_table.5x1, family=binomial)
+  a <- anova(fit, test="Chisq")
+  
+  # capture summary stats to data frame
+  df <- data.frame(gene = sub_meth_table.5x1[1,7],
+                   pval.treatment = a$`Pr(>Chi)`[2],
+                   #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
+                   #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
+                   stringsAsFactors = F)
+  
+  # bind rows of temporary data frame to the results data frame
+  results.5x <- rbind(results.5x, df)
+  
+}
+# An error will be generated here for contrasts. 
+#This potential for contrasts (interactions) is included in the case one wants to examine the role of position of CpG within a gene
+#Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
+#Continuing the analysis from results line will generate the results in the absence of the contrast (interaction).
+
+results.5x[is.na(results.5x)] <- 0
+results.5x$adj.pval.treatment <- p.adjust(results$pval.treatment, method='BH') #BH is a less conservative Benjamini & Hochberg (1995) correction in which p-values are multiplied by the number of comparisons
+
+#results$adj.pval.position <- p.adjust(results$pval.position, method='BH') #uncomment if you want to include position of CpG within a gene
+#result $adj.pval.treatment_x_position <- p.adjust(results$pval.treatment_x_position, method='BH') #uncomment if you want to include position of CpG within a gene interaction with treatment
+
+Amb.sig <-results
+Amb.sig <- Amb.sig[,c(1,3)]
+Amb.sig <- Amb.sig[order(Time.Amb.sig$adj.pval.TimePoint),]
+Amb.sig <- Amb.sig[which(Time.Amb.sig$adj.pval.TimePoint<0.05), ]
+
+# Annotation of DMG under ambient conditions through time
+Time.Amb.annot <- merge(Time.Amb.sig , Annot, by="gene", all.x=TRUE)
+Time.Amb.annot <- Time.Amb.annot[order(Time.Amb.annot$adj.pval.TimePoint),]
+Time.Amb.annot <- Time.Amb.annot[!duplicated(Time.Amb.annot$gene),]
+write.table(Time.Amb.annot, 'RAnalysis/Output/Table_S1_Time_sig_annot.tsv', sep='\t', row.names=FALSE)
+
+#Sanity check plotting of top DMGs by time
+high <- MD.Time %>%	
+  filter(gene== Time.Amb.sig$gene[1])
+means <- aggregate(per.meth ~ TimePoint, data=high, FUN=mean)
+ses <- aggregate(per.meth ~ TimePoint, data=high, FUN=std.error)
+means$ses <- ses$per.meth
+ggplot(means, aes(x=TimePoint, y=per.meth)) +
+  geom_bar(stat="identity", color="black",
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin=per.meth-ses, ymax=per.meth+ses), width=.2,
+                  position=position_dodge(.9)) +
+    xlab("TimePoint") + #plot x axis label
+    ylab("Percent Methylation") + #plot y axis label
+    ylim(0,100)+ #set y limits to 0 and 100%
+    scale_fill_manual(values = c("blue", "purple", "red"))+
+    theme_bw()
+
+```
 
 
