@@ -5,7 +5,7 @@ date: "4/12/2021"
 output: html_document
 ---
 
-# Molecular Underpinnings Project
+# Molecular Underpinnings Chronic Nutrient Enrichment Project
 
 ## RNAseq Differential Expression Analysis 
 ## Follow RNAseq workflow in Bioinformatics>RNAseq>RNAseq workflow before statistical analysis to make gene counts and transcript counts matrices
@@ -45,6 +45,21 @@ for ( col in 2:ncol(gcount)){
 
 head(gcount)
 
+```
+
+```{r}
+# Load functional annotation gff file
+
+#convert Pver_genome annotation file .csv from Buitrago-Lopez et al. (2020) supplementary material to .gff file?
+
+
+annot <- read.csv("~/Desktop/GFFs/GCF_002042975.1_ofav_dov_v1_genomic.gff",header = FALSE, sep="\t", skip=6)
+colnames(annot) <- c("scaffold", "Gene.Predict", "id", "gene.start","gene.stop", "pos1", "pos2","pos3", "attr")
+# annot$gene <- annot$attr
+annot <- annot[!grepl("##", annot$scaffold),]
+annot$gene_id <- regmatches(annot$attr, gregexpr("(?<=gene=).*", annot$attr, perl = TRUE))
+annot <- annot[!grepl("character", annot$gene_id),]
+annot$gene_id <- gsub(";.*", "", annot$gene_id) # removing everything after LOC term
 ```
 
 
