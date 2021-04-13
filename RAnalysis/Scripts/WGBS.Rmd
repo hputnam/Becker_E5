@@ -51,6 +51,24 @@ Genes <- Genes[,c(1,4,5,9)] #select desired columns only
 colnames(Genes) <- c("scaffold", "start", "stop", "gene") #rename columns
 Genes$gene <- gsub(";.*","",Genes$gene) #remove extra characters
 Genes$gene <- gsub("ID=","",Genes$gene) #remove extra characters
+
+#Load annotation file (ask Hollie about text file)
+Annot <- read.csv("RAnalysis/Data/Genome/Panopea-generosa-genes-annotations.tab", header=FALSE, sep="\t", na.string="NA", stringsAsFactors = FALSE, skip=0)
+colnames(Annot) <- c("gene","scaffold", "start", "end", "uniprot.id", "uniprot_taxa.id", "Uniprot.Name", "GO.IDs", "GO.Descript")
+GO.data <- Annot[,c(1,8)] #select names and GOs
+splitted <- strsplit(as.character(GO.data$GO.IDs), "; ") #split into multiple GO ids
+Gene.GO.IDs <- data.frame(v1 = rep.int(GO.data$gene, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row 
+colnames(Gene.GO.IDs) <- c("gene", "GO.IDs") #rename columns
+Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs)
+#Gene.GO.IDs$GO.IDs[is.na(Gene.GO.IDs$GO.IDs)] <- "unknown" #replace NA with unknown
+GO.IDs <-unique(Gene.GO.IDs$GO.IDs)
+# downloaded 20210407: http://www.informatics.jax.org/gotools/data/input/map2MGIslim.txt
+GoSlims <- read.csv("RAnalysis/Data/20210407_map2MGIslim.csv", header=TRUE, sep=",", na.string="NA", stringsAsFactors = FALSE, skip=0)
+colnames(GoSlims) <- c("GO.IDs", "Cat","GO.Slim.Term")
+Gene.GO.IDs.slims <- merge(Gene.GO.IDs, GoSlims, by="GO.IDs", all = TRUE)
+Gene.GO.IDs.slims <- Gene.GO.IDs.slims[-1,]
+GO.IDs.slims <- Gene.GO.IDs.slims[,-2]
+
 ```
 
 
