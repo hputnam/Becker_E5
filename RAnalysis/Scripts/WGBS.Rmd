@@ -41,33 +41,40 @@ Methylation Analysis
 
 ```{r}
 #load sample information
-sample.info <- read.csv("../Data/sample.info.csv", header=T, sep=",", na.string="NA", stringsAsFactors = F) #read in info
+sample.info <- read.csv("../Data/WGBS/metadata.WGBS.csv", header=T, sep=",", na.string="NA", stringsAsFactors = F) #read in info
 samp <- sample.info$Sample.ID # set sample info
 samp <- gsub("[_]", "-", samp) #remove extra characters
 
-#load genes gff 
-Genes <- read_csv("../../RAnalysis/Data/Genome/Pver_genome_assembly_v1.0.gene.gff3", sep="\t") #read in data file
-Genes <- Genes[,c(1,4,5,9)] #select desired columns only
-colnames(Genes) <- c("scaffold", "start", "stop", "gene") #rename columns
+#load genes gff <- read.csv("../Genome/Pver_genome_assembly_v1.0.gene.gff3", head = TRUE, sep= " ") #read in data fill
+Genes <- Genes[,c(1,3,4,5, 9)] #select desired columns only
+colnames(Genes) <- c("scaffold", "type", "start", "stop", "gene") #rename columns
 Genes$gene <- gsub(";.*","",Genes$gene) #remove extra characters
 Genes$gene <- gsub("ID=","",Genes$gene) #remove extra characters
 
-#Load annotation file (ask Hollie about text file)
-Annot <- read.csv("RAnalysis/Data/Genome/Panopea-generosa-genes-annotations.tab", header=FALSE, sep="\t", na.string="NA", stringsAsFactors = FALSE, skip=0)
-colnames(Annot) <- c("gene","scaffold", "start", "end", "uniprot.id", "uniprot_taxa.id", "Uniprot.Name", "GO.IDs", "GO.Descript")
-GO.data <- Annot[,c(1,8)] #select names and GOs
-splitted <- strsplit(as.character(GO.data$GO.IDs), "; ") #split into multiple GO ids
+#Load annotation file (ask Hollie about text files)
+Annot <- read.csv("../Genome/Pver_gene_annotation_file.txt", header=TRUE, sep="\t", na.string="NA", stringsAsFactors = FALSE, skip=0)
+
+colnames(Annot) <- c("query", "gene","source", "swiss.prot.id", "GO.Descript", "query.length", "hit.length", "identity", "bitscore", "evalue", "coverage", "sqiss.prot.taxa.id", "GO.IDs") #rename hit description to Go.Descript, and GO terms to GO.IDs
+
+GO.data <- Annot[,c(2,13)] #select gene names and GO IDs
+
+splitted <- strsplit(as.character(GO.data$GO.IDs), "; ") #split into multiple GO IDs
+
 Gene.GO.IDs <- data.frame(v1 = rep.int(GO.data$gene, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row 
+
 colnames(Gene.GO.IDs) <- c("gene", "GO.IDs") #rename columns
-Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs)
-#Gene.GO.IDs$GO.IDs[is.na(Gene.GO.IDs$GO.IDs)] <- "unknown" #replace NA with unknown
-GO.IDs <-unique(Gene.GO.IDs$GO.IDs)
-# downloaded 20210407: http://www.informatics.jax.org/gotools/data/input/map2MGIslim.txt
-GoSlims <- read.csv("RAnalysis/Data/20210407_map2MGIslim.csv", header=TRUE, sep=",", na.string="NA", stringsAsFactors = FALSE, skip=0)
+
+Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
+
+GO.IDs <-unique(Gene.GO.IDs$GO.IDs) #removes duplicates from columns, compiles both lists to get all GO terms without duplicates
+
+# downloaded a GOslim file that lists GOslim bins and IDs to match 20210423: http://www.informatics.jax.org/gotools/data/input/map2MGIslim.txt
+# similar GO terms can bin into a GO slim categories so that it is easier to digest GO terms, imagine GO terms are species and GO slim terms are genus
+GoSlims <- read.csv("../Data/WGBS/20210423_map2MGIslim.csv", header=TRUE, sep=",", na.string="NA", stringsAsFactors = FALSE, skip=0) 
 colnames(GoSlims) <- c("GO.IDs", "Cat","GO.Slim.Term")
 Gene.GO.IDs.slims <- merge(Gene.GO.IDs, GoSlims, by="GO.IDs", all = TRUE)
-Gene.GO.IDs.slims <- Gene.GO.IDs.slims[-1,]
-GO.IDs.slims <- Gene.GO.IDs.slims[,-2]
+#Gene.GO.IDs.slims <- Gene.GO.IDs.slims[-1,]
+#GO.IDs.slims <- Gene.GO.IDs.slims[,-2]s
 
 ```
 
@@ -93,6 +100,7 @@ MD.5x <- merge(meth.data.5x,sample.info, by="Sample.ID") #combine sample info an
 ```
 
 ```{r}
+#Nyssa-stringr package, nice and clean so you can pipe and not have to rename, etc., use expression that does it all in one line regex 
 #Merge final .bed files at 10x coverage
 meth.data.10x <- list.files(path = "../Data/WGBS/10x_coverage/", pattern = ".bed$", full.names=TRUE) %>%
   set_names(.) %>% 
@@ -128,13 +136,15 @@ gs.5x <- unique(sub_meth_table.5x$gene)
 #make treatment a factor 
 
 #first subset the unique dataframes and second run the GLMs
+#purr package function called map, much cleaner for for loops (how to loop over a model in the tidyverse, can have a tidy output for your anova) computational time is faster with purr and it is cleaner
 for(i in 1:length(sub_meth_table.5x$gene)){
   
   #subset the dataframe gene by gene
   sub_meth_table.5x1 <- subset(sub_meth_table.5x, gene ==gs.5x[i])
   
   # fit glm position model
-  fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment, 
+  #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table. 
+  fit <- glmer(matrix(c(meth, unmeth), ncol=2) ~ treatment+(1|block), 
              data=sub_meth_table.5x1, family=binomial)
   a <- anova(fit, test="Chisq")
   

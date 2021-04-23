@@ -265,22 +265,6 @@ E9_R2_001.fastq.gz:25068848
 /data/putnamlab/KITT/hputnam/20201209_Becker_RNASeq_combo/combo/md5sum_list.txt
 ```
 
-
-### Checksum from files on Bluewaves
-
-
-
-c) Count number of reads per file 
-
-check for code after @ in fastq.gz files(e.g.,@GWNJ).
-
-```
-zcat *.gz | echo $((`wc -l`/4)) > rawread.counts.txt
-
-```
-
-
-
 # 3) Run FastQC
 
 a) Make folders for raw FastQC results and scripts
@@ -640,6 +624,21 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
 rm /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/*.sam
 
 ```
+
+
+### Check number of mapped reads
+```
+Explanation for SAMtools functions for checking the mapped reads in a paired-end dataset found here: https://www.biostars.org/p/138116/
+
+module load SAMtools/1.9-foss-2018b
+
+array1=($(ls *.bam))  
+for i in ${array1[@]}; do
+samtools view -F 0x4 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i} | cut -f 1 | sort | uniq | wc -l > mapped_read_counts
+done
+
+```
+
 
 
 # 7) Perform gene counts with stringTie
