@@ -21,7 +21,10 @@ library("factoextra")
 library("NbClust")
 library("ComplexHeatmap")
 library("tidyverse")
+library("tidyr")
+library("lme4")
 library("RColorBrewer")
+library("magrittr")
 library("ggplot2")
 library("goseq")
 library("gridExtra")
@@ -78,12 +81,11 @@ gcount_filt <- as.data.frame(gcount[which(rownames(gcount) %in% gn.keep),])
 head(gcount_filt)
 dim(gcount_filt)
 
-
 ```
 
 ##Merge the treatment columns into a new column , group. Set group as a factor.
 ```{r}
-treatmentinfo$treatment <- factor(treatmentinfo$treatment, levels = c("enriched","control"))
+treatmentinfo$treatment <- factor(treatmentinfo$treatment, levels = c("control","enriched"))
 ```
 
 #Create a DESeqDataSet design from gene count matrix and labels. Here we set the design to look at treatment to test for any differences in gene expression across timepoints attributed to treatment.
@@ -132,11 +134,61 @@ ggplot(gPCAdata, aes(PC1, PC2, color=treatment)) +
   theme(legend.position = ("none")) #set title attributes
 ```
 
+##### Run DE analysis for overall example 
 
+Run differential expression test using a Wald model. 
+```{r, message = FALSE}
+DEG_enriched <- DESeq(gdds) #run differential expression test by group using the Wald model
+```
+
+Explore significant p-values for treatment_l_vs_amb, treatment_xl_vs_amb, and treatment_xl_vs_l
+```{r, message = FALSE}
+DEG.results <- results(DEG_enriched, contrast=c("treatment","control","enriched"))
+head(DEG.results)
+sum(DEG.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
+
+```
 
 #### Differential Gene Expression Analysis
-# For data with random effects 
+# For data with random effects
+
+```{r}
+#reshape count data and join data frames for treatment and gene counts
+head(gcount_filt)
+
+#preserve rownames in data frame while converting data frame from wide to long format
+gcount_filt_long <- gcount_filt %>% 
+    as_tibble(rownames = "gene_id") %>% 
+    pivot_longer(cols = -gene_id, names_to = "sample_id", values_to = "count")
+
+head(gcount_filt_long)
+
+#join treatment information with gene count data so gene_ids can be assigned to samples and treatments
+combined.data <- left_join(gcount_filt_long, treatmentinfo)
+
+view(combined.data)
+```
 
 
-
+```{r}
+# fit glmer position model
+#think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table. 
+for(i in 1:length((combined.data$gene_id))){
+  
+  fit <- glmer(count ~ treatment + (1|block), 
+             data=combined.data, family="poisson")
+  
+  a <- anova(fit, test="Chisq")
+  
+  # capture summary stats to data frame
+  df <- data.frame(gene = combined.data[1,5],
+                   pval.treatment = a$`Pr(>Chi)`[2],
+                   #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
+                   #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
+                   stringsAsFactors = F)
+  
+  # bind rows of temporary data frame to the results data frame
+  results <- rbind(results, df)
+}
+```
 
