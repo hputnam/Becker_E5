@@ -171,7 +171,7 @@ view(combined.data)
 
 
 ```{r}
-# fit glmer position model
+#fit glmer position model
 #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table. 
 for(i in 1:length((combined.data$gene_id))){
   
@@ -181,14 +181,14 @@ for(i in 1:length((combined.data$gene_id))){
   a <- anova(fit, test="Chisq")
   
   # capture summary stats to data frame
-  df <- data.frame(gene = combined.data[1,5],
-                   pval.treatment = a$`Pr(>Chi)`[2],
+  #df <- data.frame(gene = combined.data[1,5],
+                   #pval.treatment = a$`Pr(>Chi)`[2],
                    #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
                    #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
-                   stringsAsFactors = F)
+                   #stringsAsFactors = F)
   
   # bind rows of temporary data frame to the results data frame
-  results <- rbind(results, df)
+  #results <- rbind(results, df)
 }
 ```
 
