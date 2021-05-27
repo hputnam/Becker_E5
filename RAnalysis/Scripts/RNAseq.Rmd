@@ -169,26 +169,37 @@ combined.data <- left_join(gcount_filt_long, treatmentinfo)
 view(combined.data)
 ```
 
+#### Fit glmer position model
 
 ```{r}
-#fit glmer position model
-#think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table. 
+# create data frame to store results
+results <- data.frame()
+gs <- unique(combined.data$gene_id)
+```
+
+
+```{r}
+#think about this as just a logistic regression, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
+# for loop is sub-setting the combined data sheet to go through gene by gene and compare treatment by the count data 
+# we found that we needed to use a summary table for glmer models in R and pull the coefficients to observed the p values for this type of model. We picked coefficient number 8 because that was the column and row that had our p  value data between treatments
+# to be confident with our for loop, we first used ggplot to visualize one gene with treatment and count data and saw that the data aligned how we expected for a gene that was insignificant
+
 for(i in 1:length((combined.data$gene_id))){
   
-  fit <- glmer(count ~ treatment + (1|block), 
-             data=combined.data, family="poisson")
+  #subset the dataframe gene by gene
+  combined.data1 <- subset(combined.data, gene_id == gs[i = 1])
   
-  a <- anova(fit, test="Chisq")
+  fit <- glmer(count ~ treatment + (1|block), 
+             data=combined.data1, family="poisson")
+  
+  a <- summary(fit)
   
   # capture summary stats to data frame
-  #df <- data.frame(gene = combined.data[1,5],
-                   #pval.treatment = a$`Pr(>Chi)`[2],
-                   #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
-                   #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
-                   #stringsAsFactors = F)
+  df <- data.frame(gene = combined.data1[1,1],
+                   pval.treatment = a$coefficients[8])
   
   # bind rows of temporary data frame to the results data frame
-  #results <- rbind(results, df)
+  results <- rbind(results, df)
 }
 ```
 
