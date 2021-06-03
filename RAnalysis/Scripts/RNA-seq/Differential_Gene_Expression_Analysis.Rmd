@@ -37,13 +37,13 @@ library("here")
 Import the data files 
 ```{r}
 #treatment information
-treatmentinfo <- read.csv("../Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
+treatmentinfo <- read.csv("../../Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
 rownames(treatmentinfo) <- treatmentinfo$sample_id
 str(treatmentinfo)
 head(treatmentinfo)
 
 #gene count matrix
-gcount <- as.data.frame(read.csv("../Data/RNA-seq/Poc_gene_count_matrix.csv", row.names="gene_id"))
+gcount <- as.data.frame(read.csv("../../Data/RNA-seq/Poc_gene_count_matrix.csv", row.names="gene_id"))
 dim(gcount)
 head(gcount)
 
@@ -190,6 +190,12 @@ combined.data$block <- as.factor(combined.data$block)
 # we found that we needed to use a summary table for glmer models in R and pull the coefficients to observed the p values for this type of model. We picked coefficient number 8 because that was the column and row that had our p value data between treatments
 # to be confident with our for loop, we first used ggplot to visualize one gene with treatment and count data and saw that the data aligned how we expected for a gene that was insignificant
 
+#confident in model selection from below when checking with i = 1 and i = 30
+#in for loop, receiving "Error: Invalid grouping factor specification, treatment:block" which others have run into and said it is due to NA values which are not present throughout our data frames
+#when run individual i = 1 or i = 30 for glmer, will run fine without an error
+#I also get the warning for boundary (singular) fit: see ?isSingular as the for loop runs which is saying that the random effects are not accounting for much more if any more variation in the model,
+# ?isSingular explanation: complex mixed-effect models (i.e., those with a large number of variance-covariance parameters) frequently result in singular fits, i.e. estimated variance-covariance matrices with less than full rank. Less technically, this means that some "dimensions" of the variance-covariance matrix have been estimated as exactly zero. For scalar random effects such as intercept-only models, or 2-dimensional random effects such as intercept+slope models, singularity is relatively easy to detect because it leads to random-effect variance estimates of (nearly) zero, or estimates of correlations that are (almost) exactly -1 or 1.
+
 for(i in 1:length((combined.data$gene_id))){
   
   #subset the dataframe gene by gene
@@ -247,7 +253,7 @@ sum(results$pval.treatment < 0.05, na.rm=TRUE)
 
 DEG.sig.results <- subset(results, pval.treatment < 0.05)
 
-write.csv(DEG.sig.results, '../Data/RNA-seq/DEG.sig.results.csv')  
+write.csv(DEG.sig.results, '../../Output/RNA-seq/DEG/DEG.sig.results.csv')  
 
 ```
 

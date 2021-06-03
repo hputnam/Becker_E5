@@ -671,14 +671,9 @@ Submitted batch job 1912697
 # 7) Perform gene counts with stringTie
 
 
-```
-mkdir counts_C1
-cd counts_C1
-
-```
-
-
 b) Assemble and estimate reads 
+
+### makes count directory inside script
 
 ```
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts_C1/StringTie_Assemble_C1.sh
@@ -689,7 +684,7 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts_C1/StringTie_Assembl
 #SBATCH -t 24:00:00
 #SBATCH --nodes=1 --ntasks-per-node=1
 #SBATCH --export=NONE
-#SBATCH --mem=100GB
+#SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu 
 #SBATCH --account=putnamlab
@@ -700,12 +695,13 @@ module load StringTie/2.1.4-GCC-9.3.0
 
 array1=($(ls *.bam)) 
 for i in ${array1[@]}; do 
-stringtie -p 48 --rf -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Sym_C1/Pver_genome_assembly_v1.0_modified.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts_C1/${i}.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/${i}
+stringtie -p 48 --rf -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Sym_C1/SymbC1.Gene_Models.GFF3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts_C1/${i}.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/${i}
 done
 ```
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts_C1/StringTie_Assemble_C1.sh
+Submitted batch job 1912768
 
 ```
 
