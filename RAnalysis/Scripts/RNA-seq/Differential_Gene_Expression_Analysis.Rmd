@@ -193,10 +193,9 @@ combined.data$block <- as.factor(combined.data$block)
 for(i in 1:length((combined.data$gene_id))){
   
   #subset the dataframe gene by gene
-  combined.data1 <- subset(combined.data, gene_id == gs[i], na.rm=TRUE)
+  combined.data1 <- subset(combined.data, gene_id == gs[i])
   
-  fit <- glmer(count ~ treatment + (1|treatment:block), 
-             data=combined.data1, family="poisson")
+  fit <- glmer(count ~ treatment + (1 | treatment:block), family="poisson", data=combined.data1)
   
   a <- summary(fit)
   
@@ -214,7 +213,7 @@ for(i in 1:length((combined.data$gene_id))){
 #wanted to compare models to double check and verify the format of models, for comparing how certain ways of nesting block within treatment impact AIC and model trends
 #want a model that will treat all blocks within one treatment different, fit independent models to all blocks in one treatment, will account for inter-treatment variability 
 
-model1 <- glmer(count ~ treatment + (1|treatment:block), 
+model1 <- glmer(count ~ treatment + (1 | treatment:block), 
              data=combined.data1, family="poisson")
 
 model2 <- glmer(count ~ treatment + (1|block), 
@@ -246,7 +245,9 @@ sum(results$pval.treatment < 0.05, na.rm=TRUE)
 
 #create data frame with only DEG's with < 0.05 significance 
 
-DEG.sig.results_model <- subset(results, pval.treatment < 0.05)
+DEG.sig.results <- subset(results, pval.treatment < 0.05)
+
+write.csv(DEG.sig.results, '../Data/RNA-seq/DEG.sig.results.csv')  
 
 ```
 
