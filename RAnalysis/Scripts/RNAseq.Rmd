@@ -16,8 +16,10 @@ output: html_document
 Load libraries
 ```{r, message=FALSE, warning=FALSE}
 library("genefilter")
+library("car")
 library("DESeq2")
 library("factoextra")
+library("MuMIn")
 library("NbClust")
 library("ComplexHeatmap")
 library("tidyverse")
@@ -61,7 +63,7 @@ all(rownames(treatmentinfo) %in% colnames(gcount)) # must come out TRUE
 
 
 ##### Pre-filter gene counts
-## Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests. We will  filter out low coverage samples. Here, we will keep P=87.5% percent of the samples have counts over A=5, allowing only 1 of 8 samples to have a value less than 5 per gene.
+## Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests. We will filter out low coverage samples. Here, we will keep P=87.5% percent of the samples have counts over A=5, allowing only 1 of 8 samples to have a value less than 5 per gene.
 
 ```{r}
 #Set filter values for PoverA, P=87.5% percent of the samples have counts over A=5. We chose this value allowing only 1 of 8 samples to have a value less than 5 per gene. 
@@ -141,7 +143,7 @@ Run differential expression test using a Wald model.
 DEG_enriched <- DESeq(gdds) #run differential expression test by group using the Wald model
 ```
 
-Explore significant p-values for treatment_l_vs_amb, treatment_xl_vs_amb, and treatment_xl_vs_l
+Explore significant p-values for treatment
 ```{r, message = FALSE}
 DEG.results <- results(DEG_enriched, contrast=c("treatment","control","enriched"))
 head(DEG.results)
@@ -175,21 +177,25 @@ view(combined.data)
 # create data frame to store results
 results <- data.frame()
 gs <- unique(combined.data$gene_id)
+
+#make block a factor 
+combined.data$block <- as.factor(combined.data$block)
+
 ```
 
 
 ```{r}
 #think about this as just a logistic regression, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
 # for loop is sub-setting the combined data sheet to go through gene by gene and compare treatment by the count data 
-# we found that we needed to use a summary table for glmer models in R and pull the coefficients to observed the p values for this type of model. We picked coefficient number 8 because that was the column and row that had our p  value data between treatments
+# we found that we needed to use a summary table for glmer models in R and pull the coefficients to observed the p values for this type of model. We picked coefficient number 8 because that was the column and row that had our p value data between treatments
 # to be confident with our for loop, we first used ggplot to visualize one gene with treatment and count data and saw that the data aligned how we expected for a gene that was insignificant
 
 for(i in 1:length((combined.data$gene_id))){
   
   #subset the dataframe gene by gene
-  combined.data1 <- subset(combined.data, gene_id == gs[i = 1])
+  combined.data1 <- subset(combined.data, gene_id == gs[i], na.rm=TRUE)
   
-  fit <- glmer(count ~ treatment + (1|block), 
+  fit <- glmer(count ~ treatment + (1|treatment:block), 
              data=combined.data1, family="poisson")
   
   a <- summary(fit)
@@ -201,5 +207,46 @@ for(i in 1:length((combined.data$gene_id))){
   # bind rows of temporary data frame to the results data frame
   results <- rbind(results, df)
 }
+
+```
+
+```{r}
+#wanted to compare models to double check and verify the format of models, for comparing how certain ways of nesting block within treatment impact AIC and model trends
+#want a model that will treat all blocks within one treatment different, fit independent models to all blocks in one treatment, will account for inter-treatment variability 
+
+model1 <- glmer(count ~ treatment + (1|treatment:block), 
+             data=combined.data1, family="poisson")
+
+model2 <- glmer(count ~ treatment + (1|block), 
+             data=combined.data1, family="poisson")
+
+model3 <- glmer(count ~ treatment + (1|treatment/block), 
+             data=combined.data1, family="poisson")
+
+#model.sel in MuMIn package for a model comparison function
+
+model.sel(model1, model2)
+
+#results based of of model, so need to check residuals of the model for normality and also for homogeneity of variance within the model
+#check histogram of residuals for model1, normality of residuals
+
+qqPlot(residuals(model1))
+
+#homogeneity of variance levene test, < 0.05 have a violation in variance, we do not have a violation, all good, standard error around mean is approx. the same around each group
+
+leveneTest(residuals(model1)~combined.data1$treatment)
+
+```
+
+Explore significant p values between treatments
+```{r}
+#How many adjusted p-values were less than 0.05?
+
+sum(results$pval.treatment < 0.05, na.rm=TRUE) 
+
+#create data frame with only DEG's with < 0.05 significance 
+
+DEG.sig.results_model <- subset(results, pval.treatment < 0.05)
+
 ```
 
