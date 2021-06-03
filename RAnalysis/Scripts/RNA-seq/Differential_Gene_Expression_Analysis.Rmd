@@ -196,6 +196,8 @@ combined.data$block <- as.factor(combined.data$block)
 #I also get the warning for boundary (singular) fit: see ?isSingular as the for loop runs which is saying that the random effects are not accounting for much more if any more variation in the model,
 # ?isSingular explanation: complex mixed-effect models (i.e., those with a large number of variance-covariance parameters) frequently result in singular fits, i.e. estimated variance-covariance matrices with less than full rank. Less technically, this means that some "dimensions" of the variance-covariance matrix have been estimated as exactly zero. For scalar random effects such as intercept-only models, or 2-dimensional random effects such as intercept+slope models, singularity is relatively easy to detect because it leads to random-effect variance estimates of (nearly) zero, or estimates of correlations that are (almost) exactly -1 or 1.
 
+#when run with DESeq2, 223 signifcant DEGs, when run with glmer 1,953
+
 for(i in 1:length((combined.data$gene_id))){
   
   #subset the dataframe gene by gene
@@ -254,6 +256,8 @@ sum(results$pval.treatment < 0.05, na.rm=TRUE)
 DEG.sig.results <- subset(results, pval.treatment < 0.05)
 
 write.csv(DEG.sig.results, '../../Output/RNA-seq/DEG/DEG.sig.results.csv')  
+
+read.csv('../../Output/RNA-seq/DEG/DEG.sig.results.csv')  
 
 ```
 
