@@ -66,8 +66,8 @@ all(rownames(treatmentinfo) %in% colnames(gcount)) # must come out TRUE
 ## Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests. We will filter out low coverage samples. Here, we will keep P=87.5% percent of the samples have counts over A=5, allowing only 1 of 8 samples to have a value less than 5 per gene.
 
 ```{r}
-#Set filter values for PoverA, P=87.5% percent of the samples have counts over A=5. We chose this value allowing only 1 of 8 samples to have a value less than 5 per gene. 
-filt <- filterfun(pOverA(0.875,5))
+#Erin Set filter values for PoverA, P=87.5% percent of the samples have counts over A=5. We chose this value allowing only 1 of 8 samples to have a value less than 5 per gene. 
+filt <- filterfun(pOverA(0.85,5))
 
 #create filter for the counts data
 gfilt <- genefilter(gcount, filt)
@@ -83,7 +83,25 @@ gcount_filt <- as.data.frame(gcount[which(rownames(gcount) %in% gn.keep),])
 head(gcount_filt)
 dim(gcount_filt)
 
+
 ```
+
+#testing PoverA cut off values and influence on differential expression number and change in enrichment
+
+```{r}
+#make data frame to test the change in the PoverA results to see how much our differential expression number and enrichment changes for the PoverA
+#set PoverA at 0.50, 0.60, 0.60, 0.70, 0.80, 0.90, and 1.0
+
+PoverA_cut_off <- c(0.50, 0.60, 0.70, 0.80, 0.81, 0.82, 0.83, 0.84, 0.85, 0.86, 0.87, 0.88, 0.89, 0.90, 1.0)
+diff.expres.num <- c(20306, 19685, 19163, 18601, 18601, 18375, 18375, 18375, 18108, 18108, 18108, 17804, 17804, 17804, 16088)
+
+povera_test <- data_frame(PoverA_cut_off, diff.expres.num)
+
+ggplot(povera_test, aes(x = PoverA_cut_off, y = diff.expres.num)) +
+  geom_point() 
+
+```
+
 
 ##Merge the treatment columns into a new column , group. Set group as a factor.
 ```{r}
@@ -203,7 +221,7 @@ for(i in 1:length((combined.data$gene_id))){
   #subset the dataframe gene by gene
   combined.data1 <- subset(combined.data, gene_id == gs[i])
   
-  fit <- glmer(count ~ treatment + (1 | treatment:block), family="poisson", data=combined.data1)
+  fit <- glmer(count ~ treatment + (1 | block), family="poisson", data=combined.data1)
   
   a <- summary(fit)
   
@@ -220,6 +238,7 @@ for(i in 1:length((combined.data$gene_id))){
 ```{r}
 #wanted to compare models to double check and verify the format of models, for comparing how certain ways of nesting block within treatment impact AIC and model trends
 #want a model that will treat all blocks within one treatment different, fit independent models to all blocks in one treatment, will account for inter-treatment variability 
+#using model 2 because model 1 and 2 had lowest AIC values and want to go with the least complex model because the added complexity is not adding any new information
 
 model1 <- glmer(count ~ treatment + (1 | treatment:block), 
              data=combined.data1, family="poisson")
@@ -235,13 +254,13 @@ model3 <- glmer(count ~ treatment + (1|treatment/block),
 model.sel(model1, model2)
 
 #results based of of model, so need to check residuals of the model for normality and also for homogeneity of variance within the model
-#check histogram of residuals for model1, normality of residuals
+#check histogram of residuals for model2, normality of residuals
 
-qqPlot(residuals(model1))
+qqPlot(residuals(model2))
 
 #homogeneity of variance levene test, < 0.05 have a violation in variance, we do not have a violation, all good, standard error around mean is approx. the same around each group
 
-leveneTest(residuals(model1)~combined.data1$treatment)
+leveneTest(residuals(model2)~combined.data1$treatment)
 
 ```
 

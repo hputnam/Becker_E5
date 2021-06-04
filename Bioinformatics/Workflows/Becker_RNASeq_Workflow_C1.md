@@ -756,7 +756,7 @@ done
 ```
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts_C1/re_estimate.assembly_C1.sh
-
+Submitted batch job 1913016
 ```
 ```
 # move merged GTF files to their own folder 
@@ -783,6 +783,38 @@ done
 ```
 #sample_list.txt document
 
+C17_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C17_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C18_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C18_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C19_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C19_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C20_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C20_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C21_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C21_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C22_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C22_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C23_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C23_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C24_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C24_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C25_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C25_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C26_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C26_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C27_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C27_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C28_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C28_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C29_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C29_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C30_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C30_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C31_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C31_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C32_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/C32_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E10_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E10_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E11_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E11_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E12_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E12_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E13_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E13_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E14_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E14_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E15_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E15_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E16_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E16_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E1_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E1_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E2_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E2_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E3_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E3_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E4_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E4_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E5_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E5_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E6_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E6_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E7_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E7_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E8_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E8_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+E9_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/E9_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
 
 ```
 ```
@@ -814,6 +846,7 @@ python prepDE.py -g Sym_C1_gene_count_matrix.csv -i sample_list_C1.txt
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts_C1/GTFtoCounts_C1.sh
+Submitted batch job 1913031
 
 ```
 
@@ -821,13 +854,13 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts_C1/GTFtoCounts_C1.
 g) Secure-copy gene counts onto local computer, make sure to open a seperate command shell outside of bluewaves on your own terminal
 
 ```
-#copy gene count matrix
+#copy Sym gene count matrix
 
 scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/GTF_merge_C1/Sym_C1_gene_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/RNA-seq
 
 
-#copy transcript count matrix
-scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/Sym_C1_transcript_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/RNA-seq
+#copy Sym transcript count matrix
+scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/transcript_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/RNA-seq
 
 ```
 
