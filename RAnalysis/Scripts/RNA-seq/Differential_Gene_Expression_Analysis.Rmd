@@ -67,7 +67,7 @@ all(rownames(treatmentinfo) %in% colnames(gcount)) # must come out TRUE
 
 ```{r}
 #Erin Set filter values for PoverA, P=87.5% percent of the samples have counts over A=5. We chose this value allowing only 1 of 8 samples to have a value less than 5 per gene. 
-filt <- filterfun(pOverA(0.85,5))
+filt <- filterfun(pOverA(0.875,5))
 
 #create filter for the counts data
 gfilt <- genefilter(gcount, filt)
@@ -203,39 +203,55 @@ combined.data$block <- as.factor(combined.data$block)
 
 
 ```{r}
+
+#Notes on 0608: 
+#last thing I did was run random effect (block) as fixed factor but when I do summary, block 8 has NA's, maybe an issue with formatting/subsetting section? TBD
+#the "Error: Invalid grouping factor specification, 1 = block" is only occurring for certain gene ID and sample pairs.
+#when I selected i after the error was reported in the for loop, it said line 18109 which was gene ID g16996 was causing this erro. I thought maybe E6's block had a typo or something associated with it did, but tried other gene ID's with the E6 line (which was taken from metadata sheet so all would be the same) and it ran through the model fine. I then thought maybe it was this gene ID, but other combinations I tried with this gene ID ran through the model fine. I then thought maybe it was gene ID's with the labeling gXXX but tried random gene ID's around this labeling and numbering and they still worked. So I do not think it is a typo but something about the specific combinations at this point.
+
+#Notes on 0605:
+#confident in model selection from below when checking with i = 1 and i = 30
+#in for loop, receiving "Error: Invalid grouping factor specification, 1 = 1block" which others have run into and said it is due to NA values which are not present throughout our data frames
+#when run individual i = 1 or i = 30 for glmer, will run fine without an error
+#I also get the warning for boundary (singular) fit: see ?isSingular as the for loop runs which is saying that the random effects are not accounting for much more if any more variation in the model,
+# ?isSingular explanation: complex mixed-effect models (i.e., those with a large number of variance-covariance parameters) frequently result in singular fits, i.e. estimated variance-covariance matrices with less than full rank. Less technically, this means that some "dimensions" of the variance-covariance matrix have been estimated as exactly zero. For scalar random effects such as intercept-only models, or 2-dimensional random effects such as intercept+slope models, singularity is relatively easy to detect because it leads to random-effect variance estimates of (nearly) zero, or estimates of correlations that are (almost) exactly -1 or 1.
+#when run with DESeq2, 223 significant DEGs, when run with glmer 1,953
+
+#Notes on 0526:
 #think about this as just a logistic regression, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
 # for loop is sub-setting the combined data sheet to go through gene by gene and compare treatment by the count data 
 # we found that we needed to use a summary table for glmer models in R and pull the coefficients to observed the p values for this type of model. We picked coefficient number 8 because that was the column and row that had our p value data between treatments
 # to be confident with our for loop, we first used ggplot to visualize one gene with treatment and count data and saw that the data aligned how we expected for a gene that was insignificant
 
-#confident in model selection from below when checking with i = 1 and i = 30
-#in for loop, receiving "Error: Invalid grouping factor specification, treatment:block" which others have run into and said it is due to NA values which are not present throughout our data frames
-#when run individual i = 1 or i = 30 for glmer, will run fine without an error
-#I also get the warning for boundary (singular) fit: see ?isSingular as the for loop runs which is saying that the random effects are not accounting for much more if any more variation in the model,
-# ?isSingular explanation: complex mixed-effect models (i.e., those with a large number of variance-covariance parameters) frequently result in singular fits, i.e. estimated variance-covariance matrices with less than full rank. Less technically, this means that some "dimensions" of the variance-covariance matrix have been estimated as exactly zero. For scalar random effects such as intercept-only models, or 2-dimensional random effects such as intercept+slope models, singularity is relatively easy to detect because it leads to random-effect variance estimates of (nearly) zero, or estimates of correlations that are (almost) exactly -1 or 1.
-
-#when run with DESeq2, 223 signifcant DEGs, when run with glmer 1,953
+combined.data <- na.omit(combined.data)
 
 for(i in 1:length((combined.data$gene_id))){
   
   #subset the dataframe gene by gene
   combined.data1 <- subset(combined.data, gene_id == gs[i])
   
-  fit <- glmer(count ~ treatment + (1 | block), family="poisson", data=combined.data1)
+  fit <- glm(count ~ treatment + block, family="poisson", data=combined.data1)
   
   a <- summary(fit)
   
   # capture summary stats to data frame
-  df <- data.frame(gene = combined.data1[1,1],
-                   pval.treatment = a$coefficients[8])
+  df <- data.frame(gene = combined.data1[1,1],  #prints gene id into output table
+                   pval.treatment = a$coefficients[8])   #prints pval from coefficients table
+                   #random.variance = print(a$varcor, comp=c("Variance"))) #prints random effects variance value from model
+  
+  #remove extra columns created with varcorr for random effect results 
+  
+  #df2 <-  df[,-(3:5)]
   
   # bind rows of temporary data frame to the results data frame
-  results <- rbind(results, df)
+  results <- rbind(results, df) 
+  
 }
 
 ```
 
 ```{r}
+#notes on 0602:
 #wanted to compare models to double check and verify the format of models, for comparing how certain ways of nesting block within treatment impact AIC and model trends
 #want a model that will treat all blocks within one treatment different, fit independent models to all blocks in one treatment, will account for inter-treatment variability 
 #using model 2 because model 1 and 2 had lowest AIC values and want to go with the least complex model because the added complexity is not adding any new information
