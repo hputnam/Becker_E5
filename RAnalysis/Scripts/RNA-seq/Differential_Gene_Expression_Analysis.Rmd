@@ -204,6 +204,9 @@ combined.data$block <- as.factor(combined.data$block)
 
 ```{r}
 
+#Notes on 0615:
+#Found a way to resolve the error, for the for loop, length needed to be amended to just look through the gs data frame, the length for combined.data:gene_id was going through each observation and not just looking at the unique genes
+
 #Notes on 0608: 
 #last thing I did was run random effect (block) as fixed factor but when I do summary, block 8 has NA's, maybe an issue with formatting/subsetting section? TBD
 #the "Error: Invalid grouping factor specification, 1 = block" is only occurring for certain gene ID and sample pairs.
@@ -223,14 +226,19 @@ combined.data$block <- as.factor(combined.data$block)
 # we found that we needed to use a summary table for glmer models in R and pull the coefficients to observed the p values for this type of model. We picked coefficient number 8 because that was the column and row that had our p value data between treatments
 # to be confident with our for loop, we first used ggplot to visualize one gene with treatment and count data and saw that the data aligned how we expected for a gene that was insignificant
 
+#deciding what distribution/family data fits in
+hist(combined.data$count, freq=FALSE) #make histogram of gene count data (response variable)
+library(fitdistrplus)
+descdist(combined.data$count, discrete = FALSE) #Computes descriptive parameters of an empirical distribution for non-censored data and provides a skewness-kurtosis plot
+
 combined.data <- na.omit(combined.data)
 
-for(i in 1:length((combined.data$gene_id))){
+for(i in 1:length((gs))){
   
   #subset the dataframe gene by gene
   combined.data1 <- subset(combined.data, gene_id == gs[i])
   
-  fit <- glm(count ~ treatment + block, family="poisson", data=combined.data1)
+  fit <- glmer(count ~ treatment + (1|block), family="poisson", data=combined.data1)
   
   a <- summary(fit)
   
