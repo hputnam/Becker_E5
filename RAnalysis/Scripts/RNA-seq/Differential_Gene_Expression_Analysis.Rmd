@@ -167,6 +167,10 @@ DEG.results <- results(DEG_enriched, contrast=c("treatment","control","enriched"
 head(DEG.results)
 sum(DEG.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
 
+#create data frame with only DESeq2 DEG's with < 0.05 significance 
+
+DEGSeq2.sig.results <- subset(DEG.results, padj < 0.05)
+
 ```
 
 #### Differential Gene Expression Analysis
@@ -301,6 +305,67 @@ DEG.sig.results <- subset(results, pval.treatment < 0.05)
 write.csv(DEG.sig.results, '../../Output/RNA-seq/DEG/DEG.sig.results.csv')  
 
 read.csv('../../Output/RNA-seq/DEG/DEG.sig.results.csv')  
+
+```
+
+
+
+#### Fit glmer position model, testing with fake data set to test random effects and treatments in glmer are accounting for variance, etc. properly
+
+
+```{r}
+# bring in test data frame
+
+test.data <- read.csv("../../Data/RNA-seq/test.data.glmer.sig.csv", header = TRUE, sep = ",")
+
+```
+
+```{r}
+# create data frame to store results
+results.test <- data.frame()
+gs.test <- unique(test.data$gene_id)
+
+#make block a factor 
+test.data$block <- as.factor(test.data$block)
+test.data$treatment <- as.factor(test.data$treatment)
+
+```
+
+
+```{r}
+
+for(i in 1:length((gs.test))){
+  
+  #subset the dataframe gene by gene
+  test.data1 <- subset(test.data, gene_id == gs.test[i])
+  
+  fit.test <- glmer(gene_count ~ treatment + (1|block), family="poisson", data=test.data1)
+  
+  a.test <- summary(fit.test)
+  
+  # capture summary stats to data frame
+  df.test <- data.frame(gene = test.data1[1,1],  #prints gene id into output table
+                   pval.treatment = a.test$coefficients[8])   #prints pval from coefficients table
+  
+  #remove extra columns created with varcorr for random effect results 
+  
+  #df2 <-  df[,-(3:5)]
+  
+  # bind rows of temporary data frame to the results data frame
+  results.test <- rbind(results.test, df.test) 
+  
+}
+
+```
+
+
+```{r}
+#use lattice package to compare block design and make sure it is effecting the variance with my test values with i = 1, i = 4, i = 3, i = 2. Everytime I made a different block have a greater effect and it did correctly calculate and observe that change in variation.
+
+library(lattice)
+str(rr1 <- ranef(fit.test))
+dotplot(rr1)  ## default
+qqmath(rr1)
 
 ```
 
