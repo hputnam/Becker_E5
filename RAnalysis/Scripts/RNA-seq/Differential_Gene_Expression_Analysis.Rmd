@@ -29,6 +29,7 @@ library("RColorBrewer")
 library("magrittr")
 library("ggplot2")
 library("goseq")
+library("stats")
 library("gridExtra")
 library("VennDiagram")
 library("here")
@@ -97,8 +98,10 @@ diff.expres.num <- c(20306, 19685, 19163, 18601, 18108, 18108, 18108, 17804, 178
 
 povera_test <- data_frame(PoverA_cut_off, diff.expres.num)
 
-ggplot(povera_test, aes(x = PoverA_cut_off, y = diff.expres.num)) +
+povera_ggplot <- ggplot(povera_test, aes(x = PoverA_cut_off, y = diff.expres.num)) +
   geom_point() 
+
+ggsave(path = "../../Output/Final_Figures/", filename = "povera_ggplot.pdf")
 
 ```
 
@@ -289,23 +292,33 @@ leveneTest(residuals(model2)~combined.data1$treatment)
 
 Explore significant p values between treatments
 ```{r}
-#How many adjusted p-values were less than 0.05?
+#How many significant p-values were less than 0.05?
 
 sum(results$pval.treatment < 0.05, na.rm=TRUE) 
+#1953
 
 #create data frame with only DEG's with < 0.05 significance 
 
 DEG.sig.results <- subset(results, pval.treatment < 0.05)
 
+#use p.adjust to adjust p values from glmer using multiple methods: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/p.adjust; https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6099145/
+
+DEG.sig.results$padj <- p.adjust(DEG.sig.results$pval.treatment, method = p.adjust.methods, n = length(DEG.sig.results$pval.treatment))
+
+#How many significant p-values were less than 0.05 after p adjust?
+
+sum(DEG.sig.results$padj < 0.05, na.rm=TRUE) 
+#121
+
 write.csv(DEG.sig.results, '../../Output/RNA-seq/DEG/DEG.sig.results.csv')  
 
 read.csv('../../Output/RNA-seq/DEG/DEG.sig.results.csv')  
 
-#DEG.sig.results.corrected <- results(DEG.sig.results, contrast=c("treatment","control","enriched"), pAdjustMethod = "BH")
+view(DEG.sig.results)
 
 ```
 
-
+####################################################################################################
 
 #### Fit glmer position model, testing with fake data set to test random effects and treatments in glmer are accounting for variance, etc. properly
 
