@@ -27,12 +27,12 @@ library(patchwork)
 Import the data files 
 ```{r}
 #treatment information
-treatmentinfo <- read.csv("../Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
+treatmentinfo <- read.csv("../../Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
 str(treatmentinfo)
 head(treatmentinfo)
 
 #gene count matrix
-gcount <- as.data.frame(read.csv("../Data/RNA-seq/Poc_gene_count_matrix.csv", row.names="gene_id"))
+gcount <- as.data.frame(read.csv("../../Data/RNA-seq/Poc_gene_count_matrix.csv", row.names="gene_id"))
 #remove extra characters from multiple column header names for sample ids, skip first column labeled gene counts so specify 1:ncol
 for ( col in 1:ncol(gcount)){
   colnames(gcount)[col] <-  sub("_R1_001.fastq.gz.sam.sorted.bam.merge.gtf", "", colnames(gcount)[col])
@@ -45,11 +45,11 @@ dim(gcount)
 head(gcount)
 
 #DEG significant results
-DEG.res <- read.csv("../Data/RNA-seq/DEG.sig.results.csv")[,-1]
+DEG.res <- read.csv("../../Output/RNA-seq/DEG/DEG.sig.results.csv")[,-1]
 nrow(DEG.res)
 
 #transcript annotations
-annot <- read_tsv( "../Genome/Pver_gene_annotation_file.txt", col_names = TRUE) #biological annotation information
+annot <- read_tsv( "../../Genome/Pver_gene_annotation_file.txt", col_names = TRUE) #biological annotation information
 go.ref <- subset(annot, select= c(Gene, Query_length)) #Select only relevant information
 #rename Gene column to gene_id to match gcount data frame and rename query_length to length
 go.ref <- data.frame(gene_id=go.ref$Gene, length=go.ref$Query_length) #rename columns
@@ -148,7 +148,7 @@ print(NAs.ontology)
 
 Save significant terms
 ```{r, warning=FALSE}
-write.csv(GO.05, file = "../Output/GO.05.csv", row.names = FALSE)
+write.csv(GO.05, file = "../../Output/RNA-seq/GOSeq/GO.05.csv", row.names = FALSE)
 ```
 
 ## Find GOslim terms
@@ -156,7 +156,7 @@ write.csv(GO.05, file = "../Output/GO.05.csv", row.names = FALSE)
 
 Read in files if previous steps not run.
 ```{r}
-GO.05 <- read_csv("../Output/GO.05.csv")
+GO.05 <- read_csv("../../Output/RNA-seq/GOSeq/GO.05.csv")
 #GO.05$dir <- "C1 (Up)"
 ```
 
@@ -249,9 +249,11 @@ GO.CC <- right_join(CCslim, filter(GO.05, ontology=="CC"), by="category") #add b
 ```{r}
 #make figure 5 in ph plot
 #currently do not have direction for DEGs, replaced x with ontology
-BPplot <- GO.BP %>% filter(numInCat>5) %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>% ggplot(aes(x = ontology, y = term)) + 
-  geom_tile(aes(fill =over_represented_pvalue)) + 
-  facet_grid(slim.term ~ ., scales = "free_y", labeller = label_wrap_gen(width = 5, multi_line = TRUE))+
+BPplot <- GO.BP %>% filter(numInCat>5) %>% mutate(term = fct_reorder(term, over_represented_pvalue)) %>% mutate(term = fct_reorder(term, ontology)) %>%
+  ggplot(aes(x = term, y = over_represented_pvalue)) + 
+  geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
+  scale_y_discrete(position = "right") +
+    facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
   panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
   strip.text.y = element_text(angle=0, size = 10),
@@ -259,20 +261,21 @@ BPplot <- GO.BP %>% filter(numInCat>5) %>% mutate(term = fct_reorder(term, -over
   axis.text = element_text(size = 8),
   axis.title.x = element_blank(),
   axis.title.y = element_blank())
-MFplot <- GO.MF %>% filter(numInCat>5) %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>% ggplot(aes(x = ontology, y = term)) + 
+MFplot <- GO.MF %>% filter(numInCat>5) %>% mutate(term = fct_reorder(term, over_represented_pvalue)) %>% mutate(term = fct_reorder(term, ontology)) %>%
+  ggplot(aes(x = term, y = over_represented_pvalue)) + 
   geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
   scale_y_discrete(position = "right") +
     facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
   panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-  strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
-  strip.text.x = element_text(size = 12, face = "bold"),
-  axis.title = element_blank(),
-  axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text = element_text(size = 11))
+  strip.text.y = element_text(angle=0, size = 10),
+  strip.text.x = element_text(size = 20),
+  axis.text = element_text(size = 8),
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank())
 fig5 <- BPplot + MFplot
-fig5 <- ggdraw(plot = fig5) + draw_plot_label(c("a)", "b)"), c(0, 0.33), c(1, 1), size = 15)
-ggsave("../Output/GOslim.pdf", fig5, width = 20, height = 2, units = c("in"))
-ggsave("../Output/heatmap_GO_terms.png", fig5, width = 20, height = 20, units = c("in"))
+ggsave("../../Output/RNA-seq/GOSeq/GOslim.pdf", fig5, width = 20, height = 2, units = c("in"))
+ggsave("../../Output/RNA-seq/GOSeq/heatmap_GO_terms.png", fig5, width = 20, height = 20, units = c("in"))
 ```
 
 ## Make supplemental table summarizing GO enrichment
