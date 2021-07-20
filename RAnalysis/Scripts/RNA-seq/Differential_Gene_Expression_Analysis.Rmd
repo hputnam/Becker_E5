@@ -260,35 +260,6 @@ for(i in 1:length((gs))){
 
 ```
 
-```{r}
-#notes on 0602:
-#wanted to compare models to double check and verify the format of models, for comparing how certain ways of nesting block within treatment impact AIC and model trends
-#want a model that will treat all blocks within one treatment different, fit independent models to all blocks in one treatment, will account for inter-treatment variability 
-#using model 2 because model 1 and 2 had lowest AIC values and want to go with the least complex model because the added complexity is not adding any new information
-
-model1 <- glmer(count ~ treatment + (1 | treatment:block), 
-             data=combined.data1, family="poisson")
-
-model2 <- glmer(count ~ treatment + (1|block), 
-             data=combined.data1, family="poisson")
-
-model3 <- glmer(count ~ treatment + (1|treatment/block), 
-             data=combined.data1, family="poisson")
-
-#model.sel in MuMIn package for a model comparison function
-
-model.sel(model1, model2)
-
-#results based of of model, so need to check residuals of the model for normality and also for homogeneity of variance within the model
-#check histogram of residuals for model2, normality of residuals
-
-qqPlot(residuals(model2))
-
-#homogeneity of variance levene test, < 0.05 have a violation in variance, we do not have a violation, all good, standard error around mean is approx. the same around each group
-
-leveneTest(residuals(model2)~combined.data1$treatment)
-
-```
 
 Explore significant p values between treatments
 ```{r}
