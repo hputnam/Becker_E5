@@ -29,6 +29,7 @@ library("RColorBrewer")
 library("magrittr")
 library("ggplot2")
 library("goseq")
+library("pheatmap")
 library("stats")
 library("gridExtra")
 library("VennDiagram")
@@ -320,19 +321,22 @@ mat <- mat - rowMeans(mat) #diff in expression compared to average across all sa
 dim(mat)
 ann_colors <- list(treatment= c(control="black", enriched="cadetblue3"))
 df_DEG <- as.data.frame(colData(DEGvst)[c("treatment")]) #make dataframe for column naming and associated treatment
-DEGheatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TRUE, annotation_col=df_DEG, annotation_colors = ann_colors,
+DEG_heatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TRUE, annotation_col=df_DEG, annotation_colors = ann_colors,
                             clustering_distance_rows="euclidean", clustering_method = "average",
                             show_rownames =FALSE,
                             show_colnames =TRUE,
                             cluster_cols = TRUE)
-DEGheatmap 
+DEG_heatmap 
 
-ggsave(path = "../../Output/Final_Figures/", filename = "DEGheatmap.pdf")
+ 
 
+```
+
+```{r}
 # PCA plot of diff-expressed genes 
 DEGPCAdata <- plotPCA(DEGvst, intgroup = c("treatment"), returnData=TRUE)
 percentVar_pca <- round(100*attr(DEGPCAdata, "percentVar")) #plot PCA of samples with all data
-DEGPCAplot <- ggplot(DEGPCAdata, aes(PC1, PC2, color=treatment)) +
+DEG_PCA_plot <- ggplot(DEGPCAdata, aes(PC1, PC2, color=treatment)) +
   geom_point(size=3) +
   xlab(paste0("PC1: ",percentVar_pca[1],"% variance")) +
   ylab(paste0("PC2: ",percentVar_pca[2],"% variance")) +
@@ -345,15 +349,15 @@ DEGPCAplot <- ggplot(DEGPCAdata, aes(PC1, PC2, color=treatment)) +
         axis.line = element_line(colour = "black"), #Set axes color
         plot.background=element_blank()) #Set the plot background
 
-DEGPCAplot
+DEG_PCA_plot
 
-ggsave(path = "../../Output/Final_Figures/", filename = "DEGPCAplot.pdf")
+ggsave(path = "../../Output/Final_Figures/", filename = "DEG_PCA_plot.pdf")
 
-# PCA plot is of differentially expressed genes only
+# PCA plot is of deferentially expressed genes only
 
 # Save results
 write.csv(counts(DEGs_list), file="../../Output/RNA-seq/DEG/DEG_list_unique.csv")
 
-
 ```
+
 
