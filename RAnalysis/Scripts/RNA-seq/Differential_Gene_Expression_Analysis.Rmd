@@ -328,11 +328,7 @@ DEG_heatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TRUE, 
                             cluster_cols = TRUE)
 DEG_heatmap 
 
- 
 
-```
-
-```{r}
 # PCA plot of diff-expressed genes 
 DEGPCAdata <- plotPCA(DEGvst, intgroup = c("treatment"), returnData=TRUE)
 percentVar_pca <- round(100*attr(DEGPCAdata, "percentVar")) #plot PCA of samples with all data
@@ -356,6 +352,7 @@ ggsave(path = "../../Output/Final_Figures/", filename = "DEG_PCA_plot.pdf")
 # PCA plot is of deferentially expressed genes only
 
 # Save results
+
 write.csv(counts(DEGs_list), file="../../Output/RNA-seq/DEG/DEG_list_unique.csv")
 
 ```
