@@ -67,7 +67,7 @@ all(rownames(treatmentinfo) %in% colnames(gcount)) # must come out TRUE
 ## Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests. We will filter out low coverage samples. Here, we will keep P=87.5% percent of the samples have counts over A=5, allowing only 1 of 8 samples to have a value less than 5 per gene.
 
 ```{r}
-#Erin Set filter values for PoverA, P=87.5% percent of the samples have counts over A=5. We chose this value allowing only 1 of 8 samples to have a value less than 5 per gene. 
+#Erin Set filter values for PoverA, P=87.5% percent of the samples have counts over A=5. They chose their value allowing only 1 of 8 samples to have a value less than 5 per gene. 
 filt <- filterfun(pOverA(0.875,5))
 
 #create filter for the counts data
@@ -135,7 +135,7 @@ print(sizeFactors(SF.gdds)) #View size factors
 
 Our size factors are all less than 4, so we can use VST!
 ```{r}
-gvst <- vst(gdds, blind=FALSE) #apply a variance stabilizing transformation to minimize effects of small counts and normalize wrt library size
+gvst <- vst(gdds, blind=FALSE) #apply a variance stabilizing transformation to minimize effects of small counts and normalize library size
 ```
 
 #### Principal component plot of samples
@@ -208,6 +208,7 @@ combined.data$block <- as.factor(combined.data$block)
 
 ```
 
+#### Fit glmer position model
 
 ```{r}
 
@@ -247,11 +248,6 @@ for(i in 1:length((gs))){
   # capture summary stats to data frame
   df <- data.frame(gene = combined.data1[1,1],  #prints gene id into output table
                    pval.treatment = a$coefficients[8])   #prints pval from coefficients table
-                   #random.variance = print(a$varcor, comp=c("Variance"))) #prints random effects variance value from model
-  
-  #remove extra columns created with varcorr for random effect results 
-  
-  #df2 <-  df[,-(3:5)]
   
   # bind rows of temporary data frame to the results data frame
   results <- rbind(results, df) 
@@ -261,25 +257,29 @@ for(i in 1:length((gs))){
 ```
 
 
-Explore significant p values between treatments
+# Explore significant p values between treatments
 ```{r}
-#How many significant p-values were less than 0.05?
+#How many significant p-values were less than 0.05 without p adjust?
 
 sum(results$pval.treatment < 0.05, na.rm=TRUE) 
 #1953
 
 #create data frame with only DEG's with < 0.05 significance 
 
-DEG.sig.results <- subset(results, pval.treatment < 0.05)
+DEG.results.all <- subset(results, pval.treatment < 0.05)
 
 #use p.adjust to adjust p values from glmer using multiple methods: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/p.adjust; https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6099145/
 
-DEG.sig.results$padj <- p.adjust(DEG.sig.results$pval.treatment, method = p.adjust.methods, n = length(DEG.sig.results$pval.treatment))
+DEG.results.all$padj <- p.adjust(DEG.results.all$pval.treatment, method = p.adjust.methods, n = length(DEG.results.all$pval.treatment))
 
 #How many significant p-values were less than 0.05 after p adjust?
 
-sum(DEG.sig.results$padj < 0.05, na.rm=TRUE) 
+DEG.sig.results.sum <- sum(DEG.results.all$padj < 0.05, na.rm=TRUE) 
 #121
+
+#create data frame with only DEG's with < 0.05 significance 
+
+DEG.sig.results <- subset(DEG.results.all, padj < 0.05)
 
 write.csv(DEG.sig.results, '../../Output/RNA-seq/DEG/DEG.sig.results.csv')  
 
@@ -289,64 +289,71 @@ view(DEG.sig.results)
 
 ```
 
-####################################################################################################
 
-#### Fit glmer position model, testing with fake data set to test random effects and treatments in glmer are accounting for variance, etc. properly
-
-
-```{r}
-# bring in test data frame
-
-test.data <- read.csv("../../Data/RNA-seq/test.data.glmer.sig.csv", header = TRUE, sep = ",")
-
-```
-
-```{r}
-# create data frame to store results
-results.test <- data.frame()
-gs.test <- unique(test.data$gene_id)
-
-#make block a factor 
-test.data$block <- as.factor(test.data$block)
-test.data$treatment <- as.factor(test.data$treatment)
-
-```
-
-
+## Visualize differentially expressed genes
 ```{r}
 
-for(i in 1:length((gs.test))){
-  
-  #subset the dataframe gene by gene
-  test.data1 <- subset(test.data, gene_id == gs.test[i])
-  
-  fit.test <- glmer(gene_count ~ treatment + (1|block), family="poisson", data=test.data1)
-  
-  a.test <- summary(fit.test)
-  
-  # capture summary stats to data frame
-  df.test <- data.frame(gene = test.data1[1,1],  #prints gene id into output table
-                   pval.treatment = a.test$coefficients[8])   #prints pval from coefficients table
-  
-  #remove extra columns created with varcorr for random effect results 
-  
-  #df2 <-  df[,-(3:5)]
-  
-  # bind rows of temporary data frame to the results data frame
-  results.test <- rbind(results.test, df.test) 
-  
-}
+# Subset list of genes by those which padj>0.
+dim(DEG.results.all)
+DEGs <- DEG.results.all$gene_id # list all gene names 
+DEGs <- unique(DEGs) # select only unique gene names 
+DEGs_list <- gdds[which(rownames(gdds) %in% DEGs)] # filter gdds DESeq2 object by unique gene names
+dim(DEGs_list) # 15 x 15
+print(counts(DEGs_list))
 
-```
+# As determined above, size factors all less than 4, so proceed with VST
+#apply a variance stabilizing transformation to minimize effects of small counts and normalize wrt library size
 
+DEGvst <- vst(DEGs_list, blind = FALSE, nsub = nrow(counts(DEGs_list)))
 
-```{r}
-#use lattice package to compare block design and make sure it is effecting the variance with my test values with i = 1, i = 4, i = 3, i = 2. Everytime I made a different block have a greater effect and it did correctly calculate and observe that change in variation.
+# -- note: fitType='parametric', but the dispersion trend was not well captured by the
+# function: y = a/x + b, and a local regression fit was automatically substituted.
+# specify fitType='local' or 'mean' to avoid this message next time.
+dim(DEGvst) # 15 x 15
+print(assay(DEGvst)) # look at vst-transformed gene count data 
 
-library(lattice)
-str(rr1 <- ranef(fit.test))
-dotplot(rr1)  ## default
-qqmath(rr1)
+# Plot heat map with diff expressed genes
+# Testing if the first two command in the heatmap is necessary given that we are clustering the columns anyways.
+topVarGenes <- head(order(rowVars(assay(DEGvst)),decreasing=TRUE), DEG.sig.results.sum) #sort by decreasing sig ?
+mat <- assay(DEGvst)[topVarGenes, ] #make an expression object
+mat <- mat - rowMeans(mat) #diff in expression compared to average across all samples
+dim(mat)
+ann_colors <- list(treatment= c(control="black", enriched="cadetblue3"))
+df_DEG <- as.data.frame(colData(DEGvst)[c("treatment")]) #make dataframe for column naming and associated treatment
+DEGheatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TRUE, annotation_col=df_DEG, annotation_colors = ann_colors,
+                            clustering_distance_rows="euclidean", clustering_method = "average",
+                            show_rownames =FALSE,
+                            show_colnames =TRUE,
+                            cluster_cols = TRUE)
+DEGheatmap 
+
+ggsave(path = "../../Output/Final_Figures/", filename = "DEGheatmap.pdf")
+
+# PCA plot of diff-expressed genes 
+DEGPCAdata <- plotPCA(DEGvst, intgroup = c("treatment"), returnData=TRUE)
+percentVar_pca <- round(100*attr(DEGPCAdata, "percentVar")) #plot PCA of samples with all data
+DEGPCAplot <- ggplot(DEGPCAdata, aes(PC1, PC2, color=treatment)) +
+  geom_point(size=3) +
+  xlab(paste0("PC1: ",percentVar_pca[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar_pca[2],"% variance")) +
+  scale_color_manual(values = c(control="black", enriched="cadetblue3")) +
+  coord_fixed() +
+  theme_bw() + #Set background color
+  theme(panel.border = element_blank(), # Set border
+        #panel.grid.major = element_blank(), #Set major gridlines
+        #panel.grid.minor = element_blank(), #Set minor gridlines
+        axis.line = element_line(colour = "black"), #Set axes color
+        plot.background=element_blank()) #Set the plot background
+
+DEGPCAplot
+
+ggsave(path = "../../Output/Final_Figures/", filename = "DEGPCAplot.pdf")
+
+# PCA plot is of differentially expressed genes only
+
+# Save results
+write.csv(counts(DEGs_list), file="../../Output/RNA-seq/DEG/DEG_list_unique.csv")
+
 
 ```
 
