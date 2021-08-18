@@ -326,8 +326,10 @@ DEG_heatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TRUE, 
                             show_rownames =FALSE,
                             show_colnames =TRUE,
                             cluster_cols = TRUE)
-DEG_heatmap 
-
+pdf("../../Output/Final_Figures/DEG_heatmap.pdf")
+DEG_heatmap
+draw(DEG_heatmap)
+dev.off()
 
 # PCA plot of diff-expressed genes 
 DEGPCAdata <- plotPCA(DEGvst, intgroup = c("treatment"), returnData=TRUE)
