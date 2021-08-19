@@ -34,6 +34,7 @@ library("stats")
 library("gridExtra")
 library("VennDiagram")
 library("here")
+library("plotrix")
 ```
 
 Import the data files 
@@ -174,6 +175,9 @@ sum(DEG.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less t
 #create data frame with only DESeq2 DEG's with < 0.05 significance 
 
 DEGSeq2.sig.results <- subset(DEG.results, padj < 0.05)
+DEGSeq2.sig.results <- as.data.frame(DEGSeq2.sig.results)
+DEGSeq2.sig.results$gene_id <-rownames(DEGSeq2.sig.results)
+write.csv(DEGSeq2.sig.results, '../../Output/RNA-seq/DEG/DEGSeq2.sig.results.csv')  
 
 ```
 
@@ -194,7 +198,7 @@ head(gcount_filt_long)
 #join treatment information with gene count data so gene_ids can be assigned to samples and treatments
 combined.data <- left_join(gcount_filt_long, treatmentinfo)
 
-view(combined.data)
+head(combined.data)
 ```
 
 #### Fit glmer position model
@@ -242,6 +246,7 @@ for(i in 1:length((gs))){
   #subset the dataframe gene by gene
   combined.data1 <- subset(combined.data, gene_id == gs[i])
   
+  # SHOULD THIS BE THE NEGATIVE BINOMIAL DISTRIBUTION USING GLMER.NB?
   fit <- glmer(count ~ treatment + (1|block), family="poisson", data=combined.data1)
   
   a <- summary(fit)
@@ -267,16 +272,15 @@ sum(results$pval.treatment < 0.05, na.rm=TRUE)
 
 #create data frame with only DEG's with < 0.05 significance 
 
-DEG.results.all <- subset(results, pval.treatment < 0.05)
+DEG.results.all <- results
 
 #use p.adjust to adjust p values from glmer using multiple methods: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/p.adjust; https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6099145/
 
-DEG.results.all$padj <- p.adjust(DEG.results.all$pval.treatment, method = p.adjust.methods, n = length(DEG.results.all$pval.treatment))
+DEG.results.all$padj <- p.adjust(DEG.results.all$pval.treatment, method = "bonferroni", n = length(DEG.results.all$pval.treatment))
 
 #How many significant p-values were less than 0.05 after p adjust?
 
 DEG.sig.results.sum <- sum(DEG.results.all$padj < 0.05, na.rm=TRUE) 
-#121
 
 #create data frame with only DEG's with < 0.05 significance 
 
@@ -291,12 +295,54 @@ view(DEG.sig.results)
 ```
 
 
-## Visualize differentially expressed genes
+## comparison of degs (padj = 0.05) between deseq2 and glmer 
+```{r}
+
+mixed.model.results <- DEG.sig.results
+trt.results <- as.data.frame(DEGSeq2.sig.results)
+trt.results$gene_id <- rownames(trt.results)
+  
+compare.df <- full_join(trt.results, mixed.model.results, by="gene_id")
+
+compare.list <- compare.df$gene_id 
+compare.counts <- gcount_filt[rownames(gcount_filt) %in% compare.list,]
+
+#preserve rownames in data frame while converting data frame from wide to long format
+compare.counts.long <- compare.counts %>% 
+    as_tibble(rownames = "gene_id") %>% 
+    pivot_longer(cols = -gene_id, names_to = "sample_id", values_to = "count")
+
+
+#join treatment information with gene count data so gene_ids can be assigned to samples and treatments
+compare.counts.long <- left_join(compare.counts.long, treatmentinfo)
+
+high <- compare.counts.long %>%	
+  filter(gene_id== unique(compare.counts.long$gene_id)[1])
+means <- aggregate(count ~ treatment, data=high, FUN=mean)
+ses <- aggregate(count ~ treatment, data=high, FUN=std.error)
+means$ses <- ses$count
+ggplot(means, aes(x=treatment, y=count)) +
+  geom_bar(stat="identity", color="black",
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin=count-ses, ymax=count+ses), width=.2,
+                  position=position_dodge(.9)) +
+    xlab("treatment") + #plot x axis label
+    ylab("Expression") + #plot y axis label
+    theme_bw()
+
+
+
+```
+
+
+## Visualize differentially expressed genes from DESeq2
 ```{r}
 
 # Subset list of genes by those which padj>0.
-dim(DEG.results.all)
-DEGs <- DEG.results.all$gene_id # list all gene names 
+DEGSeq2.output <- as.data.frame(DEGSeq2.sig.results)
+dim(DEGSeq2.output)
+DEG.results.all <- DEGSeq2.sig.results
+DEGs <- rownames(DEG.results.all) # list all gene names 
 DEGs <- unique(DEGs) # select only unique gene names 
 DEGs_list <- gdds[which(rownames(gdds) %in% DEGs)] # filter gdds DESeq2 object by unique gene names
 dim(DEGs_list) # 15 x 15
@@ -315,8 +361,8 @@ print(assay(DEGvst)) # look at vst-transformed gene count data
 
 # Plot heat map with diff expressed genes
 # Testing if the first two command in the heatmap is necessary given that we are clustering the columns anyways.
-topVarGenes <- head(order(rowVars(assay(DEGvst)),decreasing=TRUE), DEG.sig.results.sum) #sort by decreasing sig ?
-mat <- assay(DEGvst)[topVarGenes, ] #make an expression object
+#topVarGenes <- head(order(rowVars(assay(DEGvst)),decreasing=TRUE), DEG.sig.results.sum) #sort by decreasing sig ?
+mat <- assay(DEGvst)[DEG.results.all, ] #make an expression object
 mat <- mat - rowMeans(mat) #diff in expression compared to average across all samples
 dim(mat)
 ann_colors <- list(treatment= c(control="black", enriched="cadetblue3"))
