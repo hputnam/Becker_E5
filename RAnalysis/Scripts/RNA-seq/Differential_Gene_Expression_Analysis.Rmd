@@ -17,6 +17,7 @@ Load libraries
 ```{r, message=FALSE, warning=FALSE}
 library("genefilter")
 library("car")
+library("glmmADMB")
 library("DESeq2")
 library("factoextra")
 library("MuMIn")
@@ -163,14 +164,15 @@ ggplot(gPCAdata, aes(PC1, PC2, color=treatment)) +
 
 Run differential expression test using a Wald model. 
 ```{r, message = FALSE}
-DEG_enriched <- DESeq(gdds) #run differential expression test by group using the Wald model
+DEG_wald <- DESeq(gdds) #run differential expression test by group using the Wald model
 ```
 
 Explore significant p-values for treatment
 ```{r, message = FALSE}
-DEG.results <- results(DEG_enriched, contrast=c("treatment","control","enriched")) #see code underlying function is to apply to glmer DEG results, FDR correction
+DEG.results <- results(DEG_wald, contrast=c("treatment","control","enriched")) #see code underlying function is to apply to glmer DEG results, FDR correction
 head(DEG.results)
 sum(DEG.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
+#223
 
 #create data frame with only DESeq2 DEG's with < 0.05 significance 
 
@@ -181,8 +183,76 @@ write.csv(DEGSeq2.sig.results, '../../Output/RNA-seq/DEG/DEGSeq2.sig.results.csv
 
 ```
 
+## Visualize differentially expressed genes from DESeq2
+```{r}
+# Subset list of genes by those which padj>0.
+DEGSeq2.output <- as.data.frame(DEGSeq2.sig.results)
+dim(DEGSeq2.output)
+DEG.results.all <- DEGSeq2.sig.results
+DEGs <- rownames(DEG.results.all) # list all gene names 
+DEGs <- unique(DEGs) # select only unique gene names 
+DEGs_list <- gdds[which(rownames(gdds) %in% DEGs)] # filter gdds DESeq2 object by unique gene names
+dim(DEGs_list) # 15 x 15
+print(counts(DEGs_list))
+
+# As determined above, size factors all less than 4, so proceed with VST
+# apply a variance stabilizing transformation to minimize effects of small counts and normalize library size
+
+DEGvst <- vst(DEGs_list, blind = FALSE, nsub = nrow(counts(DEGs_list)))
+
+dim(DEGvst) # 15 x 15
+print(assay(DEGvst)) # look at vst-transformed gene count data 
+
+# Plot heat map with diff expressed genes
+# Make a matrix for computing similarity
+mat <- assay(DEGvst)#[DEG.results.all, ] # make an expression object
+mat <- mat - rowMeans(mat) #difference in expression compared to average across all samples
+dim(mat)
+ann_colors <- list(treatment= c(control="black", enriched="cadetblue3"))
+df_DEG <- as.data.frame(colData(DEGvst)[c("treatment")]) #make dataframe for column naming and associated treatment
+DEG_heatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TRUE, annotation_col=df_DEG, annotation_colors = ann_colors,
+                            clustering_distance_rows="euclidean", clustering_method = "average",
+                            show_rownames =FALSE,
+                            show_colnames =TRUE,
+                            cluster_cols = TRUE)
+
+pdf(file = "../../Output/Final_Figures/DEG_heatmap.pdf")
+DEG_heatmap
+dev.off()
+
+
+# PCA plot of diff-expressed genes 
+DEGPCAdata <- plotPCA(DEGvst, intgroup = c("treatment"), returnData=TRUE)
+percentVar_pca <- round(100*attr(DEGPCAdata, "percentVar")) #plot PCA of samples with all data
+DEG_PCA_plot <- ggplot(DEGPCAdata, aes(PC1, PC2, color=treatment)) +
+  geom_point(size=3) +
+  xlab(paste0("PC1: ",percentVar_pca[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar_pca[2],"% variance")) +
+  scale_color_manual(values = c(control="black", enriched="cadetblue3")) +
+  coord_fixed() +
+  theme_bw() + #Set background color
+  theme(panel.border = element_blank(), # Set border
+        #panel.grid.major = element_blank(), #Set major gridlines
+        #panel.grid.minor = element_blank(), #Set minor gridlines
+        axis.line = element_line(colour = "black"), #Set axes color
+        plot.background=element_blank()) #Set the plot background
+
+DEG_PCA_plot
+
+ggsave(path = "../../Output/Final_Figures/", filename = "DEG_PCA_plot.pdf")
+
+# PCA plot is of deferentially expressed genes only
+
+# Save results
+
+write.csv(counts(DEGs_list), file="../../Output/RNA-seq/DEG/DEG_list_unique.csv")
+
+```
+
+
+
 #### Differential Gene Expression Analysis
-# For data with random effects
+# For data with random effects, using a glmer glmm approach
 
 ```{r}
 #reshape count data and join data frames for treatment and gene counts
@@ -213,7 +283,7 @@ combined.data$block <- as.factor(combined.data$block)
 
 ```
 
-#### Fit glmer position model
+#### Fit glmer position model, approaching with a negative binomial distribution approach
 
 ```{r}
 
@@ -246,8 +316,9 @@ for(i in 1:length((gs))){
   #subset the dataframe gene by gene
   combined.data1 <- subset(combined.data, gene_id == gs[i])
   
-  # SHOULD THIS BE THE NEGATIVE BINOMIAL DISTRIBUTION USING GLMER.NB?
-  fit <- glmer(count ~ treatment + (1|block), family="poisson", data=combined.data1)
+  # glmer negative binomial fit
+  
+  fit <- glmmadmb(count ~ treatment + (1|block), data=combined.data1, family="nbinom", debug=TRUE, save.dir = "tmp")
   
   a <- summary(fit)
   
@@ -335,74 +406,5 @@ ggplot(means, aes(x=treatment, y=count)) +
 ```
 
 
-## Visualize differentially expressed genes from DESeq2
-```{r}
-
-# Subset list of genes by those which padj>0.
-DEGSeq2.output <- as.data.frame(DEGSeq2.sig.results)
-dim(DEGSeq2.output)
-DEG.results.all <- DEGSeq2.sig.results
-DEGs <- rownames(DEG.results.all) # list all gene names 
-DEGs <- unique(DEGs) # select only unique gene names 
-DEGs_list <- gdds[which(rownames(gdds) %in% DEGs)] # filter gdds DESeq2 object by unique gene names
-dim(DEGs_list) # 15 x 15
-print(counts(DEGs_list))
-
-# As determined above, size factors all less than 4, so proceed with VST
-#apply a variance stabilizing transformation to minimize effects of small counts and normalize wrt library size
-
-DEGvst <- vst(DEGs_list, blind = FALSE, nsub = nrow(counts(DEGs_list)))
-
-# -- note: fitType='parametric', but the dispersion trend was not well captured by the
-# function: y = a/x + b, and a local regression fit was automatically substituted.
-# specify fitType='local' or 'mean' to avoid this message next time.
-dim(DEGvst) # 15 x 15
-print(assay(DEGvst)) # look at vst-transformed gene count data 
-
-# Plot heat map with diff expressed genes
-# Testing if the first two command in the heatmap is necessary given that we are clustering the columns anyways.
-#topVarGenes <- head(order(rowVars(assay(DEGvst)),decreasing=TRUE), DEG.sig.results.sum) #sort by decreasing sig ?
-mat <- assay(DEGvst)[DEG.results.all, ] #make an expression object
-mat <- mat - rowMeans(mat) #diff in expression compared to average across all samples
-dim(mat)
-ann_colors <- list(treatment= c(control="black", enriched="cadetblue3"))
-df_DEG <- as.data.frame(colData(DEGvst)[c("treatment")]) #make dataframe for column naming and associated treatment
-DEG_heatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TRUE, annotation_col=df_DEG, annotation_colors = ann_colors,
-                            clustering_distance_rows="euclidean", clustering_method = "average",
-                            show_rownames =FALSE,
-                            show_colnames =TRUE,
-                            cluster_cols = TRUE)
-pdf("../../Output/Final_Figures/DEG_heatmap.pdf")
-DEG_heatmap
-draw(DEG_heatmap)
-dev.off()
-
-# PCA plot of diff-expressed genes 
-DEGPCAdata <- plotPCA(DEGvst, intgroup = c("treatment"), returnData=TRUE)
-percentVar_pca <- round(100*attr(DEGPCAdata, "percentVar")) #plot PCA of samples with all data
-DEG_PCA_plot <- ggplot(DEGPCAdata, aes(PC1, PC2, color=treatment)) +
-  geom_point(size=3) +
-  xlab(paste0("PC1: ",percentVar_pca[1],"% variance")) +
-  ylab(paste0("PC2: ",percentVar_pca[2],"% variance")) +
-  scale_color_manual(values = c(control="black", enriched="cadetblue3")) +
-  coord_fixed() +
-  theme_bw() + #Set background color
-  theme(panel.border = element_blank(), # Set border
-        #panel.grid.major = element_blank(), #Set major gridlines
-        #panel.grid.minor = element_blank(), #Set minor gridlines
-        axis.line = element_line(colour = "black"), #Set axes color
-        plot.background=element_blank()) #Set the plot background
-
-DEG_PCA_plot
-
-ggsave(path = "../../Output/Final_Figures/", filename = "DEG_PCA_plot.pdf")
-
-# PCA plot is of deferentially expressed genes only
-
-# Save results
-
-write.csv(counts(DEGs_list), file="../../Output/RNA-seq/DEG/DEG_list_unique.csv")
-
-```
 
 
