@@ -343,25 +343,24 @@ sum(results$pval.treatment < 0.05, na.rm=TRUE)
 
 #create data frame with only DEG's with < 0.05 significance 
 
-DEG.results.all <- results
+GLMER.results.all <- results
 
 #use p.adjust to adjust p values from glmer using multiple methods: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/p.adjust; https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6099145/
 
-DEG.results.all$padj <- p.adjust(DEG.results.all$pval.treatment, method = "bonferroni", n = length(DEG.results.all$pval.treatment))
+GLMER.results.all$padj <- p.adjust(GLMER.results.all$pval.treatment, method = "bonferroni", n = length(GLMER.results.all$pval.treatment))
 
 #How many significant p-values were less than 0.05 after p adjust?
 
-DEG.sig.results.sum <- sum(DEG.results.all$padj < 0.05, na.rm=TRUE) 
+GLMER.sig.results.sum <- sum(GLMER.results.all$padj < 0.05, na.rm=TRUE) 
 
 #create data frame with only DEG's with < 0.05 significance 
 
-DEG.sig.results <- subset(DEG.results.all, padj < 0.05)
+GLMER.sig.results <- subset(GLMER.results.all, padj < 0.05)
 
-write.csv(DEG.sig.results, '../../Output/RNA-seq/DEG/DEG.sig.results.csv')  
+write.csv(GLMER.sig.results, '../../Output/RNA-seq/DEG/GLMER.sig.results.csv')  
 
-read.csv('../../Output/RNA-seq/DEG/DEG.sig.results.csv')  
+read.csv('../../Output/RNA-seq/DEG/GLMER.sig.results.csv')  
 
-view(DEG.sig.results)
 
 ```
 
@@ -400,7 +399,6 @@ ggplot(means, aes(x=treatment, y=count)) +
     xlab("treatment") + #plot x axis label
     ylab("Expression") + #plot y axis label
     theme_bw()
-
 
 
 ```
