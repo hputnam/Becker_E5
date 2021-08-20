@@ -22,6 +22,7 @@ library(data.table)
 library(ggplot2)
 library(cowplot)
 library(patchwork)
+library(ape)
 ```
 
 Import the data files 
@@ -59,12 +60,14 @@ go.ref <- left_join(gcount, go.ref, by = "gene_id")
 
 #structural annotation file needed to calculate the length by stop position - start position 
 #bring in the gene specific gff3 and pull out gene id 
-length.struct.annot <- read.gff("../../Genome/Pver_genome_assembly_v1.0.gene.gff3", col_names = TRUE)
-length.struct.annot$length <- length.struct.annot$ - length.struct.annot$
+length.struct.annot <- read.csv("../../Genome/Pver_genome_assembly_v1.0.gene.gff3", header = FALSE, sep="", skip = 1)
+length(unique(length.struct.annot$V9)) # 27439
+colnames(length.struct.annot) <- c("prot", "Predict", "id", "start","stop", "pos1", "pos2","pos3", "attr")
+length.struct.annot$length <- length.struct.annot$stop - length.struct.annot$start
 
 ```
 
-Make a dataframe containing the gene_ids and cluster for each cluster.
+# Make a dataframe containing the gene_ids and cluster for each cluster.
 #to seperate upreg and downreg genes
 ```{r}
 # #Select only gene_id and cluster from DEseq2 res
@@ -79,21 +82,24 @@ Make a dataframe containing the gene_ids and cluster for each cluster.
 # Set ID and gene length vectors, and make a binary matrix indicating which genes are differentially expressed. These are used as input to nullp, which for calculates a Probability Weighting Function for each set of DEGs.
 ```{r}
 #Make ID and length vectors
-
+go.ref <- unique(go.ref)
 dim(go.ref)
 IDvector <- go.ref$gene_id
-#OBTAIN THE LENGTH FROM THE GFF3 FILE
-lengthVector <- go.ref$length
-#Cluster 1
-clust1.genes <- as.vector(DEG.res$gene_id)
-clust1.genes=as.integer(go.ref$gene_id%in%clust1.genes)
-names(clust1.genes)=go.ref$gene_id
-length(clust1.genes)
-length(names(clust1.genes))
-length(unique(names(clust1.genes)))
-sum(clust1.genes)
+
+#length obtained from gff3 file
+lengthVector <- length.struct.annot$length
+
+#Calculate Probability Weighting Function
+pwd.genes <- as.vector(DEG.res$gene_id)
+pwd.genes=as.integer(go.ref$gene_id%in%pwd.genes)
+names(pwd.genes)=go.ref$gene_id
+length(pwd.genes)
+length(names(pwd.genes))
+length(unique(names(pwd.genes)))
+sum(pwd.genes)
+
 #uses gene bias 
-pwf.C1<-nullp(DEgenes=clust1.genes, id=IDvector, bias.data=lengthVector) #weight vector by length of gene
+pwf.C1<-nullp(DEgenes=pwd.genes, id=IDvector, bias.data=lengthVector) #weight vector by length of gene
 
 ```
 
@@ -289,8 +295,9 @@ ggsave("../../Output/RNA-seq/GOSeq/heatmap_GO_terms.pdf", fig5, width = 20, heig
 
 ## Make supplemental table summarizing GO enrichment
 ```{r}
-DF_GOhm <- bind_rows(GO.BP, GO.MF, GO.CC)
-head(DF_GOhm)
+GO.enrichment.summary.table <- bind_rows(GO.BP, GO.MF, GO.CC)
+head(GO.enrichment.summary.table)
+write.csv(GO.enrichment.summary.table, '../../Output/RNA-seq/GOSeq/GO.enrichment.summary.table.ontology.csv') 
 ```
 
 
@@ -307,7 +314,7 @@ GOdf <- GOdf %>% #collapse and have gene IDs for a particular term in a single r
   ungroup()
 head(GOdf)
 str(GOdf)
-write.csv(GOdf, file = "../Output/GOenrichmentsummary.csv", row.names = FALSE)
+write.csv(GOdf, file = "../../Output/RNA-seq/GOSeq/GO.all.results.csv", row.names = FALSE)
 ```
 
 ## Kegg enrichment analysis
