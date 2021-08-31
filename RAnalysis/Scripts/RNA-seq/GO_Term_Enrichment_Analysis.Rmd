@@ -32,31 +32,21 @@ treatmentinfo <- read.csv("../../Data/RNA-seq/metadata.RNAseq.csv", header = TRU
 str(treatmentinfo)
 head(treatmentinfo)
 
-#gene count matrix
-gcount <- as.data.frame(read.csv("../../Data/RNA-seq/Poc_gene_count_matrix.csv", row.names="gene_id"))
-#remove extra characters from multiple column header names for sample ids, skip first column labeled gene counts so specify 1:ncol
-for ( col in 1:ncol(gcount)){
-  colnames(gcount)[col] <-  sub("_R1_001.fastq.gz.sam.sorted.bam.merge.gtf", "", colnames(gcount)[col])
-}
-#subset the gcount matrix and reorder it so it matches the treatment info
-gcount <- gcount[ ,treatmentinfo$sample_id]
-gcount$gene_id <- rownames(gcount)
-rownames(gcount) <- NULL
-dim(gcount)
-head(gcount)
-
 #DEG significant results
 DEG.res <- read.csv("../../Output/RNA-seq/DEG/DEGSeq2.sig.results.csv")[,-1]
 nrow(DEG.res)
+DEG.res$gene_id <-  gsub("_gene","",DEG.res$gene_id) #remove extra characters
+  
 
 #transcript annotations
-annot <- read_tsv( "../../Genome/Pver_gene_annotation_file.txt", col_names = TRUE) #biological annotation information
-go.ref <- subset(annot, select= c(Gene)) #Select only relevant information
-#rename Gene column to gene_id to match gcount data frame 
-go.ref <- data.frame(gene_id=go.ref$Gene) #rename column
-#filter gcount by available annotations
-go.ref <- left_join(gcount, go.ref, by = "gene_id")
-
+Annot <- read_tsv( "../../Genome/Pver_gene_annotation_file.txt", col_names = TRUE) #biological annotation information
+colnames(Annot)[2] <- "gene_id"
+GO.data <- Annot[,c(2,13)] #select gene names and GO IDs
+splitted <- strsplit(as.character(GO.data$Gene_ontology_IDs), "; ") #split into multiple GO IDs
+Gene.GO.IDs <- data.frame(v1 = rep.int(GO.data$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row 
+colnames(Gene.GO.IDs) <- c("gene_id", "GO.IDs") #rename columns
+Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
+Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
 
 #structural annotation file needed to calculate the length by stop position - start position 
 #bring in the gene specific gff3 and pull out gene id 
@@ -64,115 +54,45 @@ length.struct.annot <- read.csv("../../Genome/Pver_genome_assembly_v1.0.gene.gff
 length(unique(length.struct.annot$V9)) # 27439
 colnames(length.struct.annot) <- c("prot", "Predict", "id", "start","stop", "pos1", "pos2","pos3", "attr")
 length.struct.annot$length <- length.struct.annot$stop - length.struct.annot$start
-
-```
-
-# Make a dataframe containing the gene_ids and cluster for each cluster.
-#to seperate upreg and downreg genes
-```{r}
-# #Select only gene_id and cluster from DEseq2 res
-# DEGclust <- subset(DEG.res, select=c(gene_id, cluster))
-# DEGclust <- unique(DEGclust)
-# clust1 <- filter(DEGclust, cluster=="1")
-# nrow(clust1) #nrow clust1
-# clust2 <- filter(DEGclust, cluster=="2")
-# nrow(clust2) #nrow clust2
+length.struct.annot$gene_id <-  length.struct.annot$attr
+length.struct.annot$gene_id <-  gsub(";.*","",length.struct.annot$gene_id) #remove extra characters
+length.struct.annot$gene_id <- gsub("ID=","",length.struct.annot$gene_id) #remove extra characters
+length.struct.annot$gene_id <-  gsub("_gene","",length.struct.annot$gene_id) #remove extra characters
+  
 ```
 
 # Set ID and gene length vectors, and make a binary matrix indicating which genes are differentially expressed. These are used as input to nullp, which for calculates a Probability Weighting Function for each set of DEGs.
 ```{r}
 #Make ID and length vectors
-go.ref <- unique(go.ref)
-dim(go.ref)
-IDvector <- go.ref$gene_id
+#go.ref <- unique(go.ref)
+#dim(go.ref)
+DEG.vector <- DEG.res$gene_id #the enrichment test list
+ALL.vector <- length.struct.annot$gene_id
+ID.vector <- length.struct.annot$gene_id #id obtained from gff3 file
+length.vector <- length.struct.annot$length #length obtained from gff3 file
 
-#length obtained from gff3 file
-lengthVector <- length.struct.annot$length
+gene.vector=as.integer(ALL.vector%in%DEG.vector) #Construct new vector with 1 for DEG and 0 for others
+names(gene.vector)=ALL.vector #set names
 
 #Calculate Probability Weighting Function
-pwd.genes <- as.vector(DEG.res$gene_id)
-pwd.genes=as.integer(go.ref$gene_id%in%pwd.genes)
-names(pwd.genes)=go.ref$gene_id
-length(pwd.genes)
-length(names(pwd.genes))
-length(unique(names(pwd.genes)))
-sum(pwd.genes)
+DMG.pwf<-nullp(gene.vector, ID.vector, bias.data=length.vector) #weight vector by length of gene
 
-#uses gene bias 
-pwf.C1<-nullp(DEgenes=pwd.genes, id=IDvector, bias.data=lengthVector) #weight vector by length of gene
+#Find enriched GO terms, 
+GO.wall<-goseq(DMG.pwf, ID.vector, gene2cat=Gene.GO.IDs, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
 
-```
+GO.sig.trt <- GO.wall %>%
+  filter(over_represented_pvalue <0.05) %>%
+  arrange(., ontology)
+#write.csv(GO.sig.trt , file = "../../Output/RNASeq.GO.sig.trt.csv")
 
-# Prepare GO term dataframe
-```{r}
-#taking GO terms nd making them into a list to match with gene they are associated with, multiple genes for each GO term
-GO.annot <- subset(annot, select=c(Gene, Gene_ontology_IDs))
-splitted <- strsplit(as.character(GO.annot$Gene_ontology_IDs), ";") #split into multiple GO ids
-GO.terms <- data.frame(v1 = rep.int(GO.annot$Gene, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row
-colnames(GO.terms) <- c("gene_id", "GO.ID")
-GO.terms$GO.ID<- as.character(GO.terms$GO.ID)
-GO.terms$GO.ID <- replace_na(GO.terms$GO.ID, "unknown")
-GO.terms$GO.ID <- as.factor(GO.terms$GO.ID)
-GO.terms$gene_id <- as.factor(GO.terms$gene_id)
-GO.terms$GO.ID <- gsub(" ", "", GO.terms$GO.ID)
-GO.terms <- unique(GO.terms)
-dim(GO.terms)
-head(GO.terms, 10)
-nrow(GO.terms)/length(unique(GO.terms$gene_id)) #avg GO IDs per gene, very high ratio of GO term to gene_id
-```
+nrow(GO.sig.trt)
+nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms
+nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms
+nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms
 
-# Find enriched GO terms, "selection-unbiased testing for category enrichment amongst significantly expressed genes for RNA-seq data"
-```{r, warning=FALSE, message=FALSE}
-#calculating which GO terms are significantly up regulated, all differential significant results
-#taking bias information, all gene ids in GO reference, handmade database of GO terms and test significance for different categories, cellular component, biological process, and molecular function using wallenius function and output genes that are significant that don't have a function and they will say unknown
-#need to add KEGG terms and can use goseq for that as well
-GOwall <- goseq(pwf.C1, GOref$gene_id, gene2cat=GO.terms, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
-#numDEInCat = number of your DEG in that category
-#numInCat = how many of all of your genes fit in that category
-#use ratio of numDE/numIncat 
 
 ```
 
-# Find only enriched GO terms that are statistically significant at cutoff
-```{r}
-#filter out all that have p value < 0.05 
-GO.05<-GOwall$category[GOwall$over_represented_pvalue<.05]
-GO.05<-data.frame(GO.05)
-colnames(GO.05) <- c("category")
-GO.05 <- merge(GO.05, GOwall, by="category")
-GO.05 <- GO.05[order(GO.05$ontology, GO.05$over_represented_pvalue, -GO.05$numDEInCat),]
-GO.05$term <- as.factor(GO.05$term)
-nrow(filter(GO.05, ontology=="BP")) #number sig BP terms
-nrow(filter(GO.05, ontology=="MF")) #number sig MF terms
-nrow(filter(GO.05, ontology=="CC")) #number sig CC terms #number sig MF terms
-nrow(GO.05)
-#409 that are biological process
-#116 that are molecular function
-#65 that are molecular function
-#593 total
-```
-
-# Correct any un-annotated terms/ontologies
-```{r}
-#look up GO term and what ontology they are, could be due to retired GO term entries 
-NAs.ontology <- GO.05 %>% subset(is.na(term))
-print(NAs.ontology)
-```
-*There were three un-annotated functions except*
-
-# Save significant terms
-```{r, warning=FALSE}
-write.csv(GO.05, file = "../../Output/RNA-seq/GOSeq/GO.05.csv", row.names = FALSE)
-```
-
-## Find GOslim terms
-## This is where you put GO terms to larger umbrella terms
-
-# Read in files if previous steps not run.
-```{r}
-GO.05 <- read_csv("../../Output/RNA-seq/GOSeq/GO.05.csv")
-#GO.05$dir <- "C1 (Up)"
-```
 
 # Run GOslim to get broader categories
 ```{r}
@@ -180,21 +100,21 @@ GO.05 <- read_csv("../../Output/RNA-seq/GOSeq/GO.05.csv")
 slim <- getOBOCollection("http://current.geneontology.org/ontology/subsets/goslim_generic.obo") #get GO database
 
 ## filtering all of BP (do MF and CC seperately)
-BP_GO <- GO.05 %>%
+BP_GO <- GO.sig.trt %>%
   filter(ontology=="BP")
 BPGO_collection <- GOCollection(BP_GO$category) #Make library of query terms
 slims_bp <- data.frame(goSlim(BPGO_collection, slim, "BP")) #Find common parent terms to slim down our list
 slims_bp$category <- row.names(slims_bp) #save rownames as category
 
 ## filtering all of MF
-MF_GO <- GO.05 %>%
+MF_GO <- GO.sig.trt %>%
   filter(ontology=="MF")
 MFGO_collection <- GOCollection(MF_GO$category) #Make library of query terms
 slims_mf <- data.frame(goSlim(MFGO_collection, slim, "MF")) #Find common parent terms to slim down our list
 slims_mf$category <- row.names(slims_mf) #save rownames as category
 
 ## filtering all of CC
-CC_GO <- GO.05 %>%
+CC_GO <- GO.sig.trt %>%
   filter(ontology=="CC")
 CCGO_collection <- GOCollection(CC_GO$category) #Make library of query terms
 slims_cc <- data.frame(goSlim(CCGO_collection, slim, "CC")) #Find common parent terms to slim down our list
@@ -254,16 +174,15 @@ head(CCslim)
 
 # Save slim info with GO enrichment info for heatmap dataframes.
 ```{r}
-GO.BP <- right_join(BPslim, filter(GO.05, ontology=="BP"), by="category") #add back GO enrichment info for each offspring term
-GO.MF <- right_join(MFslim, filter(GO.05, ontology=="MF"), by="category") #add back GO enrichment info for each offspring term
-GO.CC <- right_join(CCslim, filter(GO.05, ontology=="CC"), by="category") #add back GO enrichment info for each offspring term
+GO.BP <- right_join(BPslim, filter(GO.sig.trt, ontology=="BP"), by="category") #add back GO enrichment info for each offspring term
+GO.MF <- right_join(MFslim, filter(GO.sig.trt, ontology=="MF"), by="category") #add back GO enrichment info for each offspring term
+GO.CC <- right_join(CCslim, filter(GO.sig.trt, ontology=="CC"), by="category") #add back GO enrichment info for each offspring term
 ```
+
 
 ## Make heatmap
 ```{r}
-#make figure 5 in ph plot
-#currently do not have direction for DEGs, replaced x with ontology
-BPplot <- GO.BP %>% filter(numInCat>5) %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
+BPplot <- GO.BP %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
     ggplot(aes(x = ontology, y = term)) + 
     geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
       scale_y_discrete(position = "right") +
@@ -275,7 +194,7 @@ BPplot <- GO.BP %>% filter(numInCat>5) %>% mutate(term = fct_reorder(term, -over
       axis.title = element_blank(),
       axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =     
       element_text(size = 11))
-MFplot <- GO.MF %>% filter(numInCat>5) %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>% 
+MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>% 
     ggplot(aes(x = ontology, y = term)) + 
     geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
       scale_y_discrete(position = "right") +
@@ -288,8 +207,7 @@ MFplot <- GO.MF %>% filter(numInCat>5) %>% mutate(term = fct_reorder(term, -over
       axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =
       element_text(size = 11))
 fig5 <- BPplot + MFplot
-ggsave("../../Output/RNA-seq/GOSeq/GOslim.pdf", fig5, width = 20, height = 2, units = c("in"))
-ggsave("../../Output/RNA-seq/GOSeq/heatmap_GO_terms.pdf", fig5, width = 20, height = 20, units = c("in"))
+ggsave("../../Output/DEG_heatmap_GO_terms.pdf", fig5, width = 30, height = 20, units = c("in"))
 
 ```
 
@@ -297,8 +215,12 @@ ggsave("../../Output/RNA-seq/GOSeq/heatmap_GO_terms.pdf", fig5, width = 20, heig
 ```{r}
 GO.enrichment.summary.table <- bind_rows(GO.BP, GO.MF, GO.CC)
 head(GO.enrichment.summary.table)
-write.csv(GO.enrichment.summary.table, '../../Output/RNA-seq/GOSeq/GO.enrichment.summary.table.ontology.csv') 
+write.csv(GO.enrichment.summary.table, '../../Output/GO.enrichment.summary.table.ontology.csv') 
 ```
+
+
+
+
 
 ## KEGG enrichment analysis
 ## Obtained KEGG ontology terms by using KofamScan in command-line; see step 3 in E. Chille lab notebook https://github.com/echille/E.-Chille-Open-Lab-Notebook/blob/master/_posts/2020-10-08-M-capitata-functional-annotation-pipeline.md for instructions. 
@@ -312,12 +234,13 @@ KFS.KO <- KFS.KO.orig[-1,-1]
 KFS.KO <- KFS.KO[, c(1,2,5)]
 colnames(KFS.KO) <- c("gene_id", "ko", "sig")
 KFS.KO <- KFS.KO[,c(1:2)]
-KFS.KO$gene_id <- gsub("augustus.", "", KFS.KO$gene_id)
+#KFS.KO$gene_id <- gsub("augustus.", "", KFS.KO$gene_id)
 KFS.KO$gene_id <- gsub(".t1", "", KFS.KO$gene_id)
 head(KFS.KO)
 tail(KFS.KO)
+
 #bind all KO results
-KO.terms <- bind_rows(annot, KFS.KO)
+KO.terms <- bind_rows(Annot, KFS.KO)
 KO.terms <- unique(KO.terms)
 str(KO.terms)
 head(KO.terms)

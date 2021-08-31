@@ -169,7 +169,7 @@ DEGSeq2_wald <- DESeq(gdds) #run differential expression test by group using the
 
 #Explore significant p-values for treatment
 ```{r, message = FALSE}
-DEGSeq2.results <- results(DEG_wald, contrast=c("treatment","control","enriched")) #see code underlying function is to apply to glmer DEG results, FDR correction
+DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","control","enriched")) #see code underlying function is to apply to glmer DEG results, FDR correction
 head(DEGSeq2.results)
 sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
 #223
@@ -245,7 +245,7 @@ ggsave(path = "../../Output/Final_Figures/", filename = "DEGSeq2_PCA_plot.pdf")
 
 # Save results
 
-write.csv(counts(DEGs_list), file="../../Output/RNA-seq/DEG/DEGSeq2_list_unique.csv")
+write.csv(counts(DEGSeq2_list), file="../../Output/RNA-seq/DEG/DEGSeq2_list_unique.csv")
 
 ```
 
