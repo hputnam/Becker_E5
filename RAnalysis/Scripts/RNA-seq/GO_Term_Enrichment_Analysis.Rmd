@@ -11,10 +11,9 @@ output: html_document
 ## RNAseq Gene Ontology (GO) Enrichment Analysis 
 ## Previous steps include RNAseq workflow in Bioinformatics>RNAseq>RNAseq workflow and Differential Gene Expression statistical analysis in RAnalysis>Scripts>RNAseq_Differential_Gene_Expression to make DEG statistical data sheet
 
-### Set up workspace
 
 Load necessary libraries
-```{r}
+```{r, echo=FALSE}
 library(goseq)
 library(tidyverse)
 library(GSEABase)
@@ -23,28 +22,61 @@ library(ggplot2)
 library(cowplot)
 library(patchwork)
 library(ape)
+library(stringr)
+library(dplyr)
+
+
 ```
 
 Import the data files 
 ```{r}
-#treatment information
-treatmentinfo <- read.csv("../../Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
-str(treatmentinfo)
-head(treatmentinfo)
+#load gene gtf
+Genes <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0.gene.gff3", head = TRUE, sep= " ") #read in data fill
+unique(Genes$gene_id)
+#gene_id formats
+#Pver_gene_g#
+#Pver_gene_novel_gene_#_5de57afd
+#Pver_gene_split_gene_g1652-g72
 
-#DEG significant results
-DEG.res <- read.csv("../../Output/RNA-seq/DEG/DEGSeq2.sig.results.csv")[,-1]
-nrow(DEG.res)
-DEG.res$gene_id <-  gsub("_gene","",DEG.res$gene_id) #remove extra characters
-  
 
-#transcript annotations
-Annot <- read_tsv( "../../Genome/Pver_gene_annotation_file.txt", col_names = TRUE) #biological annotation information
+novel <- Genes %>%
+  filter(str_detect(V9, "novel"))
+
+split <- Genes %>%
+  filter(str_detect(V9, "split"))
+
+remain <- Genes %>%
+  filter(!str_detect(V9, "novel")) %>% filter(!str_detect(V9, "split"))
+
+nrow(novel)+nrow(split)+nrow(remain)# should =27439
+
+#load gene annotations
+Annot <- read_tsv( "RAnalysis/Genome/Pver_gene_annotation_file.txt", col_names = TRUE) #biological annotation information
 colnames(Annot)[2] <- "gene_id"
 GO.data <- Annot[,c(2,13)] #select gene names and GO IDs
+#Check Gene name format and number
+unique(GO.data$gene_id)
+#gene_id formats
+#Pver_gene_g#
+#Pver_novel_gene_#_5de57afd
+#
+
+novel1 <- Annot %>%
+  filter(str_detect(gene_id, "novel"))
+
+split1 <- Annot %>%
+  filter(str_detect(gene_id, "split"))
+
+remain1 <- Annot %>%
+  filter(!str_detect(gene_id, "novel")) %>% filter(!str_detect(gene_id, "split"))
+
+nrow(novel1)+nrow(split1)+nrow(remain1)# should =27439
+
 splitted <- strsplit(as.character(GO.data$Gene_ontology_IDs), "; ") #split into multiple GO IDs
 Gene.GO.IDs <- data.frame(v1 = rep.int(GO.data$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row 
 colnames(Gene.GO.IDs) <- c("gene_id", "GO.IDs") #rename columns
+
+
 Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
 Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
 
@@ -58,7 +90,19 @@ length.struct.annot$gene_id <-  length.struct.annot$attr
 length.struct.annot$gene_id <-  gsub(";.*","",length.struct.annot$gene_id) #remove extra characters
 length.struct.annot$gene_id <- gsub("ID=","",length.struct.annot$gene_id) #remove extra characters
 length.struct.annot$gene_id <-  gsub("_gene","",length.struct.annot$gene_id) #remove extra characters
+
+#treatment information
+treatmentinfo <- read.csv("../../Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
+str(treatmentinfo)
+head(treatmentinfo)
+
+#DEG significant results
+DEG.res <- read.csv("../../Output/RNA-seq/DEG/DEGSeq2.sig.results.csv")[,-1]
+nrow(DEG.res)
+DEG.res$gene_id <-  gsub("_gene","",DEG.res$gene_id) #remove extra characters
   
+
+
 ```
 
 # Set ID and gene length vectors, and make a binary matrix indicating which genes are differentially expressed. These are used as input to nullp, which for calculates a Probability Weighting Function for each set of DEGs.
@@ -229,11 +273,33 @@ write.csv(GO.enrichment.summary.table, '../../Output/GO.enrichment.summary.table
 # Load KO -- gene mapping info
 ```{r}
 #Load in and prep KofamScan search results
-KFS.KO.orig <- read_tsv("../../Genome/KEGG-ontology/Pver_KO_annot.tsv.gz", col_names = TRUE)
+KFS.KO.orig <- read_tsv("RAnalysis/Genome/KEGG-ontology/Pver_KO_annot.tsv.gz", col_names = TRUE)
 KFS.KO <- KFS.KO.orig[-1,-1]
 KFS.KO <- KFS.KO[, c(1,2,5)]
 colnames(KFS.KO) <- c("gene_id", "ko", "sig")
 KFS.KO <- KFS.KO[,c(1:2)]
+
+unique(KFS.KO$gene_id)
+#gene_id formats
+#Pver_g1.t2
+#Pver_novel_model_1_5de57afd
+#Pver_split_gene_g408-g408.t1-m18
+
+novel2 <- KFS.KO %>%
+  filter(str_detect(gene_id, "novel"))
+length(unique(novel2$gene_id))
+
+split2 <- KFS.KO %>%
+  filter(str_detect(gene_id, "split"))
+length(unique(split2$gene_id))
+
+remain2 <- KFS.KO %>%
+  filter(!str_detect(gene_id, "novel")) %>% filter(!str_detect(gene_id, "split"))
+length(unique(remain2$gene_id))
+
+
+
+
 #KFS.KO$gene_id <- gsub("augustus.", "", KFS.KO$gene_id)
 KFS.KO$gene_id <- gsub(".t1", "", KFS.KO$gene_id)
 head(KFS.KO)
