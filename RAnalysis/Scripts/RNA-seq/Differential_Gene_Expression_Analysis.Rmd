@@ -41,13 +41,13 @@ library("plotrix")
 Import the data files 
 ```{r}
 #treatment information
-treatmentinfo <- read.csv("../../Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
+treatmentinfo <- read.csv("RAnalysisData/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
 rownames(treatmentinfo) <- treatmentinfo$sample_id
 str(treatmentinfo)
 head(treatmentinfo)
 
 #gene count matrix
-gcount <- as.data.frame(read.csv("../../Data/RNA-seq/Poc_gene_count_matrix.csv", row.names="gene_id"))
+gcount <- as.data.frame(read.csv("RAnalysisData/RNA-seq/Poc_gene_count_matrix.csv", row.names="gene_id"))
 dim(gcount)
 head(gcount)
 
@@ -104,7 +104,7 @@ povera_test <- data_frame(PoverA_cut_off, diff.expres.num)
 povera_ggplot <- ggplot(povera_test, aes(x = PoverA_cut_off, y = diff.expres.num)) +
   geom_point() 
 
-ggsave(path = "../../Output/Final_Figures/", filename = "povera_ggplot.pdf")
+ggsave(path = "RAnalysisOutput/Final_Figures/", filename = "povera_ggplot.pdf")
 
 ```
 
@@ -179,7 +179,7 @@ sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were le
 DEGSeq2.sig.results <- subset(DEGSeq2.results, padj < 0.05)
 DEGSeq2.sig.results <- as.data.frame(DEGSeq2.sig.results)
 DEGSeq2.sig.results$gene_id <-rownames(DEGSeq2.sig.results)
-write.csv(DEGSeq2.sig.results, '../../Output/RNA-seq/DEG/DEGSeq2.sig.results.csv')  
+write.csv(DEGSeq2.sig.results, 'RAnalysisOutput/RNA-seq/DEG/DEGSeq2.sig.results.csv')  
 
 ```
 
@@ -216,7 +216,7 @@ DEGSeq2_heatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TR
                             show_colnames =TRUE,
                             cluster_cols = TRUE)
 
-pdf(file = "../../Output/Final_Figures/DEGSeq2_heatmap.pdf")
+pdf(file = "RAnalysisOutput/Final_Figures/DEGSeq2_heatmap.pdf")
 DEGSeq2_heatmap
 dev.off()
 
@@ -239,13 +239,13 @@ DEGSeq2_PCA_plot <- ggplot(DEGSeq2_PCAdata, aes(PC1, PC2, color=treatment)) +
 
 DEGSeq2_PCA_plot
 
-ggsave(path = "../../Output/Final_Figures/", filename = "DEGSeq2_PCA_plot.pdf")
+ggsave(path = "RAnalysisOutput/Final_Figures/", filename = "DEGSeq2_PCA_plot.pdf")
 
 # PCA plot is of deferentially expressed genes only
 
 # Save results
 
-write.csv(counts(DEGSeq2_list), file="../../Output/RNA-seq/DEG/DEGSeq2_list_unique.csv")
+write.csv(counts(DEGSeq2_list), file="RAnalysisOutput/RNA-seq/DEG/DEGSeq2_list_unique.csv")
 
 ```
 
@@ -356,9 +356,9 @@ GLMER.sig.results.sum <- sum(GLMER.results.all$padj < 0.05, na.rm=TRUE)
 
 GLMER.sig.results <- subset(GLMER.results.all, padj < 0.05)
 
-write.csv(GLMER.sig.results, '../../Output/RNA-seq/DEG/GLMER.sig.results.csv')  
+write.csv(GLMER.sig.results, 'RAnalysisOutput/RNA-seq/DEG/GLMER.sig.results.csv')  
 
-read.csv('../../Output/RNA-seq/DEG/GLMER.sig.results.csv')  
+read.csv('RAnalysisOutput/RNA-seq/DEG/GLMER.sig.results.csv')  
 
 
 ```
