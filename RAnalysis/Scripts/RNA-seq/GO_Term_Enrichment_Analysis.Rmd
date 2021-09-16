@@ -326,14 +326,6 @@ remain2 <- KFS.KO %>%
   filter(!str_detect(gene_id, "novel")) %>% filter(!str_detect(gene_id, "split"))
 length(unique(remain2$gene_id))
 
-
-KFS.KO$gene_id <- gsub("augustus.", "", KFS.KO$gene_id)
-KFS.KO$gene_id <- gsub(".t[0-9]", "", KFS.KO$gene_id)
-KFS.KO$gene_id <- gsub("Pver_split_", "Pver_", KFS.KO$gene_id)
-KFS.KO$gene_id <- gsub("Pver_", "Pver_gene_", KFS.KO$gene_id)
-head(KFS.KO)
-tail(KFS.KO)
-
 #need to have nomenclature for gene IDs match between the annot and KFS.KO files, right now there are 2 formats in Pver_gene_annotation_file.txt
 
 #Pver_gene_g#
@@ -348,32 +340,31 @@ tail(KFS.KO)
 #need to remove '_split_' (completed by dmbp)
 #need to add a '_gene_' before the 'g#.t#' int he KFS.KO file to match annot and need to remove '.t#' from ID (completed by dmbp)
 
-# need to remove everything after g408 '-g408.t1-m18' for third format in KFS.KO file 
+KFS.KO$gene_id <- gsub("augustus.", "", KFS.KO$gene_id)
+KFS.KO$gene_id <- gsub(".t[0-9]", "", KFS.KO$gene_id)
+KFS.KO$gene_id <- gsub("Pver_split_", "Pver_", KFS.KO$gene_id)
+KFS.KO$gene_id <- gsub("Pver_", "Pver_gene_", KFS.KO$gene_id)
+head(KFS.KO)
+tail(KFS.KO)
 
+#ask Hollie question here about joining, what we need for moving forward
 #bind all KO results
 KO.terms <- left_join(Annot, KFS.KO)
-KO.terms <- unique(KO.terms$ko)
+KO.terms <- KO.terms[, c(2,14)]
+KO.terms.unique <- unique(KO.terms$ko)
 str(KO.terms)
 head(KO.terms)
-colnames(KO.terms) <- c("gene_id", "GO.ID")
+
+colnames(KO.terms) <- c("gene_id", "KO.ID")
 #Bind KO and GO references
-GOKO.terms <- bind_rows(GO.terms, KO.terms)
+GOKO.terms <- left_join(GO.terms, KO.terms)
 ```
 
-# Obtain KO terms for DEGs to be used for the KEGG Mapper [(link)](https://www.genome.jp/kegg/mapper.html)
-```{r}
-ko <- filter(KO.terms, gene_id%in%gene_id) #Filter for gene IDs in cluster1
-
-dim(ko)
-
-write.table(koC1, "5-Planula-GO-Enrichment-Analysis/Output/koC1.KEGG_mapper_input.txt", quote=FALSE,col.names=FALSE,row.names=FALSE,sep="\t") #TO BE USED FOR KEGG Mapper https://www.genome.jp/kegg/mapper.html.
-
-```
 
 # Perform KEGG enrichment with GOSeq package
 ```{r}
 #Perform goseq
-KOwall <- goseq(pwf, GOref$gene_id, gene2cat=GO.terms, test.cats=c("KEGG"), method="Wallenius", use_genes_without_cat=TRUE)
+KOwall <- goseq(pwf, GOref$gene_id, gene2cat=GOKO.terms, test.cats=c("KEGG"), method="Wallenius", use_genes_without_cat=TRUE)
 
 ```
 
