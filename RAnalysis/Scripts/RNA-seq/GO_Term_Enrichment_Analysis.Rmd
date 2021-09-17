@@ -26,38 +26,21 @@ library(stringr)
 library(dplyr)
 ```
 
-Import the data files 
+# Import the data files 
 ```{r}
-#load gene gtf
-Genes <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0.gene.gff3", head = TRUE, sep= " ") #read in data fill
-unique(Genes$gene_id)
-#gene_id formats
-#Pver_gene_g#
-#Pver_gene_novel_gene_#_5de57afd
-#Pver_gene_split_gene_g1652-g72
-
-
-novel <- Genes %>%
-  filter(str_detect(V9, "novel"))
-
-split <- Genes %>%
-  filter(str_detect(V9, "split"))
-
-remain <- Genes %>%
-  filter(!str_detect(V9, "novel")) %>% filter(!str_detect(V9, "split"))
-
-nrow(novel)+nrow(split)+nrow(remain)# should =27439
-
-#load gene annotations
+#load gene functional annotation file (found in supplmental data from Buitrago-Lopez et al. 2020 paper https://academic.oup.com/gbe/article/12/10/1911/5898631#209703315)
 Annot <- read_tsv( "RAnalysis/Genome/Pver_gene_annotation_file.txt", col_names = TRUE) #biological annotation information
 colnames(Annot)[2] <- "gene_id"
 GO.data <- Annot[,c(2,13)] #select gene names and GO IDs
+splitted <- strsplit(as.character(GO.data$Gene_ontology_IDs), "; ") #split into multiple GO IDs
+Gene.GO.IDs <- data.frame(v1 = rep.int(GO.data$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row 
+colnames(Gene.GO.IDs) <- c("gene_id", "GO.IDs") #rename columns
+#Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
+Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
+Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
+
 #Check Gene name format and number
 unique(GO.data$gene_id)
-#gene_id formats
-#Pver_gene_g#
-#Pver_novel_gene_#_5de57afd
-#
 
 novel1 <- Annot %>%
   filter(str_detect(gene_id, "novel"))
@@ -68,31 +51,82 @@ split1 <- Annot %>%
 remain1 <- Annot %>%
   filter(!str_detect(gene_id, "novel")) %>% filter(!str_detect(gene_id, "split"))
 
-nrow(novel1)+nrow(split1)+nrow(remain1)# should =27439
+nrow(novel1)+nrow(split1)+nrow(remain1) #should =27439
 
-splitted <- strsplit(as.character(GO.data$Gene_ontology_IDs), "; ") #split into multiple GO IDs
-Gene.GO.IDs <- data.frame(v1 = rep.int(GO.data$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row 
-colnames(Gene.GO.IDs) <- c("gene_id", "GO.IDs") #rename columns
-
-
-Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
-Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
+#There are two gene ID formats in the Pver_genome_annotation file
+#Pver_gene_g#
+#Pver_novel_gene_#_5de57afd
 
 #structural annotation file needed to calculate the length by stop position - start position 
 #bring in the gene specific gff3 and pull out gene id 
-length.struct.annot <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0.gene.gff3", header = FALSE, sep="", skip = 1)
-length(unique(length.struct.annot$V9)) # 27439
-colnames(length.struct.annot) <- c("prot", "Predict", "id", "start","stop", "pos1", "pos2","pos3", "attr")
-length.struct.annot$length <- length.struct.annot$stop - length.struct.annot$start
-length.struct.annot$gene_id <-  length.struct.annot$attr
-length.struct.annot$gene_id <-  gsub(";.*","",length.struct.annot$gene_id) #remove extra characters
-length.struct.annot$gene_id <- gsub("ID=","",length.struct.annot$gene_id) #remove extra characters
-length.struct.annot$gene_id <-  gsub("_gene","",length.struct.annot$gene_id) #remove extra characters
+GFF3 <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0.gene.gff3", header = FALSE, sep="", skip = 1)
+length(unique(GFF3$V9)) # 27439
+colnames(GFF3) <- c("prot", "Predict", "id", "start","stop", "pos1", "pos2","pos3", "attr")
+GFF3$length <- GFF3$stop - GFF3$start
+GFF3$gene_id <-  GFF3$attr
+GFF3$gene_id <-  gsub(";.*","",GFF3$gene_id) #remove extra characters
+GFF3$gene_id <- gsub("ID=","",GFF3$gene_id) #remove extra characters
+GFF3$gene_id <-  gsub("_gene","",GFF3$gene_id) #remove extra characters
+head(GFF3)
+
+#Check Gene name format and number
+novel <- GFF3 %>%
+  filter(str_detect(gene_id, "novel"))
+split <- GFF3 %>%
+  filter(str_detect(gene_id, "split"))
+remain <- GFF3 %>%
+  filter(!str_detect(gene_id, "novel")) %>% filter(!str_detect(gene_id, "split"))
+nrow(novel)+nrow(split)+nrow(remain) #should =27439
+
+#There are 3 formats in the gff3
+#Pver_gene_g#
+#Pver_gene_novel_gene_#_5de57afd
+#Pver_gene_split_gene_g1652-g72
+
+#Load in and prep KofamScan search results
+KFS.KO.orig <- read_tsv("RAnalysis/Genome/KEGG-ontology/Pver_KO_annot.tsv.gz", col_names = TRUE)
+KFS.KO <- KFS.KO.orig[-1,-1]
+KFS.KO <- KFS.KO[, c(1,2,5)]
+colnames(KFS.KO) <- c("gene_id", "ko", "sig")
+KFS.KO <- KFS.KO[,c(1:2)]
+Kegg.name <- as.data.frame(unique(KFS.KO$gene_id))
+colnames(Kegg.name) <- c("gene_id")
+
+#Check Gene name format and number
+novel2 <- KFS.KO %>%
+  filter(str_detect(gene_id, "novel"))
+length(unique(novel2$gene_id))
+
+split2 <- KFS.KO %>%
+  filter(str_detect(gene_id, "split"))
+length(unique(split2$gene_id))
+
+remain2 <- KFS.KO %>%
+  filter(!str_detect(gene_id, "novel")) %>% filter(!str_detect(gene_id, "split"))
+length(unique(remain2$gene_id))
+
+#There are 3 formats in the Pver_KO_annot.tsv.gz
+#Pver_g1.t2
+#Pver_novel_model_1_5de57afd
+#Pver_split_gene_g408-g408.t1-m18
+
+#testing how to see inconsistencies in gene_ID formats across gff3 and func. annot file
+test.two.files <- full_join(GFF3, Annot, by = "gene_id")
+
+#conclusion: we have x more genes than 28,153 when we expect 27,439, some unique gene ID names in annot that do not exist in genes
+
+#testing how to see inconsistencies in gene_ID formats across gff3, func. annot, against KEGG terms file
+test.three.files <- full_join(test.two.files, Kegg.name, by = "gene_id")
+
+#conclusion: if 28,153 + 27,439, does not equal 55,592 so all the names are different from test two files to test three files for KEGG terms 
+#goal is to take sudo coded text into email, the most effective way to join three files and then identify what the offsets are for the three files to eachother, Megan suggested python blocking/grouping with key identifiers (Pver_g[0-9]) then you will know how many of those kinds of expressions are found in each of your lists; will tell you if they are fully missing 
+#can sort everything into 'buckets' so that we can know how many general patterns there are before moving forward 
 
 #treatment information
 treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
 str(treatmentinfo)
 head(treatmentinfo)
+
 
 #DEG significant results
 DEG.res <- read.csv("RAnalysis/Output/RNA-seq/DEG/DEGSeq2.sig.results.csv")[,-1]
@@ -111,16 +145,45 @@ DEG.res$gene_id <-  gsub("_gene","",DEG.res$gene_id) #remove extra characters
 #Make ID and length vectors
 
 DEG.vector <- DEG.res$gene_id #the enrichment test list
-ALL.vector <- length.struct.annot$gene_id
-ID.vector <- length.struct.annot$gene_id #id obtained from gff3 file
-length.vector <- length.struct.annot$length #length obtained from gff3 file
+ALL.vector <- GFF3$gene_id
+ID.vector <- GFF3$gene_id #id obtained from gff3 file
+length.vector <- GFF3$length #length obtained from gff3 file
 
 gene.vector=as.integer(ALL.vector%in%DEG.vector) #Construct new vector with 1 for DEG and 0 for others
 names(gene.vector)=ALL.vector #set names
 
 #Calculate Probability Weighting Function
 pwf<-nullp(gene.vector, ID.vector, bias.data=length.vector) #weight vector by length of gene
+```
 
+# Prepare GO term dataframe
+```{r}
+#talk to Hollie about why GO.terms have less gene IDs here
+#erin used this to connect to KO terms, but it reduces amount of gene IDs, I think I should use the Gene.GO.IDs
+#looked at Gene.GO.IDS and here we would be removing NAs which would be removing gene_ids that do not have associated GO terms, should we use the NA removed file to combine with KEGG terms or the full gene_id list that could possible have ko terms but not GO terms attached? I vote for second option
+GO.annot <- subset(Annot, select=c(gene_id, Gene_ontology_IDs))
+GO.annot.na <- filter(GO.annot, Gene_ontology_IDs!="NA;NA") #Remove NAs
+GO.annot.na$GO_IDs <- gsub("NA;", "", GO.annot.na$Gene_ontology_IDs)  #Remove NAs
+GO.annot.na$GO_IDs <- gsub(";NA", "", GO.annot.na$Gene_ontology_IDs)  #Remove NAs
+splitted <- strsplit(as.character(GO.annot.na$Gene_ontology_IDs), ";") #split into multiple GO ids
+GO.terms <- data.frame(v1 = rep.int(GO.annot.na$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row
+colnames(GO.terms) <- c("gene_id", "GO.ID")
+
+GO.terms$GO.ID<- as.character(GO.terms$GO.ID)
+GO.terms$GO.ID <- replace_na(GO.terms$GO.ID, "unknown")
+GO.terms$GO.ID <- as.factor(GO.terms$GO.ID)
+GO.terms$gene_id <- as.factor(GO.terms$gene_id)
+GO.terms$GO.ID <- gsub(" ", "", GO.terms$GO.ID)
+GO.terms <- unique(GO.terms)
+as.data.frame(GO.terms)
+
+dim(GO.terms)
+head(GO.terms, 10)
+
+nrow(GO.terms)/length(unique(GO.terms$gene_id)) #avg GO IDs per gene
+```
+
+```{r}
 #Find enriched GO terms, 
 GO.wall<-goseq(pwf, ID.vector, gene2cat=Gene.GO.IDs, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
 
@@ -134,27 +197,6 @@ nrow(GO.sig.trt)
 nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms = 174
 nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms = 71
 nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms = 23
-
-
-```
-# Prepare GO term dataframe
-```{r}
-GO.annot <- subset(Annot, select=c(gene_id, Gene_ontology_IDs))
-GO.annot.na <- filter(GO.annot, Gene_ontology_IDs!="NA;NA") #Remove NAs
-GO.annot.na$GO_IDs <- gsub("NA;", "", GO.annot.na$Gene_ontology_IDs)  #Remove NAs
-GO.annot.na$GO_IDs <- gsub(";NA", "", GO.annot.na$Gene_ontology_IDs)  #Remove NAs
-splitted <- strsplit(as.character(GO.annot.na$Gene_ontology_IDs), ";") #split into multiple GO ids
-GO.terms <- data.frame(v1 = rep.int(GO.annot.na$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row
-colnames(GO.terms) <- c("gene_id", "GO.ID")
-GO.terms$GO.ID<- as.character(GO.terms$GO.ID)
-GO.terms$GO.ID <- replace_na(GO.terms$GO.ID, "unknown")
-GO.terms$GO.ID <- as.factor(GO.terms$GO.ID)
-GO.terms$gene_id <- as.factor(GO.terms$gene_id)
-GO.terms$GO.ID <- gsub(" ", "", GO.terms$GO.ID)
-GO.terms <- unique(GO.terms)
-dim(GO.terms)
-head(GO.terms, 10)
-nrow(GO.terms)/length(unique(GO.terms$gene_id)) #avg GO IDs per gene
 ```
 
 ## Find GOslim terms
@@ -301,31 +343,6 @@ write.csv(GO.enrichment.summary, 'RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.s
 
 # Load KO -- gene mapping info
 ```{r}
-#Load in and prep KofamScan search results
-KFS.KO.orig <- read_tsv("RAnalysis/Genome/KEGG-ontology/Pver_KO_annot.tsv.gz", col_names = TRUE)
-KFS.KO <- KFS.KO.orig[-1,-1]
-KFS.KO <- KFS.KO[, c(1,2,5)]
-colnames(KFS.KO) <- c("gene_id", "ko", "sig")
-KFS.KO <- KFS.KO[,c(1:2)]
-
-unique(KFS.KO$gene_id)
-#gene_id formats
-#Pver_g1.t2
-#Pver_novel_model_1_5de57afd
-#Pver_split_gene_g408-g408.t1-m18
-
-novel2 <- KFS.KO %>%
-  filter(str_detect(gene_id, "novel"))
-length(unique(novel2$gene_id))
-
-split2 <- KFS.KO %>%
-  filter(str_detect(gene_id, "split"))
-length(unique(split2$gene_id))
-
-remain2 <- KFS.KO %>%
-  filter(!str_detect(gene_id, "novel")) %>% filter(!str_detect(gene_id, "split"))
-length(unique(remain2$gene_id))
-
 #need to have nomenclature for gene IDs match between the annot and KFS.KO files, right now there are 2 formats in Pver_gene_annotation_file.txt
 
 #Pver_gene_g#
@@ -339,6 +356,16 @@ length(unique(remain2$gene_id))
 
 #need to remove '_split_' (completed by dmbp)
 #need to add a '_gene_' before the 'g#.t#' int he KFS.KO file to match annot and need to remove '.t#' from ID (completed by dmbp)
+
+#goal is to check functional annotation with gff3 and KOfamscan output nomenclature for gene IDs across all files 
+#step 1: confirm names of columns that contain gene IDs (manually changed column names to gene_IDs)
+#step 2: find the inconsistencies between the files (ex: identify total number of expected genes; row number in the gff) sanity check with NCBI or manuscript total number of genes
+        #length (unique) genes; nrow is the function from all files 
+        #somehow organize gene ids into categories (ex: Pver_gene; Pver_split; Pver_novel)
+        #some sort of match or total table
+        #look at raw data for syntax of the names to find general inconsistencies 
+        #take gff3 and functional annotation and full_join those; repeat with any subsequent files you want to join
+
 
 KFS.KO$gene_id <- gsub("augustus.", "", KFS.KO$gene_id)
 KFS.KO$gene_id <- gsub(".t[0-9]", "", KFS.KO$gene_id)
@@ -357,7 +384,9 @@ head(KO.terms)
 
 colnames(KO.terms) <- c("gene_id", "KO.ID")
 #Bind KO and GO references
-GOKO.terms <- left_join(GO.terms, KO.terms)
+GOKO.terms <- left_join(Gene.GO.IDs, KO.terms)
+length(unique(Gene.GO.IDs$gene_id)) #sanity check here when I had GO.terms combining with KO terms showed 23,791 gene IDs because NAs from the GO.terms were removed which removed some gene_ids, I think we should use full list of gene_ids in the Gene.GO.IDs because some may have corresponging Kegg terms? See line 160 for more information
+#when I use Gene.GO.IDs there is the correct gene id length of 27,439
 ```
 
 
