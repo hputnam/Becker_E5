@@ -48,6 +48,10 @@ head(treatmentinfo)
 
 #gene count matrix
 gcount <- as.data.frame(read.csv("RAnalysisData/RNA-seq/Poc_gene_count_matrix.csv", row.names="gene_id"))
+gcount$gene_id <-  gsub("_gene_","_",gcount$gene_id)
+gcount$gene_id <-  gsub("_split_","_",gcount$gene_id)
+gcount$gene_id <-  gsub("-.*","",gcount$gene_id) #remove the extra g number after the dash
+row.names(gcount) <- gcount$gene_id
 dim(gcount)
 head(gcount)
 

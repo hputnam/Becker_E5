@@ -174,6 +174,15 @@ Annot$gene_id <-  gsub("_gene_","_",Annot$gene_id)
 test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
 
+gcount <- read.csv("RAnalysis/Data/RNA-seq/Poc_gene_count_matrix.csv")
+gcount$gene_id <-  gsub("_gene_","_",gcount$gene_id)
+gcount$gene_id <-  gsub("_split_","_",gcount$gene_id)
+gcount$gene_id <-  gsub("-.*","",gcount$gene_id) #remove the extra g number after the dash
+
+#test after GFF3 and Annot changes
+test.GFF.GO.DEG <- full_join(GFF3, gcount, by = "gene_id")
+nrow(test.GFF.GO.DEG)
+
 ```
 
 ```{r}
