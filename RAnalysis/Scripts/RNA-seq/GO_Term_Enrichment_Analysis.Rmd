@@ -42,26 +42,18 @@ GFF3 <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0.gene.gff3", header 
 length(unique(GFF3$V9)) # 27439
 colnames(GFF3) <- c("prot", "Predict", "id", "start","stop", "pos1", "pos2","pos3", "gene_id") #name columns
 GFF3$length <- GFF3$stop - GFF3$start #calculate gene length
-# 
-# #Load in and prep KofamScan search results
-# KFS.KO.orig <- read_tsv("RAnalysis/Genome/KEGG-ontology/Pver_KO_annot.tsv.gz", col_names = TRUE)
-# KFS.KO <- KFS.KO.orig[-1,-1] #remove the first row and column becasue they  contain no data
-# KFS.KO <- KFS.KO[, c(1,2,5)] #subset the gene ID, KO term, and evalue
-# colnames(KFS.KO) <- c("gene_id", "ko", "eval") #name columns
-# #NEED TO DECIDE KO TERM CUTOFF AND WHY OR WHY NOT TO KEEP MORE THAN ONE PER GENE
-# #FILTER FOR EVALUE AS NEEDED
-# KFS.KO <- KFS.KO[,c(1:2)] #remove evalue from the dataframe
-# Kegg.name <- as.data.frame(unique(KFS.KO$gene_id)) #identify all of the unique gene names
-# colnames(Kegg.name) <- c("gene_id") #set column name for consistency across files
 
 ```
 
 ```{r}
-#testing if there are inconsistencies in gene_ID formats across GO, gff3 and KO files
+#testing if there are inconsistencies in gene_ID formats across GO and GFF3 files
+
 test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
+
 #conclusion: we have more genes than the expected 27,439, a number of gene ID names are present in the GO annotation file in annot that do not exist the gene names of the GFF3
 
+#this section was used to test the KOfamscan resulting file with GFF3 and the functional annotation file
 #test.GFF.KO <- full_join(GFF3, Kegg.name, by = "gene_id")
 #nrow(test.GFF.KO)
 ##conclusion: we have more genes than the expected 27,439, a number of gene ID names are present in the KEGG annotation file in annot that do not exist the gene names of the GFF3
@@ -72,11 +64,11 @@ nrow(test.GFF.GO)
 # if we use the query column as gene_id we have the expected 27,439
 # if we use the gene column as gene_id we have a duplicated 27,439
 
-#conclusion: All three files have the right number of gene_id rows = 27439.  
+#conclusion: The three files have the right number of gene_id rows = 27439.  
 #When you join the functional annotation with the GFF3 they duplicate the number to = 54878. This indicates there is a naming inconsistency in all gene_id's. 
 
 #check to see if there is a way to convert the GFF3 names to the functional annotation names
-#Let's start with the cannonical GFF3 file. This looks like it has duplicated names, so we can remove everything after the first ;
+#Let's start with the canonical GFF3 file. This looks like it has duplicated names, so we can remove everything after the first ;
 
 GFF3$gene_id <-  gsub(";.*","",GFF3$gene_id) #remove extra characters after the first ;
 #There also appears to be the presence of the characters ID= in each row
@@ -135,8 +127,6 @@ nrow(test.GFF.GO)
 #still >27439
 
 
-
-
 #Annot appears to have an extra Pver_g1.t2 and are missing the word gene
 Annot$gene_id <-  gsub("\\..*","", Annot$gene_id)
 #Annot$gene_id <-  gsub("Pver_g","Pver_gene_g",Annot$gene_id)
@@ -175,6 +165,7 @@ test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
 
 ```
+
 # Identifying treatment and DEGs
 ```{r}
 #treatment information
@@ -385,7 +376,7 @@ head(GO.enrichment.dat)
 
 #Make dataframe of GO results for clustering and heatmap. 
 #add gene_IDs. To get gene_IDs we will merge with the GO.terms DF.
-GOgenes <- data.frame(gene_id=GO.terms$gene_id, category=GO.terms$GO.ID) 
+GOgenes <- data.frame(gene_id=Gene.GO.IDs$gene_id, category=Gene.GO.IDs$GO.ID) 
 GOgenes$gene_id <- as.character(GOgenes$gene_id) #make gene ID a character so we can collapse our many near-identical columns
 
 GO.enrichment.summary  <- left_join(GO.enrichment.dat, GOgenes, by="category" ) #join the DFs
@@ -407,95 +398,3 @@ write.csv(GO.enrichment.summary, 'RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.s
 
 
 
-## KEGG enrichment analysis
-## Obtained KEGG ontology terms by using KofamScan in command-line; see step 3 in E. Chille lab notebook https://github.com/echille/E.-Chille-Open-Lab-Notebook/blob/master/_posts/2020-10-08-M-capitata-functional-annotation-pipeline.md for instructions. 
-## If run into issues with downloading KofamScan software, etc.; see https://github.com/Putnam-Lab/Lab_Management/issues/21
-
-# Load KO -- gene mapping info
-```{r}
-#need to have nomenclature for gene IDs match between the annot and KFS.KO files, right now there are 2 formats in Pver_gene_annotation_file.txt
-
-#Pver_gene_g#
-#Pver_novel_gene_#_5de57afd
-
-#There are 3 formats in the Pver_KO_annot.tsv.gz
-
-#Pver_g1.t2
-#Pver_novel_model_1_5de57afd
-#Pver_split_gene_g408-g408.t1-m18
-
-#need to remove '_split_' (completed by dmbp)
-#need to add a '_gene_' before the 'g#.t#' int he KFS.KO file to match annot and need to remove '.t#' from ID (completed by dmbp)
-
-#goal is to check functional annotation with gff3 and KOfamscan output nomenclature for gene IDs across all files 
-#step 1: confirm names of columns that contain gene IDs (manually changed column names to gene_IDs)
-#step 2: find the inconsistencies between the files (ex: identify total number of expected genes; row number in the gff) sanity check with NCBI or manuscript total number of genes
-        #length (unique) genes; nrow is the function from all files 
-        #somehow organize gene ids into categories (ex: Pver_gene; Pver_split; Pver_novel)
-        #some sort of match or total table
-        #look at raw data for syntax of the names to find general inconsistencies 
-        #take gff3 and functional annotation and full_join those; repeat with any subsequent files you want to join
-
-
-KFS.KO$gene_id <- gsub("augustus.", "", KFS.KO$gene_id)
-KFS.KO$gene_id <- gsub(".t[0-9]", "", KFS.KO$gene_id)
-KFS.KO$gene_id <- gsub("Pver_split_", "Pver_", KFS.KO$gene_id)
-KFS.KO$gene_id <- gsub("Pver_", "Pver_gene_", KFS.KO$gene_id)
-head(KFS.KO)
-tail(KFS.KO)
-
-#ask Hollie question here about joining, what we need for moving forward
-#bind all KO results
-KO.terms <- left_join(Annot, KFS.KO)
-KO.terms <- KO.terms[, c(2,14)]
-KO.terms.unique <- unique(KO.terms$ko)
-str(KO.terms)
-head(KO.terms)
-
-colnames(KO.terms) <- c("gene_id", "KO.ID")
-#Bind KO and GO references
-GOKO.terms <- left_join(Gene.GO.IDs, KO.terms)
-length(unique(Gene.GO.IDs$gene_id)) #sanity check here when I had GO.terms combining with KO terms showed 23,791 gene IDs because NAs from the GO.terms were removed which removed some gene_ids, I think we should use full list of gene_ids in the Gene.GO.IDs because some may have corresponging Kegg terms? See line 160 for more information
-#when I use Gene.GO.IDs there is the correct gene id length of 27,439
-```
-
-
-# Perform KEGG enrichment with GOSeq package
-```{r}
-#Perform goseq
-KOwall <- goseq(pwf, GOref$gene_id, gene2cat=GOKO.terms, test.cats=c("KEGG"), method="Wallenius", use_genes_without_cat=TRUE)
-
-```
-
-# Replace NAs with "KEGG" and extract KO terms from results
-```{r}
-#Cluster1
-KO.05<-KOwall$category[KOwall$over_represented_pvalue<.05]
-KO.05<-data.frame(KO.05)
-colnames(KO.05) <- c("category")
-KO.05 <- merge(KO.05, KOwall.C1, by="category")
-KO.05$ontology <- replace_na(KO.05$ontology, "KEGG")
-KO.05 <- filter(KO.05, ontology=="KEGG")
-KO.05 <- KO.05[order(KO.05$ontology, KO.05$over_represented_pvalue, -KO.05$numDEInCat),]
-KO.05$term <- as.factor(KO.05$term)
-nrow(KO.05)
-
-```
-
-# Add KO definitions
-```{r}
-#Prep definition data
-KFS.KO.def <- subset(KFS.KO.orig, select=c("#","KO", "KO definition"))
-colnames(KFS.KO.def) <- c("sig","category", "term")
-KFS.KO.def <- filter(KFS.KO.def, sig=="*")
-KFS.KO.def <- KFS.KO.def[,c(2:3)]
-#Merge with KEGG outp
-KO.05 <- unique(left_join(C1.KO.05[,-6], KFS.KO.def, by=c("category")))
-
-```
-
-# Write output KEGG enrichment files
-```{r}
-write.csv(C1.KO.05, file = "RAnalysis/Output/RNA-seq/GOSeq/KO.05.csv")
-
-```
