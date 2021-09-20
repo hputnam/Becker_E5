@@ -159,56 +159,20 @@ test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
 #42 genes not joining due to name issues
 
-###################
-#PICK UP HERE NEXT#
-###################
 
 #Annot format = Pver_gene_g162_gene_g164 while GFF3 format = Pver_gene_g162_g164, so these rows are not joining
+GFF3$gene_id <-  gsub("_gene_g","_g",GFF3$gene_id)
+GFF3$gene_id <-  gsub("_gene_","_",GFF3$gene_id)
+GFF3$gene_id <-  gsub("_split_","_",GFF3$gene_id)
+
+
+Annot$gene_id <-  gsub("_gene_g","_g",Annot$gene_id)
+Annot$gene_id <-  gsub("_gene_","_",Annot$gene_id)
 
 
 #test after GFF3 and Annot changes
 test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
-#42 genes not joining due to name issues
-
-
-###################
-#PICK UP HERE NEXT#
-###################
-
-#Check Gene name format and number
-novel.GFF3 <- GFF3 %>%
-  filter(str_detect(gene_id, "novel"))
-#format = Pver_novel_gene_281_5de57afd
-
-split.GFF3  <- GFF3 %>%
-  filter(str_detect(gene_id, "split"))
-#format = Pver_split_gene_g408
-
-remain.GFF3  <- GFF3 %>%
-  filter(!str_detect(gene_id, "novel")) %>% filter(!str_detect(gene_id, "split"))
-#format = Pver_gene_g1
-
-nrow(novel.GFF3 )+nrow(split.GFF3 )+nrow(remain.GFF3 ) #should =27439
-#yes, the sum is 27439
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ```
 
