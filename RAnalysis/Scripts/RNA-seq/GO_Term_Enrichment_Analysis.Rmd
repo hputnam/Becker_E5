@@ -134,9 +134,12 @@ test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
 #still >27439
 
-#Annot and KO appear to have an extra Pver_g1.t2 and are missing the word gene
+
+
+
+#Annot appears to have an extra Pver_g1.t2 and are missing the word gene
 Annot$gene_id <-  gsub("\\..*","", Annot$gene_id)
-Annot$gene_id <-  gsub("Pver_g","Pver_gene_g",Annot$gene_id)
+#Annot$gene_id <-  gsub("Pver_g","Pver_gene_g",Annot$gene_id)
 #Annot and KO appear to have Pver_novel_model_339_5de57afd with model instead of gene
 Annot$gene_id <-  gsub("Pver_novel_model_","Pver_novel_gene_",Annot$gene_id)
 #g# is duplicated after dash 
@@ -146,11 +149,28 @@ Annot$gene_id <-  gsub("-.*","",Annot$gene_id) #remove the extra g number after 
 #test after GFF3 and Annot changes
 test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
-
-
 #84 genes not joining due to name issues
-#Annot = Pver_gene_g162_gene_g164 while GFF3 = Pver_gene_g162_g164, so these rows are not joining
-#Annot = Pver_gene_g408 GFF3 = Pver_split_gene_g408, so these rows are not joining
+
+#Annot format = Pver_gene_g408 while GFF3 format = Pver_split_gene_g408, so these rows are not joining
+GFF3$gene_id <-  gsub("Pver_split_gene_g","Pver_gene_g",GFF3$gene_id)
+
+#test after GFF3 and Annot changes
+test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
+nrow(test.GFF.GO)
+#42 genes not joining due to name issues
+
+###################
+#PICK UP HERE NEXT#
+###################
+
+#Annot format = Pver_gene_g162_gene_g164 while GFF3 format = Pver_gene_g162_g164, so these rows are not joining
+
+
+#test after GFF3 and Annot changes
+test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
+nrow(test.GFF.GO)
+#42 genes not joining due to name issues
+
 
 ###################
 #PICK UP HERE NEXT#
