@@ -1,0 +1,98 @@
+---
+title: "KEGG_Pathway_Analysis"
+author: "HM Putnam"
+date: "9/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## KEGG enrichment analysis
+## Obtained KEGG ontology terms by using KofamScan in command-line; see step 3 in E. Chille lab notebook https://github.com/echille/E.-Chille-Open-Lab-Notebook/blob/master/_posts/2020-10-08-M-capitata-functional-annotation-pipeline.md for instructions. 
+## If run into issues with downloading KofamScan software, etc.; see https://github.com/Putnam-Lab/Lab_Management/issues/21
+
+# Load KO -- gene mapping info
+```{r}
+
+#Load in and prep KofamScan search results
+KFS.KO.orig <- read_tsv("RAnalysis/Genome/KEGG-ontology/Pver_KO_annot.tsv.gz", col_names = TRUE)
+KFS.KO <- KFS.KO.orig[-1,-1] #remove the first row and column becasue they  contain no data
+KFS.KO <- KFS.KO[, c(1,2,5)] #subset the gene ID, KO term, and evalue
+colnames(KFS.KO) <- c("gene_id", "ko", "eval") #name columns
+#NEED TO DECIDE KO TERM CUTOFF AND WHY OR WHY NOT TO KEEP MORE THAN ONE PER GENE
+#FILTER FOR EVALUE AS NEEDED
+KFS.KO <- KFS.KO[,c(1:2)] #remove evalue from the dataframe
+Kegg.name <- as.data.frame(unique(KFS.KO$gene_id)) #identify all of the unique gene names
+colnames(Kegg.name) <- c("gene_id") #set column name for consistency across files
+
+
+
+#Annot appears to have an extra Pver_g1.t2 and are missing the word gene
+KFS.KO$gene_id <-  gsub("\\..*","", KFS.KO$gene_id)
+KFS.KO$gene_id <-  gsub("Pver_novel_model_","Pver_novel_gene_",KFS.KO$gene_id)
+#g# is duplicated after dash 
+KFS.KO$gene_id <-  gsub("-.*","",KFS.KO$gene_id) #remove the extra g number after the dash
+KFS.KO$gene_id <-  gsub("_gene_g","_g",KFS.KO$gene_id)
+KFS.KO$gene_id <-  gsub("_gene_","_",KFS.KO$gene_id)
+
+Kegg.name <- as.data.frame(unique(KFS.KO$gene_id)) #identify all of the unique gene names
+colnames(Kegg.name) <- c("gene_id") #set column name for consistency across files
+
+
+KFS.KO$gene_id <- gsub("Pver_split_", "Pver_", KFS.KO$gene_id)
+KFS.KO$gene_id <- gsub("Pver_", "Pver_gene_", KFS.KO$gene_id)
+head(KFS.KO)
+tail(KFS.KO)
+
+
+```
+
+
+```{r}
+ KEGG_cgigas <- enrichKEGG(gene = KEGG_vector_Pgen_Cgigas, 
+                            organism  = 'crg', # 'hsa' is human 'crg' is pacific oyster 
+                            pvalueCutoff = 0.05) 
+```
+
+
+# Perform KEGG enrichment with GOSeq package
+```{r}
+#Perform goseq
+KOwall <- goseq(pwf, GOref$gene_id, gene2cat=GOKO.terms, test.cats=c("KEGG"), method="Wallenius", use_genes_without_cat=TRUE)
+
+```
+
+# Replace NAs with "KEGG" and extract KO terms from results
+```{r}
+#Cluster1
+KO.05<-KOwall$category[KOwall$over_represented_pvalue<.05]
+KO.05<-data.frame(KO.05)
+colnames(KO.05) <- c("category")
+KO.05 <- merge(KO.05, KOwall.C1, by="category")
+KO.05$ontology <- replace_na(KO.05$ontology, "KEGG")
+KO.05 <- filter(KO.05, ontology=="KEGG")
+KO.05 <- KO.05[order(KO.05$ontology, KO.05$over_represented_pvalue, -KO.05$numDEInCat),]
+KO.05$term <- as.factor(KO.05$term)
+nrow(KO.05)
+
+```
+
+# Add KO definitions
+```{r}
+#Prep definition data
+KFS.KO.def <- subset(KFS.KO.orig, select=c("#","KO", "KO definition"))
+colnames(KFS.KO.def) <- c("sig","category", "term")
+KFS.KO.def <- filter(KFS.KO.def, sig=="*")
+KFS.KO.def <- KFS.KO.def[,c(2:3)]
+#Merge with KEGG outp
+KO.05 <- unique(left_join(C1.KO.05[,-6], KFS.KO.def, by=c("category")))
+
+```
+
+# Write output KEGG enrichment files
+```{r}
+write.csv(C1.KO.05, file = "RAnalysis/Output/RNA-seq/GOSeq/KO.05.csv")
+
+```

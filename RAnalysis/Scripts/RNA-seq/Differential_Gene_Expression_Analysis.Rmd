@@ -17,7 +17,7 @@ Load libraries
 ```{r, message=FALSE, warning=FALSE}
 library("genefilter")
 library("car")
-library("glmmADMB")
+#library("glmmADMB")
 library("DESeq2")
 library("factoextra")
 library("MuMIn")
@@ -41,13 +41,13 @@ library("plotrix")
 Import the data files 
 ```{r}
 #treatment information
-treatmentinfo <- read.csv("RAnalysisData/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
+treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
 rownames(treatmentinfo) <- treatmentinfo$sample_id
 str(treatmentinfo)
 head(treatmentinfo)
 
 #gene count matrix
-gcount <- as.data.frame(read.csv("RAnalysisData/RNA-seq/Poc_gene_count_matrix.csv", row.names="gene_id"))
+gcount <- as.data.frame(read.csv("RAnalysis/Data/RNA-seq/Poc_gene_count_matrix.csv"))
 gcount$gene_id <-  gsub("_gene_","_",gcount$gene_id)
 gcount$gene_id <-  gsub("_split_","_",gcount$gene_id)
 gcount$gene_id <-  gsub("-.*","",gcount$gene_id) #remove the extra g number after the dash
@@ -108,7 +108,7 @@ povera_test <- data_frame(PoverA_cut_off, diff.expres.num)
 povera_ggplot <- ggplot(povera_test, aes(x = PoverA_cut_off, y = diff.expres.num)) +
   geom_point() 
 
-ggsave(path = "RAnalysisOutput/Final_Figures/", filename = "povera_ggplot.pdf")
+ggsave(path = "RAnalysis/Output/Final_Figures/", filename = "povera_ggplot.pdf")
 
 ```
 
@@ -173,7 +173,7 @@ DEGSeq2_wald <- DESeq(gdds) #run differential expression test by group using the
 
 #Explore significant p-values for treatment
 ```{r, message = FALSE}
-DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","control","enriched")) #see code underlying function is to apply to glmer DEG results, FDR correction
+DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","control","enriched")) # 
 head(DEGSeq2.results)
 sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
 #223
@@ -183,7 +183,7 @@ sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were le
 DEGSeq2.sig.results <- subset(DEGSeq2.results, padj < 0.05)
 DEGSeq2.sig.results <- as.data.frame(DEGSeq2.sig.results)
 DEGSeq2.sig.results$gene_id <-rownames(DEGSeq2.sig.results)
-write.csv(DEGSeq2.sig.results, 'RAnalysisOutput/RNA-seq/DEG/DEGSeq2.sig.results.csv')  
+write.csv(DEGSeq2.sig.results, 'RAnalysis/Output/RNA-seq/DEG/DEGSeq2.sig.results.csv')  
 
 ```
 
@@ -220,7 +220,7 @@ DEGSeq2_heatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TR
                             show_colnames =TRUE,
                             cluster_cols = TRUE)
 
-pdf(file = "RAnalysisOutput/Final_Figures/DEGSeq2_heatmap.pdf")
+pdf(file = "RAnalysis/Output/Final_Figures/DEGSeq2_heatmap.pdf")
 DEGSeq2_heatmap
 dev.off()
 
@@ -243,168 +243,17 @@ DEGSeq2_PCA_plot <- ggplot(DEGSeq2_PCAdata, aes(PC1, PC2, color=treatment)) +
 
 DEGSeq2_PCA_plot
 
-ggsave(path = "RAnalysisOutput/Final_Figures/", filename = "DEGSeq2_PCA_plot.pdf")
+ggsave(path = "RAnalysis/Output/Final_Figures/", filename = "DEGSeq2_PCA_plot.pdf")
 
 # PCA plot is of deferentially expressed genes only
 
 # Save results
 
-write.csv(counts(DEGSeq2_list), file="RAnalysisOutput/RNA-seq/DEG/DEGSeq2_list_unique.csv")
+write.csv(counts(DEGSeq2_list), file="RAnalysis/Output/RNA-seq/DEG/DEGSeq2_list_unique.csv")
 
 ```
 
 
-#### Differential Gene Expression Analysis
-# For data with random effects, using a glmer glmm approach
-
-```{r}
-#reshape count data and join data frames for treatment and gene counts
-head(gcount_filt)
-
-#preserve rownames in data frame while converting data frame from wide to long format
-gcount_filt_long <- gcount_filt %>% 
-    as_tibble(rownames = "gene_id") %>% 
-    pivot_longer(cols = -gene_id, names_to = "sample_id", values_to = "count")
-
-head(gcount_filt_long)
-
-#join treatment information with gene count data so gene_ids can be assigned to samples and treatments
-combined.data <- left_join(gcount_filt_long, treatmentinfo)
-
-head(combined.data)
-```
-
-#### Fit glmer position model
-
-```{r}
-# create data frame to store results
-results <- data.frame()
-gs <- unique(combined.data$gene_id)
-
-#make block a factor 
-combined.data$block <- as.factor(combined.data$block)
-
-```
-
-#### Fit glmer position model, approaching with a negative binomial distribution approach
-
-```{r}
-
-#Notes on 0615:
-#Found a way to resolve the error, for the for loop, length needed to be amended to just look through the gs data frame, the length for combined.data:gene_id was going through each observation and not just looking at the unique genes
-
-#Notes on 0608: 
-#last thing I did was run random effect (block) as fixed factor but when I do summary, block 8 has NA's, maybe an issue with formatting/subsetting section? TBD
-#the "Error: Invalid grouping factor specification, 1 = block" is only occurring for certain gene ID and sample pairs.
-#when I selected i after the error was reported in the for loop, it said line 18109 which was gene ID g16996 was causing this error. I thought maybe E6's block had a typo or something associated with it did, but tried other gene ID's with the E6 line (which was taken from metadata sheet so all would be the same) and it ran through the model fine. I then thought maybe it was this gene ID, but other combinations I tried with this gene ID ran through the model fine. I then thought maybe it was gene ID's with the labeling gXXX but tried random gene ID's around this labeling and numbering and they still worked. So I do not think it is a typo but something about the specific combinations at this point.
-
-#Notes on 0605:
-#confident in model selection from below when checking with i = 1 and i = 30
-#in for loop, receiving "Error: Invalid grouping factor specification, 1 = 1block" which others have run into and said it is due to NA values which are not present throughout our data frames
-#when run individual i = 1 or i = 30 for glmer, will run fine without an error
-#I also get the warning for boundary (singular) fit: see ?isSingular as the for loop runs which is saying that the random effects are not accounting for much more if any more variation in the model,
-# ?isSingular explanation: complex mixed-effect models (i.e., those with a large number of variance-covariance parameters) frequently result in singular fits, i.e. estimated variance-covariance matrices with less than full rank. Less technically, this means that some "dimensions" of the variance-covariance matrix have been estimated as exactly zero. For scalar random effects such as intercept-only models, or 2-dimensional random effects such as intercept+slope models, singularity is relatively easy to detect because it leads to random-effect variance estimates of (nearly) zero, or estimates of correlations that are (almost) exactly -1 or 1.
-#when run with DESeq2, 223 significant DEGs, when run with glmer 1,953
-
-#Notes on 0526:
-#think about this as just a logistic regression, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
-# for loop is sub-setting the combined data sheet to go through gene by gene and compare treatment by the count data 
-# we found that we needed to use a summary table for glmer models in R and pull the coefficients to observed the p values for this type of model. We picked coefficient number 8 because that was the column and row that had our p value data between treatments
-# to be confident with our for loop, we first used ggplot to visualize one gene with treatment and count data and saw that the data aligned how we expected for a gene that was insignificant
-
-combined.data <- na.omit(combined.data)
-
-for(i in 1:length((gs))){
-  
-  #subset the dataframe gene by gene
-  combined.data1 <- subset(combined.data, gene_id == gs[i])
-  
-  # glmer negative binomial fit
-  
-  fit <- glmmadmb(count ~ treatment + (1|block), data=combined.data1, family="nbinom", debug=TRUE, save.dir = "tmp")
-  
-  a <- summary(fit)
-  
-  # capture summary stats to data frame
-  df <- data.frame(gene = combined.data1[1,1],  #prints gene id into output table
-                   pval.treatment = a$coefficients[8])   #prints pval from coefficients table
-  
-  # bind rows of temporary data frame to the results data frame
-  results <- rbind(results, df) 
-  
-}
-
-```
-
-
-# Explore significant p values between treatments
-```{r}
-#How many significant p-values were less than 0.05 without p adjust?
-
-sum(results$pval.treatment < 0.05, na.rm=TRUE) 
-#1953
-
-#create data frame with only DEG's with < 0.05 significance 
-
-GLMER.results.all <- results
-
-#use p.adjust to adjust p values from glmer using multiple methods: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/p.adjust; https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6099145/
-
-GLMER.results.all$padj <- p.adjust(GLMER.results.all$pval.treatment, method = "bonferroni", n = length(GLMER.results.all$pval.treatment))
-
-#How many significant p-values were less than 0.05 after p adjust?
-
-GLMER.sig.results.sum <- sum(GLMER.results.all$padj < 0.05, na.rm=TRUE) 
-
-#create data frame with only DEG's with < 0.05 significance 
-
-GLMER.sig.results <- subset(GLMER.results.all, padj < 0.05)
-
-write.csv(GLMER.sig.results, 'RAnalysisOutput/RNA-seq/DEG/GLMER.sig.results.csv')  
-
-read.csv('RAnalysisOutput/RNA-seq/DEG/GLMER.sig.results.csv')  
-
-
-```
-
-
-## comparison of degs (padj = 0.05) between deseq2 and glmer 
-```{r}
-
-mixed.model.results <- GLMER.sig.results
-trt.results <- as.data.frame(DEGSeq2.sig.results)
-trt.results$gene_id <- rownames(trt.results)
-  
-compare.df <- full_join(trt.results, mixed.model.results, by="gene_id")
-
-compare.list <- compare.df$gene_id 
-compare.counts <- gcount_filt[rownames(gcount_filt) %in% compare.list,]
-
-#preserve rownames in data frame while converting data frame from wide to long format
-compare.counts.long <- compare.counts %>% 
-    as_tibble(rownames = "gene_id") %>% 
-    pivot_longer(cols = -gene_id, names_to = "sample_id", values_to = "count")
-
-
-#join treatment information with gene count data so gene_ids can be assigned to samples and treatments
-compare.counts.long <- left_join(compare.counts.long, treatmentinfo)
-
-high <- compare.counts.long %>%	
-  filter(gene_id== unique(compare.counts.long$gene_id)[1])
-means <- aggregate(count ~ treatment, data=high, FUN=mean)
-ses <- aggregate(count ~ treatment, data=high, FUN=std.error)
-means$ses <- ses$count
-ggplot(means, aes(x=treatment, y=count)) +
-  geom_bar(stat="identity", color="black",
-             position=position_dodge()) +
-    geom_errorbar(aes(ymin=count-ses, ymax=count+ses), width=.2,
-                  position=position_dodge(.9)) +
-    xlab("treatment") + #plot x axis label
-    ylab("Expression") + #plot y axis label
-    theme_bw()
-
-
-```
 
 
 

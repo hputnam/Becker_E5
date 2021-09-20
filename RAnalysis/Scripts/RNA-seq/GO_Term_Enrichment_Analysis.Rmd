@@ -174,28 +174,9 @@ Annot$gene_id <-  gsub("_gene_","_",Annot$gene_id)
 test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
 
-gcount <- read.csv("RAnalysis/Data/RNA-seq/Poc_gene_count_matrix.csv")
-gcount$gene_id <-  gsub("_gene_","_",gcount$gene_id)
-gcount$gene_id <-  gsub("_split_","_",gcount$gene_id)
-gcount$gene_id <-  gsub("-.*","",gcount$gene_id) #remove the extra g number after the dash
-
-#test after GFF3 and Annot changes
-test.GFF.GO.DEG <- full_join(GFF3, gcount, by = "gene_id")
-nrow(test.GFF.GO.DEG)
-
 ```
-
+# Identifying treatment and DEGs
 ```{r}
-# identifying GO term data for GO enrichment analysis
-GO.data <- Annot[,c(2,13)] #select gene names and GO IDs
-splitted <- strsplit(as.character(GO.data$Gene_ontology_IDs), "; ") #split into multiple GO IDs
-Gene.GO.IDs <- data.frame(v1 = rep.int(GO.data$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row 
-colnames(Gene.GO.IDs) <- c("gene_id", "GO.IDs") #rename columns
-#Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
-Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
-Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
-
-
 #treatment information
 treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
 str(treatmentinfo)
@@ -219,7 +200,7 @@ DEG.res$gene_id <-  gsub("_gene","",DEG.res$gene_id) #remove extra characters
 #Make ID and length vectors
 
 DEG.vector <- DEG.res$gene_id #the enrichment test list
-ALL.vector <- GFF3$gene_id
+ALL.vector <- GFF3$gene_id #the full gene list
 ID.vector <- GFF3$gene_id #id obtained from gff3 file
 length.vector <- GFF3$length #length obtained from gff3 file
 
@@ -232,29 +213,35 @@ pwf<-nullp(gene.vector, ID.vector, bias.data=length.vector) #weight vector by le
 
 # Prepare GO term dataframe
 ```{r}
-#talk to Hollie about why GO.terms have less gene IDs here
-#erin used this to connect to KO terms, but it reduces amount of gene IDs, I think I should use the Gene.GO.IDs
-#looked at Gene.GO.IDS and here we would be removing NAs which would be removing gene_ids that do not have associated GO terms, should we use the NA removed file to combine with KEGG terms or the full gene_id list that could possible have ko terms but not GO terms attached? I vote for second option
-GO.annot <- subset(Annot, select=c(gene_id, Gene_ontology_IDs))
-GO.annot.na <- filter(GO.annot, Gene_ontology_IDs!="NA;NA") #Remove NAs
-GO.annot.na$GO_IDs <- gsub("NA;", "", GO.annot.na$Gene_ontology_IDs)  #Remove NAs
-GO.annot.na$GO_IDs <- gsub(";NA", "", GO.annot.na$Gene_ontology_IDs)  #Remove NAs
-splitted <- strsplit(as.character(GO.annot.na$Gene_ontology_IDs), ";") #split into multiple GO ids
-GO.terms <- data.frame(v1 = rep.int(GO.annot.na$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row
-colnames(GO.terms) <- c("gene_id", "GO.ID")
+# identifying GO term data for GO enrichment analysis
+GO.data <- Annot[,c(2,13)] #select gene names and GO IDs
+splitted <- strsplit(as.character(GO.data$Gene_ontology_IDs), "; ") #split into multiple GO IDs
+Gene.GO.IDs <- data.frame(v1 = rep.int(GO.data$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row 
+colnames(Gene.GO.IDs) <- c("gene_id", "GO.IDs") #rename columns
+#Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
+Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
+Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
 
-GO.terms$GO.ID<- as.character(GO.terms$GO.ID)
-GO.terms$GO.ID <- replace_na(GO.terms$GO.ID, "unknown")
-GO.terms$GO.ID <- as.factor(GO.terms$GO.ID)
-GO.terms$gene_id <- as.factor(GO.terms$gene_id)
-GO.terms$GO.ID <- gsub(" ", "", GO.terms$GO.ID)
-GO.terms <- unique(GO.terms)
-as.data.frame(GO.terms)
-
-dim(GO.terms)
-head(GO.terms, 10)
-
-nrow(GO.terms)/length(unique(GO.terms$gene_id)) #avg GO IDs per gene
+# GO.annot <- subset(Annot, select=c(gene_id, Gene_ontology_IDs))
+# GO.annot.na <- filter(GO.annot, Gene_ontology_IDs!="NA;NA") #Remove NAs
+# GO.annot.na$GO_IDs <- gsub("NA;", "", GO.annot.na$Gene_ontology_IDs)  #Remove NAs
+# GO.annot.na$GO_IDs <- gsub(";NA", "", GO.annot.na$Gene_ontology_IDs)  #Remove NAs
+# splitted <- strsplit(as.character(GO.annot.na$Gene_ontology_IDs), ";") #split into multiple GO ids
+# GO.terms <- data.frame(v1 = rep.int(GO.annot.na$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row
+# colnames(GO.terms) <- c("gene_id", "GO.ID")
+# 
+# GO.terms$GO.ID<- as.character(GO.terms$GO.ID)
+# GO.terms$GO.ID <- replace_na(GO.terms$GO.ID, "unknown")
+# GO.terms$GO.ID <- as.factor(GO.terms$GO.ID)
+# GO.terms$gene_id <- as.factor(GO.terms$gene_id)
+# GO.terms$GO.ID <- gsub(" ", "", GO.terms$GO.ID)
+# GO.terms <- unique(GO.terms)
+# as.data.frame(GO.terms)
+# 
+# dim(GO.terms)
+# head(GO.terms, 10)
+# 
+# nrow(GO.terms)/length(unique(GO.terms$gene_id)) #avg GO IDs per gene
 ```
 
 ```{r}
@@ -268,9 +255,9 @@ GO.sig.trt <- GO.wall %>%
 write.csv(GO.sig.trt , file = "RAnalysis/Output/RNA-seq/GOSeq/RNASeq.GO.sig.trt.csv")
 
 nrow(GO.sig.trt)
-nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms = 174
-nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms = 71
-nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms = 23
+nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms
+nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms 
+nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms
 ```
 
 ## Find GOslim terms
@@ -322,7 +309,7 @@ CCslim <- mappedIds(slims_cc, CCGO_collection, GOCCOFFSPRING)
 
 # Remove duplicate matches, keeping the broader umbrella term
 ```{r}
-#filtering out duplicates, keep the largest branch that has the most GO terms
+#filtering out duplicates
 
 #BP
 BPslim <- filter(BPslim, Count>0 & Term!="biological_process") #filter out empty slims and term "biological process"
@@ -410,6 +397,15 @@ GO.enrichment.summary <- GO.enrichment.summary %>% #collapse and have gene IDs f
 
 write.csv(GO.enrichment.summary, 'RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.summary.table.csv') 
 ```
+
+
+
+
+
+
+
+
+
 
 ## KEGG enrichment analysis
 ## Obtained KEGG ontology terms by using KofamScan in command-line; see step 3 in E. Chille lab notebook https://github.com/echille/E.-Chille-Open-Lab-Notebook/blob/master/_posts/2020-10-08-M-capitata-functional-annotation-pipeline.md for instructions. 
