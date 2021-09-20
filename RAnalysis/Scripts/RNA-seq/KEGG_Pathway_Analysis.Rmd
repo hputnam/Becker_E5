@@ -23,11 +23,9 @@ KFS.KO <- KFS.KO[, c(1,2,5)] #subset the gene ID, KO term, and evalue
 colnames(KFS.KO) <- c("gene_id", "ko", "eval") #name columns
 #NEED TO DECIDE KO TERM CUTOFF AND WHY OR WHY NOT TO KEEP MORE THAN ONE PER GENE
 #FILTER FOR EVALUE AS NEEDED
-KFS.KO <- KFS.KO[,c(1:2)] #remove evalue from the dataframe
+#KFS.KO <- KFS.KO[,c(1:2)] #remove evalue from the dataframe
 Kegg.name <- as.data.frame(unique(KFS.KO$gene_id)) #identify all of the unique gene names
 colnames(Kegg.name) <- c("gene_id") #set column name for consistency across files
-
-
 
 #Annot appears to have an extra Pver_g1.t2 and are missing the word gene
 KFS.KO$gene_id <-  gsub("\\..*","", KFS.KO$gene_id)
@@ -40,19 +38,49 @@ KFS.KO$gene_id <-  gsub("_gene_","_",KFS.KO$gene_id)
 Kegg.name <- as.data.frame(unique(KFS.KO$gene_id)) #identify all of the unique gene names
 colnames(Kegg.name) <- c("gene_id") #set column name for consistency across files
 
-
 KFS.KO$gene_id <- gsub("Pver_split_", "Pver_", KFS.KO$gene_id)
 KFS.KO$gene_id <- gsub("Pver_", "Pver_gene_", KFS.KO$gene_id)
 head(KFS.KO)
 tail(KFS.KO)
-
-
 ```
 
 
 ```{r}
- KEGG_cgigas <- enrichKEGG(gene = KEGG_vector_Pgen_Cgigas, 
-                            organism  = 'crg', # 'hsa' is human 'crg' is pacific oyster 
+#following steps here: https://bioinformatics-core-shared-training.github.io/cruk-summer-school-2018/RNASeq2018/html/06_Gene_set_testing.nb.html to complete KEGG enrichment
+#to search KEGG organism list, go to: https://www.genome.jp/kegg/catalog/org_list.html
+#Hollie, I choose Pocillopora damicornis from the Cnidarians section on the genome list, think it is closest we will get
+#clusterProfiler (Yu et al. 2012). clusterprofiler supports direct online access of the current KEGG database, rather than relying on R annotation packages, it also provides some nice visualisation options.
+#need to download package from devtools because it wasn't compatable with new rstudio version
+#devtools::install_github(c("GuangchuangYu/DOSE", "GuangchuangYu/clusterProfiler"))
+
+library(clusterProfiler)
+search_kegg_organism('pdam', by='kegg_code')
+
+#need list of FDR and log fold change for genes here, that is in the DESeq2 DEG results list
+#loading data for enrichment here
+#DEG significant results
+DEG.sig <- read.csv("RAnalysis/Output/RNA-seq/DEG/DEGSeq2.sig.results.csv")[,-1]
+#how many significant DEGs
+nrow(DEG.sig)
+#add _gene_ to the gene_id name to match other nomenclature
+DEG.sig$gene_id <-  gsub("_g","_gene_g",DEG.sig$gene_id) #remove extra characters
+
+#rename columns for FDR and logFC
+#colnames(DEG.sig)[2] <- c("logFC") #rename columns
+#colnames(DEG.sig)[6] <- c("FDR") #rename columns
+#head(DEG.sig)
+
+# #filter significant DEGs for FDR and logFC cutoffs
+# sigGenes <- DEG.sig$gene_id[ DEG.sig$FDR < 0.01 & 
+#                               !is.na(DEG.sig$FDR) &
+#                               abs(DEG.sig$logFC) > 1 ]
+# sigGenes <- na.exclude(sigGenes)
+# kk <- enrichKEGG(gene = sigGenes, organism = 'pdam')
+# head(kk, n=10)
+
+KEGG_vectore_Pver <- as.vector(DEG.sig)
+KEGG_pver <- enrichKEGG(gene = DEG.sig, 
+                            organism  = 'pdam', # 'pdam' is Pocillopora damicornis
                             pvalueCutoff = 0.05) 
 ```
 
