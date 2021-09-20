@@ -34,7 +34,7 @@ library(dplyr)
 ```{r}
 #load gene functional annotation file (found in supplmental data from Buitrago-Lopez et al. 2020 paper https://academic.oup.com/gbe/article/12/10/1911/5898631#209703315)
 Annot <- read_tsv( "RAnalysis/Genome/Pver_gene_annotation_file.txt", col_names = TRUE) #biological annotation information
-colnames(Annot)[1] <- "gene_id" #set column name for consistency across files
+colnames(Annot)[2] <- "gene_id" #set column name for consistency across files
 
 #structural annotation file needed to calculate the length by stop position - start position 
 #bring in the gene specific gff3 and pull out gene id 
@@ -155,14 +155,16 @@ GFF3$gene_id <-  gsub("-.*","",GFF3$gene_id)
 
 test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
-#conclusion: we have 714 more genes than the expected 27,439 after we merge these two files, a number of gene ID names are present in the GO annotation file in annot that do not exist the gene names of the GFF3
-tail(test.GFF.GO)
+#conclusion: we have 672 more genes than the expected 27,439 after we merge these two files, a number of gene ID names are present in the GO annotation file in annot that do not exist the gene names of the GFF3
 
 
 
-#GFF3 has #Pver_gene_novel_gene_281_5de57afd# and Annot does not
 
-#Annot has "Pver_novel_gene_816_5de57afd" and GFF3 does not
+
+
+
+
+#GFF3 has #Pver_gene_novel_gene_281_5de57afd# and Annot has Pver_novel_model_817_5de57afd
 
 
 ######
