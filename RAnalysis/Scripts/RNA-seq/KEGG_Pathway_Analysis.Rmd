@@ -36,6 +36,7 @@ library(data.table)
 library(tidyverse)
 library(fBasics)
 ```
+
 ```{r}
 
 # LOAD DATA
@@ -47,24 +48,56 @@ library(fBasics)
 
 Pdam_genome <- keggList("pdam") # call the P. damicornis genome! - notice the pdam terms are rownames!
 Pdam_genome_dataframe <- as.data.frame(Pdam_genome) %>%  rownames_to_column() # with will allow us to merge 
-colnames(Pdam_genome_dataframe) <- c('gene_name') # rename the columns
+colnames(Pdam_genome_dataframe) <- c('gene_id') # rename the columns
 
-# load the Pver annotation files to use downstream in KEGG pathway analysis 
-Pver_annot <- read_tsv( "RAnalysis/Genome/Pver_gene_annotation_file.txt", col_names = TRUE) #biological annotation information
-colnames(Pver_annot)[2] <- "gene_id" #set column name for consistency across files
+# load the Pver annotation file to use downstream in KEGG pathway analysis, bringing from output folder because we had to edit all naming information for gene_ID in the GO enrichment script
+Pver_annot <- read_csv("RAnalysis/Output/RNA-seq/GOSeq/Annot.name.edit.csv") 
 
-#load GFF3
-GFF3 <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0.gene.gff3", header = FALSE, sep="", skip = 1)
-colnames(GFF3) <- c("prot", "Predict", "id", "start","stop", "pos1", "pos2","pos3", "gene_id") #name columns
-GFF3$gene_id <-  gsub(";.*","",GFF3$gene_id) #remove extra characters after the first ;
-#There also appears to be the presence of the characters ID= in each row
-GFF3$gene_id <- gsub("ID=","",GFF3$gene_id) #remove ID=
-#There is also an extra "-g#" that can be removed
-GFF3$gene_id <-  gsub("-.*","",GFF3$gene_id) #remove the extra g number after the dash
+#load GFF3 to use downstream in KEGG pathway analysis, bringing from output folder because we had to edit all naming information for gene_ID in the GO enrichment script
+GFF3 <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/GFF3.name.edit.csv")
 
-#crgKEGG_Pgenref_DIAMOND <- read.table(file ="C:/Users/samjg/Documents/Github_repositories/Pgenerosa_TagSeq_Metabolomics/TagSeq/HPC_work/Output/crgKEGG_diamond_out.txt", sep = '\t', header = F)
-#colnames(crgKEGG_Pgenref_DIAMOND) <- c('qseqid','sseqid','pident', 'length', 'mismatch', 'gapopen', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore') # change the names of the columns if the best blast hits
+#test to make sure gene_id nomenclature still matches between both files
+test <- full_join(GFF3, Pver_annot)
 
+```
+
+# Load KO -- gene mapping info
+```{r}
+
+#Load in KO term functional annotation and edit to match GFF3 and annotation file
+KFS.KO.orig <- read_tsv("RAnalysis/Genome/KEGG-ontology/Pver_KO_annot.tsv.gz", col_names = TRUE)
+KFS.KO <- KFS.KO.orig[-1,-1] #remove the first row and column because they  contain no data
+KFS.KO <- KFS.KO[, c(1,2,5)] #subset the gene ID, KO term, and evalue
+colnames(KFS.KO) <- c("gene_id", "ko", "eval") #name columns
+Kegg.name <- as.data.frame(unique(KFS.KO$gene_id)) #identify all of the unique gene names
+colnames(Kegg.name) <- c("gene_id") #set column name for consistency across files
+
+#need to apply the same changes from Pver_annot file to the KFS.KO for gene_id
+KFS.KO$gene_id <-  gsub("_gene_g","_g", KFS.KO$gene_id) #sub gene_g with _g
+KFS.KO$gene_id <-  gsub("_gene_","_", KFS.KO$gene_id) #remove extra _
+KFS.KO$gene_id <-  gsub(".t[1-67890900]","", KFS.KO$gene_id) #remove everything after g#
+
+#talk to Hollie about the fact that the gene names in KFS.KO seem to resemble to names for the querys instead 
+#test KO annotation file with Pver functional annotation file
+test.GFF.KO <- full_join(Pver_annot, KFS.KO, by = "gene_id")
+nrow(test.GFF.KO)
+#still >27439, 1434878
+#gene_id naming now matches in both files
+#there are still only 27,439 unique gene_ids in the dataframe but more than one KEGG term is currently assigned to each gene_id and that is why they are not matching up
+Kegg.name <- as.data.frame(unique(KFS.KO$gene_id)) #identify all of the unique gene names
+colnames(Kegg.name) <- c("gene_id") #set column name for consistency across files
+
+#NEED TO DECIDE KO TERM CUTOFF AND WHY OR WHY NOT TO KEEP MORE THAN ONE PER GENE
+#FILTER FOR EVALUE AS NEEDED
+
+
+
+
+
+KFS.KO$gene_id <- gsub("Pver_split_", "Pver_", KFS.KO$gene_id)
+KFS.KO$gene_id <- gsub("Pver_", "Pver_gene_", KFS.KO$gene_id)
+head(KFS.KO)
+tail(KFS.KO)
 ```
 
 ```{r}
@@ -85,39 +118,11 @@ DEG.sig$gene_id <-  gsub("_g","_gene_g",DEG.sig$gene_id) #add gene to gene_id to
 #make new column and dataframe with upregualted or downregulated genes
 DEG.sig$DE_dir[DEG.sig$log2FoldChange > 1] <- "up"
 DEG.sig$DE_dir[DEG.sig$log2FoldChange < 1]<- "down"
+
 ```
 
 
-# Load KO -- gene mapping info
-```{r}
 
-#Load in and prep KofamScan search results
-KFS.KO.orig <- read_tsv("RAnalysis/Genome/KEGG-ontology/Pver_KO_annot.tsv.gz", col_names = TRUE)
-KFS.KO <- KFS.KO.orig[-1,-1] #remove the first row and column becasue they  contain no data
-KFS.KO <- KFS.KO[, c(1,2,5)] #subset the gene ID, KO term, and evalue
-colnames(KFS.KO) <- c("gene_id", "ko", "eval") #name columns
-#NEED TO DECIDE KO TERM CUTOFF AND WHY OR WHY NOT TO KEEP MORE THAN ONE PER GENE
-#FILTER FOR EVALUE AS NEEDED
-#KFS.KO <- KFS.KO[,c(1:2)] #remove evalue from the dataframe
-Kegg.name <- as.data.frame(unique(KFS.KO$gene_id)) #identify all of the unique gene names
-colnames(Kegg.name) <- c("gene_id") #set column name for consistency across files
-
-#Annot appears to have an extra Pver_g1.t2 and are missing the word gene
-KFS.KO$gene_id <-  gsub("\\..*","", KFS.KO$gene_id)
-KFS.KO$gene_id <-  gsub("Pver_novel_model_","Pver_novel_gene_",KFS.KO$gene_id)
-#g# is duplicated after dash 
-KFS.KO$gene_id <-  gsub("-.*","",KFS.KO$gene_id) #remove the extra g number after the dash
-KFS.KO$gene_id <-  gsub("_gene_g","_g",KFS.KO$gene_id)
-KFS.KO$gene_id <-  gsub("_gene_","_",KFS.KO$gene_id)
-
-Kegg.name <- as.data.frame(unique(KFS.KO$gene_id)) #identify all of the unique gene names
-colnames(Kegg.name) <- c("gene_id") #set column name for consistency across files
-
-KFS.KO$gene_id <- gsub("Pver_split_", "Pver_", KFS.KO$gene_id)
-KFS.KO$gene_id <- gsub("Pver_", "Pver_gene_", KFS.KO$gene_id)
-head(KFS.KO)
-tail(KFS.KO)
-```
 
 
 ```{r}

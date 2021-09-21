@@ -26,10 +26,6 @@ library(stringr)
 library(dplyr)
 ```
 
-#if 28,153 + 27,439, does not equal 55,592 so all the names are different from test two files to test three files for KEGG terms 
-#goal is to take sudo coded text into email, the most effective way to join three files and then identify what the offsets are for the three files to eachother, Megan suggested python blocking/grouping with key identifiers (Pver_g[0-9]) then you will know how many of those kinds of expressions are found in each of your lists; will tell you if they are fully missing 
-#can sort everything into 'buckets' so that we can know how many general patterns there are before moving forward 
-
 # Import the data files 
 ```{r, echo=FALSE}
 #load gene functional annotation file (found in supplmental data from Buitrago-Lopez et al. 2020 paper https://academic.oup.com/gbe/article/12/10/1911/5898631#209703315)
@@ -47,9 +43,9 @@ GFF3$length <- GFF3$stop - GFF3$start #calculate gene length
 
 ```{r}
 #testing if there are inconsistencies in gene_ID formats across GO and GFF3 files
-
 test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
+#>27,439 genes for gene_id means naming is off between files
 
 #conclusion: we have more genes than the expected 27,439, a number of gene ID names are present in the GO annotation file in annot that do not exist the gene names of the GFF3
 
@@ -69,7 +65,6 @@ nrow(test.GFF.GO)
 
 #check to see if there is a way to convert the GFF3 names to the functional annotation names
 #Let's start with the canonical GFF3 file. This looks like it has duplicated names, so we can remove everything after the first ;
-
 GFF3$gene_id <-  gsub(";.*","",GFF3$gene_id) #remove extra characters after the first ;
 #There also appears to be the presence of the characters ID= in each row
 GFF3$gene_id <- gsub("ID=","",GFF3$gene_id) #remove ID=
@@ -79,8 +74,7 @@ GFF3$gene_id <-  gsub("-.*","",GFF3$gene_id) #remove the extra g number after th
 #test after GFF3 changes
 test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
-#still >27439
-
+#still >27439, 28,153
 
 #format of the gene_id in the GFF3 now appears to be Pver_gene_g1
 #Let's count all of the occurrences of "Pver_gene_g" to see if this equals 27439
@@ -93,6 +87,7 @@ nrow(present)
 absent <- GFF3 %>%
   filter(!str_detect(gene_id, "Pver_gene_g"))
 nrow(absent)
+
 
 #examine patterns of the rows not containing "Pver_gene_g" 
 head(absent)
@@ -121,20 +116,17 @@ absent <- GFF3 %>%
   filter(!str_detect(gene_id, "Pver_gene_g"))
 nrow(absent)
 
-
+#test after finding these errors
 test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
 #still >27439
 
-
 #Annot appears to have an extra Pver_g1.t2 and are missing the word gene
 Annot$gene_id <-  gsub("\\..*","", Annot$gene_id)
-#Annot$gene_id <-  gsub("Pver_g","Pver_gene_g",Annot$gene_id)
 #Annot and KO appear to have Pver_novel_model_339_5de57afd with model instead of gene
 Annot$gene_id <-  gsub("Pver_novel_model_","Pver_novel_gene_",Annot$gene_id)
 #g# is duplicated after dash 
 Annot$gene_id <-  gsub("-.*","",Annot$gene_id) #remove the extra g number after the dash
-
 
 #test after GFF3 and Annot changes
 test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
@@ -142,6 +134,7 @@ nrow(test.GFF.GO)
 #84 genes not joining due to name issues
 
 #Annot format = Pver_gene_g408 while GFF3 format = Pver_split_gene_g408, so these rows are not joining
+#remove the _split_ from gene_id name
 GFF3$gene_id <-  gsub("Pver_split_gene_g","Pver_gene_g",GFF3$gene_id)
 
 #test after GFF3 and Annot changes
@@ -149,20 +142,27 @@ test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
 #42 genes not joining due to name issues
 
-
 #Annot format = Pver_gene_g162_gene_g164 while GFF3 format = Pver_gene_g162_g164, so these rows are not joining
-GFF3$gene_id <-  gsub("_gene_g","_g",GFF3$gene_id)
-GFF3$gene_id <-  gsub("_gene_","_",GFF3$gene_id)
-GFF3$gene_id <-  gsub("_split_","_",GFF3$gene_id)
-
-
-Annot$gene_id <-  gsub("_gene_g","_g",Annot$gene_id)
-Annot$gene_id <-  gsub("_gene_","_",Annot$gene_id)
-
+GFF3$gene_id <-  gsub("_gene_g","_g",GFF3$gene_id) #sub gene_g with _g
+GFF3$gene_id <-  gsub("_gene_","_",GFF3$gene_id) #remove extra _
+GFF3$gene_id <-  gsub("_split_","_",GFF3$gene_id) #remove split naming in gene id
 
 #test after GFF3 and Annot changes
 test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
 nrow(test.GFF.GO)
+#still >27,439
+
+#need to apply the same changes from GFF3 to the Annot file
+Annot$gene_id <-  gsub("_gene_g","_g",Annot$gene_id) #sub gene_g with _g
+Annot$gene_id <-  gsub("_gene_","_",Annot$gene_id) #remove extra _
+
+#test after GFF3 and Annot changes
+test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
+nrow(test.GFF.GO)
+#yes! when combined, both files have 27,439 total when joined
+
+write.csv(GFF3, 'RAnalysis/Output/RNA-seq/GOSeq/GFF3.name.edit.csv') 
+write.csv(Annot, 'RAnalysis/Output/RNA-seq/GOSeq/Annot.name.edit.csv') 
 
 ```
 
@@ -173,16 +173,10 @@ treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header =
 str(treatmentinfo)
 head(treatmentinfo)
 
-
 #DEG significant results
 DEG.res <- read.csv("RAnalysis/Output/RNA-seq/DEG/DEGSeq2.sig.results.csv")[,-1]
 nrow(DEG.res)
 DEG.res$gene_id <-  gsub("_gene","",DEG.res$gene_id) #remove extra characters
-  
-#ask Hollie about this
-#filter DEGs for log2FoldChange>|1|
-#DEG.res <- filter(DEG.res, log2FoldChange > 1 | log2FoldChange < (-1))
-#nrow(DEG.res)
 
 ```
 
