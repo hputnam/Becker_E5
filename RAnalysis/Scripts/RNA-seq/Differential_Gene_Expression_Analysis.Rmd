@@ -91,7 +91,6 @@ gcount_filt <- as.data.frame(gcount[which(rownames(gcount) %in% gn.keep),])
 head(gcount_filt)
 dim(gcount_filt)
 
-
 ```
 
 #testing PoverA cut off values and influence on differential expression number and change in enrichment

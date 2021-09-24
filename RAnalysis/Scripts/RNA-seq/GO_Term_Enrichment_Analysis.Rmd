@@ -155,6 +155,7 @@ nrow(test.GFF.GO)
 #need to apply the same changes from GFF3 to the Annot file
 Annot$gene_id <-  gsub("_gene_g","_g",Annot$gene_id) #sub gene_g with _g
 Annot$gene_id <-  gsub("_gene_","_",Annot$gene_id) #remove extra _
+Annot$gene_id <-  gsub("_split_","_",Annot$gene_id) #remove split naming in gene id
 
 #test after GFF3 and Annot changes
 test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
