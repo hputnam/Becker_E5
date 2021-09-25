@@ -100,7 +100,21 @@ Several software programs have the ability to compare sequences to assess homolo
 
 In this analysis, the program [DIAMOND BLAST](http://www.diamondsearch.org/index.php) was used. Like regular BLAST, DIAMOND is a sequence aligner for nucleotide and protein sequences; unlike BLAST, it is optimized for a higher performance capability of large datasets at 100x-20,000x speed of BLAST. 
 
-#### i) On a HPC server, download nr database from [NCBI](ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz). Convert this database to be Diamond-readable. 
+#### i) On a HPC server, download nr database from [NCBI](ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz). Convert this database to be Diamond-readable.
+
+**If you are in the Putnam Lab and on bluewaves**  
+
+**I used this step for this functional annotation because using the below commands in bash took way too long**
+This script, created by Erin Chille on August 6, 2020, downloads the most recent nr database in FASTA format from [NCBI](ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz) and uses it to make a Diamond-formatted nr database.  This step was updated by Danielle Becker-Polinski on September 24th, 2021 because the scripts were not including the full CPUs to download and a couple other formatting errors. Go to the *sbatch_executables* subdirectory in the Putnam Lab *shared* folder and run the scripts, ```make_diamond_nr_db.sh```  and  ```make_diamond_nr_db.sh``` in this order:
+
+```
+$ sbatch download_nr_database.sh
+Submitted batch job NNN
+$ sbatch -d afterok:NNN make_diamond_nr_db.sh
+```
+
+**If you are not in the Putnam Lab**  
+Download the nr database from [NCBI](ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz). Then, use Diamond's ```makedb``` command to format the database in a Diamond-friendly format. You can also use the command ```dbinfo``` to find version information for the database.
 
 The nr (non-redundant) database is a collection of non-identical protein sequences compiled by NCBI. It is updated on a daily basis.
 
