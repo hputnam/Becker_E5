@@ -221,7 +221,7 @@ DEGSeq2_heatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TR
                             show_colnames =TRUE,
                             cluster_cols = TRUE)
 
-pdf(file = "RAnalysis/Output/Final_Figures/DEGSeq2_heatmap.pdf")
+pdf(file = "RAnalysis/Output/Final_Figures/DEGSeq2_DEG_heatmap.pdf")
 DEGSeq2_heatmap
 dev.off()
 
@@ -244,7 +244,7 @@ DEGSeq2_PCA_plot <- ggplot(DEGSeq2_PCAdata, aes(PC1, PC2, color=treatment)) +
 
 DEGSeq2_PCA_plot
 
-ggsave(path = "RAnalysis/Output/Final_Figures/", filename = "DEGSeq2_PCA_plot.pdf")
+ggsave(path = "RAnalysis/Output/Final_Figures/", filename = "DEGSeq2_DEG_PCA_plot.pdf")
 
 # PCA plot is of deferentially expressed genes only
 
