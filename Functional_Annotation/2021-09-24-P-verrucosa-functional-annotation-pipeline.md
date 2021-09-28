@@ -2,7 +2,7 @@
 layout: post
 title: P. verrucosa functional annotation pipeline 
 Author: Danielle Becker-Polinski 
-Last Updated: 2020/10/19 
+Last Updated: 2021/09/28
 tags: [ Protocol, annotation, RNASeq, GO, KEGG ]
 ---
 
@@ -34,7 +34,7 @@ All methods for this protocol were adapted following the workflows created by @e
 
     i) [Run InterProScan to obtain GO terms](https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2021-09-24-P-verrucosa-functional-annotation-pipeline.md#i-run-interproscan-to-obtain-go-terms)
     
-    - a) [Run InterProScan on Bluewaves](https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2021-09-24-P-verrucosa-functional-annotation-pipeline.md#a-run-interproscan-on-bluewaves)
+    - a) [Run InterProScan on Andromeda](https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2021-09-24-P-verrucosa-functional-annotation-pipeline.md#a-run-interproscan-on-Andromeda)
     - b) [View output file](https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2021-09-24-P-verrucosa-functional-annotation-pipeline.md#b-view-output-file-copy-to-local-computer)
     - c) [Secure-copy output file to local computer](https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2021-09-24-P-verrucosa-functional-annotation-pipeline.md#b-view-output-file-copy-to-local-computer)
 
@@ -64,9 +64,10 @@ This project aims to develop a functional genomic annotation workflow for non-mo
 
 For this functional annotation workflow tutorial, you will need:
 
-- Access to a high performance computing server (ie URI bluewaves) with the following programs:
+- Access to a high performance computing server (ie URI Andromeda) with the following programs:
+**Make sure to check the modules and see if there are any new versions. If so, contact Kevin Bryant to update modules on Andromeda when needed**
     - DIAMOND v2.0.0-GCC-8.3.0
-    - InterProScan v5.46-81.0-foss-2019b
+    - InterProScan v5.52-86.0-foss-2019b
     - Java v11.0.2
 - Laptop with access to the Internet and the following programs installed: 
     - Blast2GO Basic 
@@ -102,7 +103,7 @@ In this analysis, the program [DIAMOND BLAST](http://www.diamondsearch.org/index
 
 #### i) On a HPC server, download nr database from [NCBI](ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz). Convert this database to be Diamond-readable.
 
-**If you are in the Putnam Lab and on bluewaves**  
+**If you are in the Putnam Lab and on Andromeda**  
 
 **I used this step for this functional annotation because using the below commands in bash took way too long**
 This script, created by Erin Chille on August 6, 2020, downloads the most recent nr database in FASTA format from [NCBI](ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz) and uses it to make a Diamond-formatted nr database.  This step was updated by Danielle Becker-Polinski on September 24th, 2021 because the scripts were not including the full CPUs to download and a couple other formatting errors. Go to the *sbatch_executables* subdirectory in the Putnam Lab *shared* folder and run the scripts, ```make_diamond_nr_db.sh```  and  ```make_diamond_nr_db.sh``` in this order:
@@ -119,7 +120,7 @@ Download the nr database from [NCBI](ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/n
 The nr (non-redundant) database is a collection of non-identical protein sequences compiled by NCBI. It is updated on a daily basis.
 
 ```
-# On Bluewaves
+# On Andromeda
 
 # Download db from NCBI 
 wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz
@@ -145,7 +146,7 @@ The file nr.dmnd is now Diamond-readable and can be used as a reference.
 Now that the reference database has been properly generated, the sequences of interest can be aligned against it.
 
 ```
-# On Bluewaves
+# On Andromeda
 
 # Load Diamond module 
 module load DIAMOND/2.0.0-GCC-8.3.0 #Load DIAMOND
@@ -174,7 +175,7 @@ Blastx: align translated DNA query sequences against protein reference database
 #### iii) Generate readable output files
 
 ```
-# On Bluewaves
+# On Andromeda
 
 #Converting format to XML format for BLAST2GO
 diamond view -a Pver.annot.20210924.daa -o Pver.annot.20210924.xml -f 5
@@ -221,41 +222,45 @@ Pver_evm.model.Segkk0_pilon.12 | XP_015753513.1 | 86.7 | 1103 | 15 | 1 | 1 | 291
 #### v) Secure-copy output files to local computer 
 
 ```
-# From a new terminal window (ie not Bluewaves or remote server)
+# From a new terminal window (ie not Andromeda or remote server)
 
-scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/BLAST-GO-KO/Diamond/Pver.annot.20210924.xml /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Genome/BLAST_GO_KO/
+scp danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/BLAST-GO-KO/Diamond/Pver.annot.20210924.xml /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Genome/BLAST_GO_KO/
 
-scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/BLAST-GO-KO/Diamond/Pver.annot.20210924.tab /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Genome/BLAST_GO_KO/
+scp danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/BLAST-GO-KO/Diamond/Pver.annot.20210924.tab /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Genome/BLAST_GO_KO/
 ```
 
 DIAMOND BLAST results can now be used in further analyses. 
 
-**Full Bluewaves Script:**
+**Full Andromeda Script:**
 
 ```
 Pver_annot_diamond.sh:
 
 #!/bin/bash
-#SBATCH --job-name="diamond" #CHANGE_NAME
+#SBATCH --job-name="diamond-blastx"
 #SBATCH -t 240:00:00
 #SBATCH --export=NONE
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --mem=100GB
+#SBATCH --error="diamond_blastx_out_error"
+#SBATCH --output="diamond_blastx_out"
 
 echo "START" $(date)
 module load DIAMOND/2.0.0-GCC-8.3.0 #Load DIAMOND
 
-cd /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/BLAST-GO-KO/Diamond/
-
 echo "Updating Pver annotation" $(date)
-diamond blastx -d /data/putnamlab/shared/databases/nr.dmnd -q /data/putnamlab/REFS/Pverr/Pver_mRNA_v1.0.fna -o Pver.annot.20210924 -f 100  -b 20 --more-sensitive -e 0.00001 -k1 --unal=1
+diamond blastx -d /data/putnamlab/shared/databases/nr.dmnd -q /data/putnamlab/REFS/Pverr/Pver_mRNA_v1.0.fna -o Pver_annot -f 100 -b20 --more-sensitive -e 0.00001 -k1
 
 echo "Search complete... converting format to XML and tab"
-diamond view -a Pver.annot.20210924.daa -o Pver.annot.20210924.xml -f 5
-diamond view -a Pver.annot.20210924.daa -o Pver.annot.20210924.tab -f 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen
-echo "STOP" $(date)
 
+diamond view -a Pver_annot.daa -o Pver_annot.xml -f 5
+diamond view -a Pver_annot.daa -o Pver_annot.tab -f 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen
+
+echo "STOP" $(date)
+```
+```
+Submitted batch job 1931742
 ```
 
 ### Step 3: Assign gene ontology terms to sequences
@@ -317,6 +322,13 @@ There are many different methdods to assigning GO terms to genes/gene products o
 
 [InterProScan](https://www.ebi.ac.uk/interpro/) is a website/software that provides functional analysis of proteins by using predictive models that look across protein databases to find homologies with query proteins. If a homology is identified in one of the databases, the information about that homology is used to assign the query protein a GO term. 
 
+Note: Many fasta files willl use an asterisk to denote a STOP codon. InterProScan does not accept special characters within the sequences, so I removed them prior to running the program using the code below:
+
+```
+cp Pver_proteins_names_v1.0.faa /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/BLAST-GO-KO/InterProScan/
+sed -i 's/*//g' Pver_proteins_names_v1.0.faa
+```
+
 InterProScan utilizes several member databases to enhance the chance of obtaining good protein info:
 
 - Structural domains - Gene3D, Superfamily
@@ -324,20 +336,20 @@ InterProScan utilizes several member databases to enhance the chance of obtainin
 - Protein features - ProSite
 - Prediction of conserved domains - ProDom
 
-##### a) Run InterProScan on Bluewaves
+##### a) Run InterProScan on Andromeda
 
 ```
-# On Bluewaves 
+# On Andromeda 
  
 # Load module
-module load InterProScan/5.46-81.0-foss-2019b
+module load InterProScan/5.52-86.0-foss-2019b
 module load Java/11.0.2
 java -version
 
 # Run InterProScan
 interproscan.sh -version
-interproscan.sh -f XML -i /data/putnamlab/REFS/Pverr/Pver_proteins_names_v1.0.faa -b ./Pver.inte$
-interproscan.sh -mode convert -f GFF3 -i ./Pver.interpro.20210924.xml -b ./Pver.interpro.20210924
+interproscan.sh -f XML -i Pver_proteins_names_v1.0.faa -b ./Pver.interpro.20210927  -iprlookup -goterms -pa
+interproscan.sh -mode convert -f GFF3 -i ./Pver.interpro.20210927.xml -b ././Pver.interpro.20210927 
 
 ```
 
@@ -381,7 +393,7 @@ Pver_evm.model.Segkk4293_pilon.5     | Pver | protein_match | 158 | 257 | 1.1E-1
     - Dbxref - link between feature and other databases, like InterPro
     
 
-**Full Bluewaves Script:**
+**Full Andromeda Script:**
 
 ```
 Pver_InterProScan.sh:
@@ -392,20 +404,23 @@ Pver_InterProScan.sh:
 #SBATCH --export=NONE
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=danielle_becker@uri.edu
+#SBATCH --mem=100GB
+#SBATCH --error="interproscan_out_error"
+#SBATCH --output="interproscan_out"
 
 cd /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/BLAST-GO-KO/InterProScan/
 
 echo "START $(date)"
 
 # Load module
-module load InterProScan/5.46-81.0-foss-2019b
+module load InterProScan/5.52-86.0-foss-2019b
 module load Java/11.0.2
 java -version
 
 # Run InterProScan
 interproscan.sh -version
-interproscan.sh -f XML -i /data/putnamlab/REFS/Pverr/Pver_proteins_names_v1.0.faa -b ./Pver.inte$
-interproscan.sh -mode convert -f GFF3 -i ./Pver.interpro.20210924.xml -b ./Pver.interpro.20210924
+interproscan.sh -f XML -i Pver_proteins_names_v1.0.faa -b ./Pver.interpro.20210927  -iprlookup -goterms -pa
+interproscan.sh -mode convert -f GFF3 -i ./Pver.interpro.20210927.xml -b ././Pver.interpro.20210927
 
 # -i is the input data
 # -b is the output file base
@@ -415,14 +430,36 @@ interproscan.sh -mode convert -f GFF3 -i ./Pver.interpro.20210924.xml -b ./Pver.
 # -pa is pathway mapping
 # -version displays version number
 
+echo "DONE $(date)"
+
+```
+```
+Script error:
+ModuleCmd_Load.c(213):ERROR:105: Unable to locate a modulefile for 'InterProScan/5.46-81.0-foss-2019b'
+openjdk version "11.0.2" 2019-01-15
+OpenJDK Runtime Environment 18.9 (build 11.0.2+9)
+OpenJDK 64-Bit Server VM 18.9 (build 11.0.2+9, mixed mode)
+/var/spool/slurmd/job1931747/slurm_script: line 21: interproscan.sh: command not found
+/var/spool/slurmd/job1931747/slurm_script: line 22: interproscan.sh: command not found
+/var/spool/slurmd/job1931747/slurm_script: line 23: interproscan.sh: command not found
+
+Error searching for module:
+
+ModuleCmd_Load.c(213):ERROR:105: Unable to locate a modulefile for 'InterProScan/5.52-86.0-foss-2019b'
+```
+
+```
+#Kevin had to download the background packages on bluewaves and suggested to use andromeda for faster running times, ran on andromeda and it worked
+
+Submitted batch job 88966
 ```
 
 ##### c) Secure-copy output file to local computer 
 
 ```
-# From a new terminal window (ie not Bluewaves or remote server)
+# From a new terminal window (ie not Andromeda or remote server)
 
-scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/BLAST-GO-KO/InterProScan/Pver.annot.20210924.gff3 /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Genome/BLAST_GO_KO/InterProScan/
+scp danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/BLAST-GO-KO/InterProScan/Pver.annot.20210924.gff3 /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Genome/BLAST_GO_KO/InterProScan/
 
 ```
 

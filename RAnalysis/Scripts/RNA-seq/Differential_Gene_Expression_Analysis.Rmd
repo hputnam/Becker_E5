@@ -17,12 +17,9 @@ Load libraries
 ```{r, message=FALSE, warning=FALSE}
 library("genefilter")
 library("car")
-#library("glmmADMB")
 library("DESeq2")
 library("factoextra")
 library("MuMIn")
-library("NbClust")
-library("ComplexHeatmap")
 library("tidyverse")
 library("tidyr")
 library("lme4")
@@ -152,15 +149,17 @@ ggplot(gPCAdata, aes(PC1, PC2, color=treatment)) +
   geom_point(size=3) +
   xlab(paste0("PC1: ",percentVar[1],"% variance")) +
   ylab(paste0("PC2: ",percentVar[2],"% variance")) +
-  scale_color_manual(values = c(control="slateblue", enriched="indianred3")) +
+  scale_color_manual(values = c(control="black", enriched="cadetblue3")) +
   coord_fixed() +
   theme_bw() + #Set background color
   theme(panel.border = element_blank(), # Set border
-                     #panel.grid.major = element_blank(), #Set major gridlines
-                     #panel.grid.minor = element_blank(), #Set minor gridlines
-                     axis.line = element_line(colour = "black"), #Set axes color
-        plot.background=element_blank()) + #Set the plot background
-  theme(legend.position = ("none")) #set title attributes
+        #panel.grid.major = element_blank(), #Set major gridlines
+        #panel.grid.minor = element_blank(), #Set minor gridlines
+        axis.line = element_line(colour = "black"), #Set axes color
+        plot.background=element_blank()) #Set the plot background
+
+ggsave(path = "RAnalysis/Output/Final_Figures/", filename = "DEGSeq2_general_PCA_plot.pdf")
+
 ```
 
 ##### Run DE analysis for overall example 
@@ -220,6 +219,7 @@ DEGSeq2_heatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TR
                             show_rownames =FALSE,
                             show_colnames =TRUE,
                             cluster_cols = TRUE)
+
 
 pdf(file = "RAnalysis/Output/Final_Figures/DEGSeq2_DEG_heatmap.pdf")
 DEGSeq2_heatmap
