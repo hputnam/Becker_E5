@@ -174,8 +174,8 @@ DEGSeq2_wald <- DESeq(gdds) #run differential expression test by group using the
 DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","control","enriched")) # 
 head(DEGSeq2.results)
 sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
-#223
 
+ 
 #create data frame with only DESeq2 DEG's with < 0.05 significance 
 
 DEGSeq2.sig.results <- subset(DEGSeq2.results, padj < 0.05)

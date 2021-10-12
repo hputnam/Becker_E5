@@ -207,27 +207,6 @@ colnames(Gene.GO.IDs) <- c("gene_id", "GO.IDs") #rename columns
 #Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
 Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
 Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
-
-# GO.annot <- subset(Annot, select=c(gene_id, Gene_ontology_IDs))
-# GO.annot.na <- filter(GO.annot, Gene_ontology_IDs!="NA;NA") #Remove NAs
-# GO.annot.na$GO_IDs <- gsub("NA;", "", GO.annot.na$Gene_ontology_IDs)  #Remove NAs
-# GO.annot.na$GO_IDs <- gsub(";NA", "", GO.annot.na$Gene_ontology_IDs)  #Remove NAs
-# splitted <- strsplit(as.character(GO.annot.na$Gene_ontology_IDs), ";") #split into multiple GO ids
-# GO.terms <- data.frame(v1 = rep.int(GO.annot.na$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row
-# colnames(GO.terms) <- c("gene_id", "GO.ID")
-# 
-# GO.terms$GO.ID<- as.character(GO.terms$GO.ID)
-# GO.terms$GO.ID <- replace_na(GO.terms$GO.ID, "unknown")
-# GO.terms$GO.ID <- as.factor(GO.terms$GO.ID)
-# GO.terms$gene_id <- as.factor(GO.terms$gene_id)
-# GO.terms$GO.ID <- gsub(" ", "", GO.terms$GO.ID)
-# GO.terms <- unique(GO.terms)
-# as.data.frame(GO.terms)
-# 
-# dim(GO.terms)
-# head(GO.terms, 10)
-# 
-# nrow(GO.terms)/length(unique(GO.terms$gene_id)) #avg GO IDs per gene
 ```
 
 ```{r}

@@ -1,0 +1,942 @@
+---
+title: "testing.filter"
+author: "daniellembecker"
+date: "10/5/2021"
+output: html_document
+---
+
+# Molecular Underpinnings Chronic Nutrient Enrichment Project
+
+## RNAseq Differential Expression Analysis 
+## Follow RNAseq workflow in Bioinformatics>RNAseq>RNAseq workflow before statistical analysis to make gene counts and transcript counts matrices
+
+### Set up workspace
+
+Load libraries
+```{r, message=FALSE, warning=FALSE}
+library("genefilter")
+library("car")
+library("DESeq2")
+library("factoextra")
+library("MuMIn")
+library("tidyverse")
+library("tidyr")
+library("lme4")
+library("RColorBrewer")
+library("magrittr")
+library("ggplot2")
+library("goseq")
+library("pheatmap")
+library("stats")
+library("gridExtra")
+library("VennDiagram")
+library("here")
+library("plotrix")
+library(GSEABase)
+library(data.table)
+library(cowplot)
+library(patchwork)
+library(ape)
+library(stringr)
+library(dplyr)
+```
+
+#Import the data files 
+```{r}
+#treatment information
+treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
+rownames(treatmentinfo) <- treatmentinfo$sample_id
+str(treatmentinfo)
+head(treatmentinfo)
+
+#gene count matrix
+gcount <- as.data.frame(read.csv("RAnalysis/Data/RNA-seq/Poc_gene_count_matrix.csv"))
+gcount$gene_id <-  gsub("_gene_","_",gcount$gene_id)
+gcount$gene_id <-  gsub("_split_","_",gcount$gene_id)
+gcount$gene_id <-  gsub("-.*","",gcount$gene_id) #remove the extra g number after the dash
+row.names(gcount) <- gcount$gene_id
+dim(gcount)
+head(gcount)
+
+#remove extra characters from multiple column header names for sample ids, skip first column labeled gene counts so specify 1:ncol
+for ( col in 1:ncol(gcount)){
+  colnames(gcount)[col] <-  sub("_R1_001.fastq.gz.sam.sorted.bam.merge.gtf", "", colnames(gcount)[col])
+}
+
+#subset the gcount matrix and reorder it so it matches the treatment info
+gcount <- gcount[ ,treatmentinfo$sample_id]
+head(gcount)
+
+# Make sure treatment info ='s the rows of count data
+all(rownames(treatmentinfo) %in% colnames(gcount)) # must come out TRUE
+
+GFF3 <- read.csv('RAnalysis/Output/RNA-seq/GOSeq/GFF3.name.edit.csv') [-1] #remove first index column
+Annot <- read.csv('RAnalysis/Output/RNA-seq/GOSeq/Annot.name.edit.csv')[-1] #remove first index column
+``` 
+
+
+##### Pre-filter gene counts (testing with 1.0,10)
+## Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests. We will filter out low coverage samples. Here, we will keep P=87.5% percent of the samples have counts over A=5, allowing only 1 of 8 samples to have a value less than 5 per gene.
+
+```{r}
+#Erin Set filter values for PoverA, P=87.5% percent of the samples have counts over A=5. They chose their value allowing only 1 of 8 samples to have a value less than 5 per gene. 
+filt <- filterfun(pOverA(1.0,10))
+
+#create filter for the counts data
+gfilt <- genefilter(gcount, filt)
+
+#identify genes to keep by count filter
+gkeep <- gcount[gfilt,]
+
+#identify gene lists
+gn.keep <- rownames(gkeep)
+
+#gene count data filtered in PoverA, P percent of the samples have counts over A
+gcount_filt <- as.data.frame(gcount[which(rownames(gcount) %in% gn.keep),])
+head(gcount_filt)
+dim(gcount_filt)
+
+```
+
+
+##Merge the treatment columns into a new column , group. Set group as a factor.
+```{r}
+treatmentinfo$treatment <- factor(treatmentinfo$treatment, levels = c("control","enriched"))
+```
+
+#Create a DESeqDataSet design from gene count matrix and labels. Here we set the design to look at treatment to test for any differences in gene expression across timepoints attributed to treatment.
+#not using DESeq due to random factors, but can still use this to visualize clusters
+```{r}
+#Set DESeq2 design
+gdds <- DESeqDataSetFromMatrix(countData = gcount_filt,
+                              colData = treatmentinfo,
+                              design = ~treatment)
+```
+
+#### Visualize gene count data
+
+We're looking to see if the samples of the same treatments cluster
+
+##### Log-transform the count data
+First we are going to log-transform the data using a variance stabilizing transforamtion (vst). This is only for visualization purposes. Essentially, this is roughly similar to putting the data on the log2 scale. It will deal with the sampling variability of low counts by calculating within-group variability (if blind=FALSE). Importantly, it does not use the design to remove variation in the data, and so can be used to examine if there may be any variability do to technical factors such as extraction batch effects.
+
+To do this we first need to calculate the size factors of our samples. This is a rough estimate of how many reads each sample contains compared to the others. In order to use VST (the faster log2 transforming process) to log-transform our data, the size factors need to be less than 4. Otherwise, there could be artefacts in our results.
+```{r}
+SF.gdds <- estimateSizeFactors(gdds) #estimate size factors to determine if we can use vst  to transform our data. Size factors should be less than four to use vst
+print(sizeFactors(SF.gdds)) #View size factors
+```
+
+Our size factors are all less than 4, so we can use VST!
+```{r}
+gvst <- vst(gdds, blind=FALSE) #apply a variance stabilizing transformation to minimize effects of small counts and normalize library size
+```
+
+
+##### Run DE analysis for overall example 
+
+#Run differential expression test using a Wald model. 
+```{r, message = FALSE}
+DEGSeq2_wald <- DESeq(gdds) #run differential expression test by group using the Wald model
+```
+
+#Explore significant p-values for treatment
+```{r, message = FALSE}
+DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","control","enriched")) # 
+head(DEGSeq2.results)
+sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
+
+ 
+#create data frame with only DESeq2 DEG's with < 0.05 significance 
+
+DEGSeq2.sig.results.1 <- subset(DEGSeq2.results, padj < 0.05)
+DEGSeq2.sig.results.1 <- as.data.frame(DEGSeq2.sig.results.1)
+DEGSeq2.sig.results.1$gene_id <-rownames(DEGSeq2.sig.results.1)
+write.csv(DEGSeq2.sig.results.1, 'RAnalysis/Output/RNA-seq/Pre-filtering/DEGSeq2.sig.results.1.csv')  
+
+```
+
+
+##### Pre-filter gene counts (testing with 0.50,10)
+## Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests. We will filter out low coverage samples. Here, we will keep P=87.5% percent of the samples have counts over A=5, allowing only 1 of 8 samples to have a value less than 5 per gene.
+
+```{r}
+#Erin Set filter values for PoverA, P=87.5% percent of the samples have counts over A=5. They chose their value allowing only 1 of 8 samples to have a value less than 5 per gene. 
+filt <- filterfun(pOverA(0.50,10))
+
+#create filter for the counts data
+gfilt <- genefilter(gcount, filt)
+
+#identify genes to keep by count filter
+gkeep <- gcount[gfilt,]
+
+#identify gene lists
+gn.keep <- rownames(gkeep)
+
+#gene count data filtered in PoverA, P percent of the samples have counts over A
+gcount_filt <- as.data.frame(gcount[which(rownames(gcount) %in% gn.keep),])
+head(gcount_filt)
+dim(gcount_filt)
+
+```
+
+
+##Merge the treatment columns into a new column , group. Set group as a factor.
+```{r}
+treatmentinfo$treatment <- factor(treatmentinfo$treatment, levels = c("control","enriched"))
+```
+
+#Create a DESeqDataSet design from gene count matrix and labels. Here we set the design to look at treatment to test for any differences in gene expression across timepoints attributed to treatment.
+#not using DESeq due to random factors, but can still use this to visualize clusters
+```{r}
+#Set DESeq2 design
+gdds <- DESeqDataSetFromMatrix(countData = gcount_filt,
+                              colData = treatmentinfo,
+                              design = ~treatment)
+```
+
+#### Visualize gene count data
+
+We're looking to see if the samples of the same treatments cluster
+
+##### Log-transform the count data
+First we are going to log-transform the data using a variance stabilizing transforamtion (vst). This is only for visualization purposes. Essentially, this is roughly similar to putting the data on the log2 scale. It will deal with the sampling variability of low counts by calculating within-group variability (if blind=FALSE). Importantly, it does not use the design to remove variation in the data, and so can be used to examine if there may be any variability do to technical factors such as extraction batch effects.
+
+To do this we first need to calculate the size factors of our samples. This is a rough estimate of how many reads each sample contains compared to the others. In order to use VST (the faster log2 transforming process) to log-transform our data, the size factors need to be less than 4. Otherwise, there could be artefacts in our results.
+```{r}
+SF.gdds <- estimateSizeFactors(gdds) #estimate size factors to determine if we can use vst  to transform our data. Size factors should be less than four to use vst
+print(sizeFactors(SF.gdds)) #View size factors
+```
+
+Our size factors are all less than 4, so we can use VST!
+```{r}
+gvst <- vst(gdds, blind=FALSE) #apply a variance stabilizing transformation to minimize effects of small counts and normalize library size
+```
+
+
+##### Run DE analysis for overall example 
+
+#Run differential expression test using a Wald model. 
+```{r, message = FALSE}
+DEGSeq2_wald <- DESeq(gdds) #run differential expression test by group using the Wald model
+```
+
+#Explore significant p-values for treatment
+```{r, message = FALSE}
+DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","control","enriched")) # 
+head(DEGSeq2.results)
+sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
+
+ 
+#create data frame with only DESeq2 DEG's with < 0.05 significance 
+
+DEGSeq2.sig.results.50 <- subset(DEGSeq2.results, padj < 0.05)
+DEGSeq2.sig.results.50 <- as.data.frame(DEGSeq2.sig.results.50)
+DEGSeq2.sig.results.50$gene_id <-rownames(DEGSeq2.sig.results.50)
+write.csv(DEGSeq2.sig.results.50, 'RAnalysis/Output/RNA-seq/Pre-filtering/DEGSeq2.sig.results.50.csv')  
+
+```
+
+##### Pre-filter gene counts (testing with 0.90,10)
+## Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests. We will filter out low coverage samples. Here, we will keep P=87.5% percent of the samples have counts over A=5, allowing only 1 of 8 samples to have a value less than 5 per gene.
+
+```{r}
+#Erin Set filter values for PoverA, P=87.5% percent of the samples have counts over A=5. They chose their value allowing only 1 of 8 samples to have a value less than 5 per gene. 
+filt <- filterfun(pOverA(0.90,10))
+
+#create filter for the counts data
+gfilt <- genefilter(gcount, filt)
+
+#identify genes to keep by count filter
+gkeep <- gcount[gfilt,]
+
+#identify gene lists
+gn.keep <- rownames(gkeep)
+
+#gene count data filtered in PoverA, P percent of the samples have counts over A
+gcount_filt <- as.data.frame(gcount[which(rownames(gcount) %in% gn.keep),])
+head(gcount_filt)
+dim(gcount_filt)
+
+```
+
+
+##Merge the treatment columns into a new column , group. Set group as a factor.
+```{r}
+treatmentinfo$treatment <- factor(treatmentinfo$treatment, levels = c("control","enriched"))
+```
+
+#Create a DESeqDataSet design from gene count matrix and labels. Here we set the design to look at treatment to test for any differences in gene expression across timepoints attributed to treatment.
+#not using DESeq due to random factors, but can still use this to visualize clusters
+```{r}
+#Set DESeq2 design
+gdds <- DESeqDataSetFromMatrix(countData = gcount_filt,
+                              colData = treatmentinfo,
+                              design = ~treatment)
+```
+
+#### Visualize gene count data
+
+We're looking to see if the samples of the same treatments cluster
+
+##### Log-transform the count data
+First we are going to log-transform the data using a variance stabilizing transforamtion (vst). This is only for visualization purposes. Essentially, this is roughly similar to putting the data on the log2 scale. It will deal with the sampling variability of low counts by calculating within-group variability (if blind=FALSE). Importantly, it does not use the design to remove variation in the data, and so can be used to examine if there may be any variability do to technical factors such as extraction batch effects.
+
+To do this we first need to calculate the size factors of our samples. This is a rough estimate of how many reads each sample contains compared to the others. In order to use VST (the faster log2 transforming process) to log-transform our data, the size factors need to be less than 4. Otherwise, there could be artefacts in our results.
+```{r}
+SF.gdds <- estimateSizeFactors(gdds) #estimate size factors to determine if we can use vst  to transform our data. Size factors should be less than four to use vst
+print(sizeFactors(SF.gdds)) #View size factors
+```
+
+Our size factors are all less than 4, so we can use VST!
+```{r}
+gvst <- vst(gdds, blind=FALSE) #apply a variance stabilizing transformation to minimize effects of small counts and normalize library size
+```
+
+
+##### Run DE analysis for overall example 
+
+#Run differential expression test using a Wald model. 
+```{r, message = FALSE}
+DEGSeq2_wald <- DESeq(gdds) #run differential expression test by group using the Wald model
+```
+
+#Explore significant p-values for treatment
+```{r, message = FALSE}
+DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","control","enriched")) # 
+head(DEGSeq2.results)
+sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
+
+ 
+#create data frame with only DESeq2 DEG's with < 0.05 significance 
+
+DEGSeq2.sig.results.90 <- subset(DEGSeq2.results, padj < 0.05)
+DEGSeq2.sig.results.90 <- as.data.frame(DEGSeq2.sig.results.90)
+DEGSeq2.sig.results.90$gene_id <-rownames(DEGSeq2.sig.results.90)
+write.csv(DEGSeq2.sig.results.90, 'RAnalysis/Output/RNA-seq/Pre-filtering/DEGSeq2.sig.results.90.csv')  
+
+```
+
+
+# Identifying treatment and DEGs for 1.0,10
+```{r}
+#treatment information
+treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
+str(treatmentinfo)
+head(treatmentinfo)
+
+#DEG significant results
+DEG.res.1 <- read.csv("RAnalysis/Output/RNA-seq/Pre-filtering/DEGSeq2.sig.results.1.csv")[,-1]
+nrow(DEG.res.1)
+DEG.res.1$gene_id <-  gsub("_gene","",DEG.res.1$gene_id) #remove extra characters
+
+```
+
+# Set ID and gene length vectors, and make a binary matrix indicating which genes are differentially expressed. These are used as input to nullp, which for calculates a Probability Weighting Function for each set of DEGs.
+```{r}
+#Make ID and length vectors
+
+DEG.vector <- DEG.res.1$gene_id #the enrichment test list
+ALL.vector <- GFF3$gene_id #the full gene list
+ID.vector <- GFF3$gene_id #id obtained from gff3 file
+length.vector <- GFF3$length #length obtained from gff3 file
+
+gene.vector=as.integer(ALL.vector%in%DEG.vector) #Construct new vector with 1 for DEG and 0 for others
+names(gene.vector)=ALL.vector #set names
+
+#Calculate Probability Weighting Function
+pwf<-nullp(gene.vector, ID.vector, bias.data=length.vector) #weight vector by length of gene
+```
+
+# Prepare GO term dataframe
+```{r}
+# identifying GO term data for GO enrichment analysis
+GO.data <- Annot[,c(2,13)] #select gene names and GO IDs
+splitted <- strsplit(as.character(GO.data$Gene_ontology_IDs), "; ") #split into multiple GO IDs
+Gene.GO.IDs <- data.frame(v1 = rep.int(GO.data$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row 
+colnames(Gene.GO.IDs) <- c("gene_id", "GO.IDs") #rename columns
+#Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
+Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
+Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
+```
+
+```{r}
+#Find enriched GO terms, 
+GO.wall<-goseq(pwf, ID.vector, gene2cat=Gene.GO.IDs, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
+
+#Find only enriched GO terms that are statistically significant at cutoff
+GO.sig.trt <- GO.wall %>%
+  filter(over_represented_pvalue <0.05) %>%
+  arrange(., ontology)
+
+
+nrow(GO.sig.trt)
+nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms
+nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms 
+nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms
+```
+
+## Find GOslim terms
+
+# Run GOslim to get broader categories
+```{r}
+#load in generic GO database, has all of the upperlevel categories for GO terms. Ex: regulation of cell division would be under cellular regulation
+slim <- getOBOCollection("http://current.geneontology.org/ontology/subsets/goslim_generic.obo") #get GO database
+
+## filtering all of BP (do MF and CC seperately)
+BP_GO <- GO.sig.trt %>%
+  filter(ontology=="BP")
+BPGO_collection <- GOCollection(BP_GO$category) #Make library of query terms
+slims_bp <- data.frame(goSlim(BPGO_collection, slim, "BP")) #Find common parent terms to slim down our list
+slims_bp$category <- row.names(slims_bp) #save rownames as category
+
+## filtering all of MF
+MF_GO <- GO.sig.trt %>%
+  filter(ontology=="MF")
+MFGO_collection <- GOCollection(MF_GO$category) #Make library of query terms
+slims_mf <- data.frame(goSlim(MFGO_collection, slim, "MF")) #Find common parent terms to slim down our list
+slims_mf$category <- row.names(slims_mf) #save rownames as category
+
+## filtering all of CC
+CC_GO <- GO.sig.trt %>%
+  filter(ontology=="CC")
+CCGO_collection <- GOCollection(CC_GO$category) #Make library of query terms
+slims_cc <- data.frame(goSlim(CCGO_collection, slim, "CC")) #Find common parent terms to slim down our list
+slims_cc$category <- row.names(slims_cc) #save rownames as category
+```
+
+# Get mapped terms, using functions from Sam White's Biostars [post](https://support.bioconductor.org/p/128407/#128409).
+```{r}
+#custom function from Sam White's, gets mapped ids for all of your query terms 
+#Write function mappedIds to get the query terms that mapped to the slim categories
+mappedIds <-
+  function(df, collection, OFFSPRING) #the command to run requires a dataframe of slim terms, like slims_MF above, your list of query terms, and the offspring from the GOCollection by goSlim
+  {
+    map <- as.list(OFFSPRING[rownames(df)]) # Subset GOcollection offspring by the rownames of your dataframe
+    mapped <- lapply(map, intersect, ids(collection)) #Find the terms that intersect between the subset made above of your query terms and the GOids from the GO collection
+    df[["go_terms"]] <- vapply(unname(mapped), paste, collapse = ";", character(1L)) #Add column "go_terms" with matching terms 
+    df #show resulting dataframe
+  }
+#Run function for MF and BP terms
+BPslim <- mappedIds(slims_bp, BPGO_collection, GOBPOFFSPRING)
+MFslim <- mappedIds(slims_mf, MFGO_collection, GOMFOFFSPRING)
+CCslim <- mappedIds(slims_cc, CCGO_collection, GOCCOFFSPRING)
+```
+
+# Remove duplicate matches, keeping the broader umbrella term
+```{r}
+#filtering out duplicates
+
+#BP
+BPslim <- filter(BPslim, Count>0 & Term!="biological_process") #filter out empty slims and term "biological process"
+BPsplitted <- strsplit(as.character(BPslim$go_terms), ";") #split into multiple GO ids
+BPslimX <- data.frame(Term = rep.int(BPslim$Term, sapply(BPsplitted, length)), go_term = unlist(BPsplitted)) #list all
+BPslimX <- merge(BPslimX, BPslim[,c(1,3:4)], by="Term") #Add back counts, term, and category info
+BPslimX <- unique(setDT(BPslimX)[order(go_term, -Count)], by = "go_term") #remove duplicate offspring terms, keeping only those that appear in the larger umbrella term (larger Count number)
+BPslim <- data.frame(slim_term=BPslimX$Term, slim_cat=BPslimX$category, category=BPslimX$go_term) #rename columns
+head(BPslim)
+
+#MF
+MFslim <- filter(MFslim, Count>0 & Term!="molecular_function") #filter out empty slims and term "molecular function"
+MFsplitted <- strsplit(as.character(MFslim$go_terms), ";") #split into multiple GO ids
+MFslimX <- data.frame(Term = rep.int(MFslim$Term, sapply(MFsplitted, length)), go_term = unlist(MFsplitted)) #list all
+MFslimX <- merge(MFslimX, MFslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
+MFslimX <- unique(setDT(MFslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
+MFslim <- data.frame(slim_term=MFslimX$Term, slim_cat=MFslimX$category, category=MFslimX$go_term) #rename columns
+head(MFslim)
+
+#CC
+CCslim <- filter(CCslim, Count>0 & Term!="cellular_component") #filter out empty slims and term "molecular function"
+CCsplitted <- strsplit(as.character(CCslim$go_terms), ";") #split into multiple GO ids
+CCslimX <- data.frame(Term = rep.int(CCslim$Term, sapply(CCsplitted, length)), go_term = unlist(CCsplitted)) #list all
+CCslimX <- merge(CCslimX, CCslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
+CCslimX <- unique(setDT(CCslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
+CCslim <- data.frame(slim_term=CCslimX$Term, slim_cat=CCslimX$category, category=CCslimX$go_term) #rename columns
+head(CCslim)
+
+```
+
+# Save slim info with GO enrichment info for heatmap dataframes.
+```{r}
+GO.BP.1 <- right_join(BPslim, filter(GO.sig.trt, ontology=="BP"), by="category") #add back GO enrichment info for each offspring term
+GO.MF.1 <- right_join(MFslim, filter(GO.sig.trt, ontology=="MF"), by="category") #add back GO enrichment info for each offspring term
+GO.CC <- right_join(CCslim, filter(GO.sig.trt, ontology=="CC"), by="category") #add back GO enrichment info for each offspring term
+```
+
+
+## Make heatmap
+```{r}
+BPplot <- GO.BP.1 %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
+      strip.text.x = element_text(size = 12, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =     
+      element_text(size = 11))
+MFplot <- GO.MF.1 %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>% 
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
+      strip.text.x = element_text(size = 12, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =
+      element_text(size = 11))
+fig5 <- BPplot + MFplot
+ggsave("RAnalysis/Output/RNA-seq/Pre-filtering/DEG_heatmap_GO_terms.1.pdf", fig5, width = 30, height = 30, units = c("in"))
+```
+
+## Make supplemental table summarizing GO enrichment
+```{r}
+GO.enrichment.dat <- bind_rows(GO.BP.1, GO.MF.1, GO.CC)
+head(GO.enrichment.dat)
+
+#Make dataframe of GO results for clustering and heatmap. 
+#add gene_IDs. To get gene_IDs we will merge with the GO.terms DF.
+GOgenes <- data.frame(gene_id=Gene.GO.IDs$gene_id, category=Gene.GO.IDs$GO.ID) 
+GOgenes$gene_id <- as.character(GOgenes$gene_id) #make gene ID a character so we can collapse our many near-identical columns
+
+GO.enrichment.summary  <- left_join(GO.enrichment.dat, GOgenes, by="category" ) #join the DFs
+
+GO.enrichment.summary.1 <- GO.enrichment.summary %>% #collapse and have gene IDs for a particular term in a single row as a comma-sep list. 
+  group_by(slim_term, slim_cat, category, over_represented_pvalue, under_represented_pvalue, numDEInCat, numInCat, term, ontology) %>%
+  summarise(genes = toString(gene_id)) %>% #rename collapsed gene_ID column "gene"
+  ungroup()
+
+write.csv(GO.enrichment.summary.1, 'RAnalysis/Output/RNA-seq/Pre-filtering/GO.enrichment.summary.table.1.csv')
+```
+
+# Identifying treatment and DEGs for 0.50,10
+```{r}
+#treatment information
+treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
+str(treatmentinfo)
+head(treatmentinfo)
+
+#DEG significant results
+DEG.res.50 <- read.csv("RAnalysis/Output/RNA-seq/Pre-filtering/DEGSeq2.sig.results.50.csv")[,-1]
+nrow(DEG.res.50)
+DEG.res.50$gene_id <-  gsub("_gene","",DEG.res.50$gene_id) #remove extra characters
+
+```
+
+# Set ID and gene length vectors, and make a binary matrix indicating which genes are differentially expressed. These are used as input to nullp, which for calculates a Probability Weighting Function for each set of DEGs.
+```{r}
+#Make ID and length vectors
+
+DEG.vector <- DEG.res.50$gene_id #the enrichment test list
+ALL.vector <- GFF3$gene_id #the full gene list
+ID.vector <- GFF3$gene_id #id obtained from gff3 file
+length.vector <- GFF3$length #length obtained from gff3 file
+
+gene.vector=as.integer(ALL.vector%in%DEG.vector) #Construct new vector with 1 for DEG and 0 for others
+names(gene.vector)=ALL.vector #set names
+
+#Calculate Probability Weighting Function
+pwf<-nullp(gene.vector, ID.vector, bias.data=length.vector) #weight vector by length of gene
+```
+
+# Prepare GO term dataframe
+```{r}
+# identifying GO term data for GO enrichment analysis
+GO.data <- Annot[,c(2,13)] #select gene names and GO IDs
+splitted <- strsplit(as.character(GO.data$Gene_ontology_IDs), "; ") #split into multiple GO IDs
+Gene.GO.IDs <- data.frame(v1 = rep.int(GO.data$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row 
+colnames(Gene.GO.IDs) <- c("gene_id", "GO.IDs") #rename columns
+#Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
+Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
+Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
+```
+
+```{r}
+#Find enriched GO terms, 
+GO.wall<-goseq(pwf, ID.vector, gene2cat=Gene.GO.IDs, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
+
+#Find only enriched GO terms that are statistically significant at cutoff
+GO.sig.trt <- GO.wall %>%
+  filter(over_represented_pvalue <0.05) %>%
+  arrange(., ontology)
+
+
+nrow(GO.sig.trt)
+nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms
+nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms 
+nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms
+```
+
+## Find GOslim terms
+
+# Run GOslim to get broader categories
+```{r}
+#load in generic GO database, has all of the upperlevel categories for GO terms. Ex: regulation of cell division would be under cellular regulation
+slim <- getOBOCollection("http://current.geneontology.org/ontology/subsets/goslim_generic.obo") #get GO database
+
+## filtering all of BP (do MF and CC seperately)
+BP_GO <- GO.sig.trt %>%
+  filter(ontology=="BP")
+BPGO_collection <- GOCollection(BP_GO$category) #Make library of query terms
+slims_bp <- data.frame(goSlim(BPGO_collection, slim, "BP")) #Find common parent terms to slim down our list
+slims_bp$category <- row.names(slims_bp) #save rownames as category
+
+## filtering all of MF
+MF_GO <- GO.sig.trt %>%
+  filter(ontology=="MF")
+MFGO_collection <- GOCollection(MF_GO$category) #Make library of query terms
+slims_mf <- data.frame(goSlim(MFGO_collection, slim, "MF")) #Find common parent terms to slim down our list
+slims_mf$category <- row.names(slims_mf) #save rownames as category
+
+## filtering all of CC
+CC_GO <- GO.sig.trt %>%
+  filter(ontology=="CC")
+CCGO_collection <- GOCollection(CC_GO$category) #Make library of query terms
+slims_cc <- data.frame(goSlim(CCGO_collection, slim, "CC")) #Find common parent terms to slim down our list
+slims_cc$category <- row.names(slims_cc) #save rownames as category
+```
+
+# Get mapped terms, using functions from Sam White's Biostars [post](https://support.bioconductor.org/p/128407/#128409).
+```{r}
+#custom function from Sam White's, gets mapped ids for all of your query terms 
+#Write function mappedIds to get the query terms that mapped to the slim categories
+mappedIds <-
+  function(df, collection, OFFSPRING) #the command to run requires a dataframe of slim terms, like slims_MF above, your list of query terms, and the offspring from the GOCollection by goSlim
+  {
+    map <- as.list(OFFSPRING[rownames(df)]) # Subset GOcollection offspring by the rownames of your dataframe
+    mapped <- lapply(map, intersect, ids(collection)) #Find the terms that intersect between the subset made above of your query terms and the GOids from the GO collection
+    df[["go_terms"]] <- vapply(unname(mapped), paste, collapse = ";", character(1L)) #Add column "go_terms" with matching terms 
+    df #show resulting dataframe
+  }
+#Run function for MF and BP terms
+BPslim <- mappedIds(slims_bp, BPGO_collection, GOBPOFFSPRING)
+MFslim <- mappedIds(slims_mf, MFGO_collection, GOMFOFFSPRING)
+CCslim <- mappedIds(slims_cc, CCGO_collection, GOCCOFFSPRING)
+```
+
+# Remove duplicate matches, keeping the broader umbrella term
+```{r}
+#filtering out duplicates
+
+#BP
+BPslim <- filter(BPslim, Count>0 & Term!="biological_process") #filter out empty slims and term "biological process"
+BPsplitted <- strsplit(as.character(BPslim$go_terms), ";") #split into multiple GO ids
+BPslimX <- data.frame(Term = rep.int(BPslim$Term, sapply(BPsplitted, length)), go_term = unlist(BPsplitted)) #list all
+BPslimX <- merge(BPslimX, BPslim[,c(1,3:4)], by="Term") #Add back counts, term, and category info
+BPslimX <- unique(setDT(BPslimX)[order(go_term, -Count)], by = "go_term") #remove duplicate offspring terms, keeping only those that appear in the larger umbrella term (larger Count number)
+BPslim <- data.frame(slim_term=BPslimX$Term, slim_cat=BPslimX$category, category=BPslimX$go_term) #rename columns
+head(BPslim)
+
+#MF
+MFslim <- filter(MFslim, Count>0 & Term!="molecular_function") #filter out empty slims and term "molecular function"
+MFsplitted <- strsplit(as.character(MFslim$go_terms), ";") #split into multiple GO ids
+MFslimX <- data.frame(Term = rep.int(MFslim$Term, sapply(MFsplitted, length)), go_term = unlist(MFsplitted)) #list all
+MFslimX <- merge(MFslimX, MFslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
+MFslimX <- unique(setDT(MFslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
+MFslim <- data.frame(slim_term=MFslimX$Term, slim_cat=MFslimX$category, category=MFslimX$go_term) #rename columns
+head(MFslim)
+
+#CC
+CCslim <- filter(CCslim, Count>0 & Term!="cellular_component") #filter out empty slims and term "molecular function"
+CCsplitted <- strsplit(as.character(CCslim$go_terms), ";") #split into multiple GO ids
+CCslimX <- data.frame(Term = rep.int(CCslim$Term, sapply(CCsplitted, length)), go_term = unlist(CCsplitted)) #list all
+CCslimX <- merge(CCslimX, CCslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
+CCslimX <- unique(setDT(CCslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
+CCslim <- data.frame(slim_term=CCslimX$Term, slim_cat=CCslimX$category, category=CCslimX$go_term) #rename columns
+head(CCslim)
+
+```
+
+# Save slim info with GO enrichment info for heatmap dataframes.
+```{r}
+GO.BP.50 <- right_join(BPslim, filter(GO.sig.trt, ontology=="BP"), by="category") #add back GO enrichment info for each offspring term
+GO.MF.50 <- right_join(MFslim, filter(GO.sig.trt, ontology=="MF"), by="category") #add back GO enrichment info for each offspring term
+GO.CC <- right_join(CCslim, filter(GO.sig.trt, ontology=="CC"), by="category") #add back GO enrichment info for each offspring term
+```
+
+
+## Make heatmap
+```{r}
+BPplot <- GO.BP.50 %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
+      strip.text.x = element_text(size = 12, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =     
+      element_text(size = 11))
+MFplot <- GO.MF.50 %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>% 
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
+      strip.text.x = element_text(size = 12, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =
+      element_text(size = 11))
+fig5 <- BPplot + MFplot
+ggsave("RAnalysis/Output/RNA-seq/Pre-filtering/DEG_heatmap_GO_terms.50.pdf", fig5, width = 30, height = 30, units = c("in"))
+```
+
+## Make supplemental table summarizing GO enrichment
+```{r}
+GO.enrichment.dat <- bind_rows(GO.BP.50, GO.MF.50, GO.CC)
+head(GO.enrichment.dat)
+
+#Make dataframe of GO results for clustering and heatmap. 
+#add gene_IDs. To get gene_IDs we will merge with the GO.terms DF.
+GOgenes <- data.frame(gene_id=Gene.GO.IDs$gene_id, category=Gene.GO.IDs$GO.ID) 
+GOgenes$gene_id <- as.character(GOgenes$gene_id) #make gene ID a character so we can collapse our many near-identical columns
+
+GO.enrichment.summary  <- left_join(GO.enrichment.dat, GOgenes, by="category" ) #join the DFs
+
+GO.enrichment.summary.50 <- GO.enrichment.summary %>% #collapse and have gene IDs for a particular term in a single row as a comma-sep list. 
+  group_by(slim_term, slim_cat, category, over_represented_pvalue, under_represented_pvalue, numDEInCat, numInCat, term, ontology) %>%
+  summarise(genes = toString(gene_id)) %>% #rename collapsed gene_ID column "gene"
+  ungroup()
+
+write.csv(GO.enrichment.summary.50, 'RAnalysis/Output/RNA-seq/Pre-filtering/GO.enrichment.summary.table.50.csv')
+```
+
+# Identifying treatment and DEGs for 90,10
+```{r}
+#treatment information
+treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
+str(treatmentinfo)
+head(treatmentinfo)
+
+#DEG significant results
+DEG.res.90 <- read.csv("RAnalysis/Output/RNA-seq/Pre-filtering/DEGSeq2.sig.results.90.csv")[,-1]
+nrow(DEG.res.90)
+DEG.res.90$gene_id <-  gsub("_gene","",DEG.res.90$gene_id) #remove extra characters
+
+```
+
+# Set ID and gene length vectors, and make a binary matrix indicating which genes are differentially expressed. These are used as input to nullp, which for calculates a Probability Weighting Function for each set of DEGs.
+```{r}
+#Make ID and length vectors
+
+DEG.vector <- DEG.res.90$gene_id #the enrichment test list
+ALL.vector <- GFF3$gene_id #the full gene list
+ID.vector <- GFF3$gene_id #id obtained from gff3 file
+length.vector <- GFF3$length #length obtained from gff3 file
+
+gene.vector=as.integer(ALL.vector%in%DEG.vector) #Construct new vector with 1 for DEG and 0 for others
+names(gene.vector)=ALL.vector #set names
+
+#Calculate Probability Weighting Function
+pwf<-nullp(gene.vector, ID.vector, bias.data=length.vector) #weight vector by length of gene
+```
+
+# Prepare GO term dataframe
+```{r}
+# identifying GO term data for GO enrichment analysis
+GO.data <- Annot[,c(2,13)] #select gene names and GO IDs
+splitted <- strsplit(as.character(GO.data$Gene_ontology_IDs), "; ") #split into multiple GO IDs
+Gene.GO.IDs <- data.frame(v1 = rep.int(GO.data$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row 
+colnames(Gene.GO.IDs) <- c("gene_id", "GO.IDs") #rename columns
+#Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
+Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
+Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
+```
+
+```{r}
+#Find enriched GO terms, 
+GO.wall<-goseq(pwf, ID.vector, gene2cat=Gene.GO.IDs, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
+
+#Find only enriched GO terms that are statistically significant at cutoff
+GO.sig.trt <- GO.wall %>%
+  filter(over_represented_pvalue <0.05) %>%
+  arrange(., ontology)
+
+
+nrow(GO.sig.trt)
+nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms
+nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms 
+nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms
+```
+
+## Find GOslim terms
+
+# Run GOslim to get broader categories
+```{r}
+#load in generic GO database, has all of the upperlevel categories for GO terms. Ex: regulation of cell division would be under cellular regulation
+slim <- getOBOCollection("http://current.geneontology.org/ontology/subsets/goslim_generic.obo") #get GO database
+
+## filtering all of BP (do MF and CC seperately)
+BP_GO <- GO.sig.trt %>%
+  filter(ontology=="BP")
+BPGO_collection <- GOCollection(BP_GO$category) #Make library of query terms
+slims_bp <- data.frame(goSlim(BPGO_collection, slim, "BP")) #Find common parent terms to slim down our list
+slims_bp$category <- row.names(slims_bp) #save rownames as category
+
+## filtering all of MF
+MF_GO <- GO.sig.trt %>%
+  filter(ontology=="MF")
+MFGO_collection <- GOCollection(MF_GO$category) #Make library of query terms
+slims_mf <- data.frame(goSlim(MFGO_collection, slim, "MF")) #Find common parent terms to slim down our list
+slims_mf$category <- row.names(slims_mf) #save rownames as category
+
+## filtering all of CC
+CC_GO <- GO.sig.trt %>%
+  filter(ontology=="CC")
+CCGO_collection <- GOCollection(CC_GO$category) #Make library of query terms
+slims_cc <- data.frame(goSlim(CCGO_collection, slim, "CC")) #Find common parent terms to slim down our list
+slims_cc$category <- row.names(slims_cc) #save rownames as category
+```
+
+# Get mapped terms, using functions from Sam White's Biostars [post](https://support.bioconductor.org/p/128407/#128409).
+```{r}
+#custom function from Sam White's, gets mapped ids for all of your query terms 
+#Write function mappedIds to get the query terms that mapped to the slim categories
+mappedIds <-
+  function(df, collection, OFFSPRING) #the command to run requires a dataframe of slim terms, like slims_MF above, your list of query terms, and the offspring from the GOCollection by goSlim
+  {
+    map <- as.list(OFFSPRING[rownames(df)]) # Subset GOcollection offspring by the rownames of your dataframe
+    mapped <- lapply(map, intersect, ids(collection)) #Find the terms that intersect between the subset made above of your query terms and the GOids from the GO collection
+    df[["go_terms"]] <- vapply(unname(mapped), paste, collapse = ";", character(1L)) #Add column "go_terms" with matching terms 
+    df #show resulting dataframe
+  }
+#Run function for MF and BP terms
+BPslim <- mappedIds(slims_bp, BPGO_collection, GOBPOFFSPRING)
+MFslim <- mappedIds(slims_mf, MFGO_collection, GOMFOFFSPRING)
+CCslim <- mappedIds(slims_cc, CCGO_collection, GOCCOFFSPRING)
+```
+
+# Remove duplicate matches, keeping the broader umbrella term
+```{r}
+#filtering out duplicates
+
+#BP
+BPslim <- filter(BPslim, Count>0 & Term!="biological_process") #filter out empty slims and term "biological process"
+BPsplitted <- strsplit(as.character(BPslim$go_terms), ";") #split into multiple GO ids
+BPslimX <- data.frame(Term = rep.int(BPslim$Term, sapply(BPsplitted, length)), go_term = unlist(BPsplitted)) #list all
+BPslimX <- merge(BPslimX, BPslim[,c(1,3:4)], by="Term") #Add back counts, term, and category info
+BPslimX <- unique(setDT(BPslimX)[order(go_term, -Count)], by = "go_term") #remove duplicate offspring terms, keeping only those that appear in the larger umbrella term (larger Count number)
+BPslim <- data.frame(slim_term=BPslimX$Term, slim_cat=BPslimX$category, category=BPslimX$go_term) #rename columns
+head(BPslim)
+
+#MF
+MFslim <- filter(MFslim, Count>0 & Term!="molecular_function") #filter out empty slims and term "molecular function"
+MFsplitted <- strsplit(as.character(MFslim$go_terms), ";") #split into multiple GO ids
+MFslimX <- data.frame(Term = rep.int(MFslim$Term, sapply(MFsplitted, length)), go_term = unlist(MFsplitted)) #list all
+MFslimX <- merge(MFslimX, MFslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
+MFslimX <- unique(setDT(MFslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
+MFslim <- data.frame(slim_term=MFslimX$Term, slim_cat=MFslimX$category, category=MFslimX$go_term) #rename columns
+head(MFslim)
+
+#CC
+CCslim <- filter(CCslim, Count>0 & Term!="cellular_component") #filter out empty slims and term "molecular function"
+CCsplitted <- strsplit(as.character(CCslim$go_terms), ";") #split into multiple GO ids
+CCslimX <- data.frame(Term = rep.int(CCslim$Term, sapply(CCsplitted, length)), go_term = unlist(CCsplitted)) #list all
+CCslimX <- merge(CCslimX, CCslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
+CCslimX <- unique(setDT(CCslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
+CCslim <- data.frame(slim_term=CCslimX$Term, slim_cat=CCslimX$category, category=CCslimX$go_term) #rename columns
+head(CCslim)
+
+```
+
+# Save slim info with GO enrichment info for heatmap dataframes.
+```{r}
+GO.BP.90 <- right_join(BPslim, filter(GO.sig.trt, ontology=="BP"), by="category") #add back GO enrichment info for each offspring term
+GO.MF.90 <- right_join(MFslim, filter(GO.sig.trt, ontology=="MF"), by="category") #add back GO enrichment info for each offspring term
+GO.CC <- right_join(CCslim, filter(GO.sig.trt, ontology=="CC"), by="category") #add back GO enrichment info for each offspring term
+```
+
+
+## Make heatmap
+```{r}
+BPplot <- GO.BP.90 %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
+      strip.text.x = element_text(size = 12, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =     
+      element_text(size = 11))
+MFplot <- GO.MF.90 %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>% 
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
+      strip.text.x = element_text(size = 12, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =
+      element_text(size = 11))
+fig5 <- BPplot + MFplot
+ggsave("RAnalysis/Output/RNA-seq/Pre-filtering/DEG_heatmap_GO_terms.90.pdf", fig5, width = 30, height = 30, units = c("in"))
+```
+
+## Make supplemental table summarizing GO enrichment
+```{r}
+GO.enrichment.dat <- bind_rows(GO.BP.90, GO.MF.90, GO.CC)
+head(GO.enrichment.dat)
+
+#Make dataframe of GO results for clustering and heatmap. 
+#add gene_IDs. To get gene_IDs we will merge with the GO.terms DF.
+GOgenes <- data.frame(gene_id=Gene.GO.IDs$gene_id, category=Gene.GO.IDs$GO.ID) 
+GOgenes$gene_id <- as.character(GOgenes$gene_id) #make gene ID a character so we can collapse our many near-identical columns
+
+GO.enrichment.summary  <- left_join(GO.enrichment.dat, GOgenes, by="category" ) #join the DFs
+
+GO.enrichment.summary.90 <- GO.enrichment.summary %>% #collapse and have gene IDs for a particular term in a single row as a comma-sep list. 
+  group_by(slim_term, slim_cat, category, over_represented_pvalue, under_represented_pvalue, numDEInCat, numInCat, term, ontology) %>%
+  summarise(genes = toString(gene_id)) %>% #rename collapsed gene_ID column "gene"
+  ungroup()
+
+write.csv(GO.enrichment.summary.90, 'RAnalysis/Output/RNA-seq/Pre-filtering/GO.enrichment.summary.table.90.csv')
+```
+
+
+```{r}
+### Compare GO slim terms and GO terms between filters
+
+
+
+### Plot all species on one GO slim plot 
+# Add filter name to df
+GO.enrichment.summary.1$filter <- "one"
+GO.enrichment.summary.50$filter <- "fifty"
+GO.enrichment.summary.90$filter <- "ninety"
+
+
+# Bind all filter df together for GO slim plot 
+all.go.slim <- rbind(GO.enrichment.summary.1, GO.enrichment.summary.50, GO.enrichment.summary.90)
+
+GO.all <- ggplot(all.go.slim, aes(x = filter, y = term)) + 
+  geom_tile(aes(fill =over_represented_pvalue)) + 
+  facet_grid(slim_term ~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                     strip.text.y = element_text(angle=0, size = 18),
+                     strip.text.x = element_text(size = 25),
+                     axis.text = element_text(size = 15))
+
+
+ggsave("RAnalysis/Output/RNA-seq/Pre-filtering/heatmap.compare.pdf", GO.all, width = 48, height = 40, units = c("in"))
+
+
+
+
+```
+
+
+
