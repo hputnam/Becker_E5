@@ -934,8 +934,6 @@ GO.all <- ggplot(all.go.slim, aes(x = filter, y = term)) +
 ggsave("RAnalysis/Output/RNA-seq/Pre-filtering/heatmap.compare.pdf", GO.all, width = 48, height = 40, units = c("in"))
 
 
-
-
 ```
 
 
