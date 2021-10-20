@@ -36,72 +36,87 @@ dim(pver_blast) #21606 x 14
 
 #Because there were many Diamond BLAST hits for Pver, I had to break up the tab file into chunks that Uniprot could handle. So there are 11 Pver_Uniprot files to be read and then rbind() together
 u1 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabaa.tab", col_names = TRUE)
-colnames(u1) <- c("uniprotkb_entry", "entry_name", "status", "protein_names", "gene_names", "organism", "length", "gene_ontology", "go_ids", "kegg", "my_list")
+colnames(u1) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
 head(u1)
-dim(u1) # 495 x 12
+dim(u1) # 415 x 10
 
 u2 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabab.tab", col_names = TRUE)
-colnames(u2) <- c("uniprotkb_entry", "entry_name", "status", "protein_names", "gene_names", "organism", "length", "gene_ontology", "go_ids", "kegg", "my_list")
+colnames(u2) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
 head(u2)
-dim(u2) # 495 x 12
+dim(u2) # 430 x 10
 
 u3 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabac.tab", col_names = TRUE)
-colnames(u3) <- c("uniprotkb_entry", "entry_name", "status", "protein_names", "gene_names", "organism", "length", "gene_ontology", "go_ids", "kegg", "my_list")
+colnames(u3) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
 head(u3)
-dim(u3) # 495 x 12
+dim(u3) # 433 x 10
 
 u4 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabad.tab", col_names = TRUE)
-colnames(u4) <- c("uniprotkb_entry", "entry_name", "status", "protein_names", "gene_names", "organism", "length", "gene_ontology", "go_ids", "kegg", "my_list")
+colnames(u4) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
 head(u4)
-dim(u4) # 495 x 12
+dim(u4) # 434 x 10
 
 u5 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabae.tab", col_names = TRUE)
-colnames(u5) <- c("uniprotkb_entry", "entry_name", "status", "protein_names", "gene_names", "organism", "length", "gene_ontology", "go_ids", "kegg", "my_list")
+colnames(u5) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
 head(u5)
-dim(u5) # 495 x 12
+dim(u5) # 439 x 10
 
-u4 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabaf.tab", col_names = TRUE)
-colnames(u4) <- c("uniprotkb_entry", "entry_name", "status", "protein_names", "gene_names", "organism", "length", "gene_ontology", "go_ids", "kegg", "my_list")
-head(u4)
-dim(u4) # 495 x 12
-
-
-u6 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabag.tab", col_names = TRUE)
-colnames(u6) <- c("uniprotkb_entry", "entry_name", "status", "protein_names", "gene_names", "organism", "length", "gene_ontology", "go_ids", "kegg", "my_list")
+u6 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabaf.tab", col_names = TRUE)
+colnames(u6) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
 head(u6)
-dim(u6) # 495 x 12
+dim(u6) # 444 x 10
 
-u7 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabah.tab", col_names = TRUE)
-colnames(u7) <- c("uniprotkb_entry", "entry_name", "status", "protein_names", "gene_names", "organism", "length", "gene_ontology", "go_ids", "kegg", "my_list")
+
+u7 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabag.tab", col_names = TRUE)
+colnames(u7) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
 head(u7)
-dim(u7) # 495 x 12
+dim(u7) # 460 x 10
 
-
-u8 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabai.tab", col_names = TRUE)
-colnames(u8) <- c("uniprotkb_entry", "entry_name", "status", "protein_names", "gene_names", "organism", "length", "gene_ontology", "go_ids", "kegg", "my_list")
+u8 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabah.tab", col_names = TRUE)
+colnames(u8) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
 head(u8)
-dim(u8) # 495 x 12
+dim(u8) # 474 x 10
 
 
-u9 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabaj.tab", col_names = TRUE)
-colnames(u9) <- c("uniprotkb_entry", "entry_name", "status", "protein_names", "gene_names", "organism", "length", "gene_ontology", "go_ids", "kegg", "my_list")
+u9 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabai.tab", col_names = TRUE)
+colnames(u9) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
 head(u9)
-dim(u9) # 495 x 12
+dim(u9) # 523 x 10
 
 
-u10 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabak.tab", col_names = TRUE)
-colnames(u10) <- c("uniprotkb_entry", "entry_name", "status", "protein_names", "gene_names", "organism", "length", "gene_ontology", "go_ids", "kegg", "my_list")
+u10 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabaj.tab", col_names = TRUE)
+colnames(u10) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
 head(u10)
-dim(u10) # 495 x 12
+dim(u10) # 591 x 10
+
+
+u11 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabak.tab", col_names = TRUE)
+colnames(u11) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
+head(u11)
+dim(u11) # 444 x 10
+
+u12 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabal.tab", col_names = TRUE)
+colnames(u12) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
+head(u12)
+dim(u12) # 373 x 10
+
+u13 <- read_tsv("Functional_Annotation/Uniprot/uniprot_tabam.tab", col_names = TRUE)
+colnames(u13) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
+head(u13)
+dim(u13) # 442 x 10
+
+u14 <- read_tsv("Functional_Annotation/Uniprot/uniprot_taban.tab", col_names = TRUE)
+colnames(u14) <- c("top_hit", "uniprotkb_entry", "status", "gene_names", "organism", "protein_names", "length", "gene_ontology", "go_ids", "my_list")
+head(u14)
+dim(u14) # 80 x 10
 
 
 #Compile the Uniprot files 
-uniprot_results <- bind_rows(u1,u2,u3,u4,u5,u6,u7,u8,u9,u10)
+uniprot_results <- bind_rows(u1,u2,u3,u4,u5,u6,u7,u8,u9,u10,u11,u12,u13,u14)
 uniprot_results <- unique(uniprot_results)
 head(uniprot_results)
-dim(uniprot_results) # 4862 x 11
-uniprot_results <- filter(uniprot_results, grepl("GO",go_ids)) #Select only genes with GO terms
-dim(uniprot_results) # 2925 x 11
+dim(uniprot_results) # 4738 x 10
+uniprot_results <- filter(uniprot_results, grepl("GO",go_ids)) #Select only gnes with GO terms
+dim(uniprot_results) # 2857 x 10
 
 # Generate a list of GO terms - UniProt
 uniprot_GO <- select(uniprot_results, my_list, go_ids)
@@ -110,23 +125,28 @@ uniprot_GO <- data.frame(v1 = rep.int(uniprot_GO$my_list, sapply(splitted, lengt
 uniprot_GO <- unique(uniprot_GO)
 colnames(uniprot_GO) <- c("gene_id", "GO.ID")
 uniprot_GO$GO.ID <- gsub(" ", "", uniprot_GO$GO.ID)
-nrow(uniprot_GO) # 6835 total GO terms from Uniprot
-length(unique(uniprot_GO$GO.ID)) # 1025 unique GO terms from Uniprot
-length(unique(uniprot_GO$gene_id)) # 2925 unique gene ids from Uniprot 
+nrow(uniprot_GO) # 6680 total GO terms from Uniprot
+length(unique(uniprot_GO$GO.ID)) # 1106 unique GO terms from Uniprot
+length(unique(uniprot_GO$gene_id)) # 2857 unique gene ids from Uniprot 
 # Not technically gene ids. Uniprot has no gene id info--actually ids from Uniprot. When I combine the Uniport and B2G files, the uniprot ids will then be associated with gene ids 
+
+
+
+
+
 
 
 ## Blast2GO
 
-#Nucleotide full transcripts were annotated using DIAMONDSEARCH BLASTX, resulting in 21606. These hits were used as input into Blast2GO to obtain GO terms using the 20211015 obo database.
+#Nucleotide CDS sequences were annotated using DIAMONDSEARCH BLASTX, resulting in 29515. These hits were used as input into Blast2GO to obtain GO terms using the 12/05/2020 obo database.
 
-B2G_results <- read.csv("Functional_Annotation/Blast2GO/pver_blast2go_table.csv")
+B2G_results <- read.csv("~/Desktop/PutnamLab/Repositories/FunctionalAnnotation/FunctionalAnnotation/Blast2GO/acerv_blast2go_table.csv")
 B2G_results <- select(B2G_results, c("SeqName", "Description", "Length", "e.Value", "sim.mean", "GO.IDs", "GO.Names"))
 colnames(B2G_results) <- c("seqName", "top_hit", "length", "eValue", "simMean", "GO.ID", "GO_names")
 head(B2G_results)
-dim(B2G_results) # 21606 x 7
-B2G_results <- filter(B2G_results, grepl("GO", GO.ID)) #Genes with GO terms 
-dim(B2G_results) # 4040 x 7
+dim(B2G_results) # 29515 x 7
+B2G_results <- filter(B2G_results, grepl("GO",GO.ID)) #Genes with GO terms - 136
+dim(B2G_results) # 2092 x 7
 
 # Generate a list of GO terms - B2G
 B2G_results_GO <- select(B2G_results, top_hit, GO.ID)
@@ -139,9 +159,9 @@ B2G_results_GO$GO.ID <- gsub("C:", "", B2G_results_GO$GO.ID)
 B2G_results_GO$GO.ID <- gsub("P:", "", B2G_results_GO$GO.ID)
 B2G_results_GO$GO.ID <- gsub(" ", "", B2G_results_GO$GO.ID)
 head(B2G_results_GO)
-nrow(B2G_results_GO) # 8806 total GO terms from B2G
-length(unique(B2G_results_GO$GO.ID)) # 1178 unique GO terms from B2G
-length(unique(B2G_results_GO$gene_id)) # 3209 unique gene ids from B2G
+nrow(B2G_results_GO) # 4822 total GO terms from B2G
+length(unique(B2G_results_GO$GO.ID)) # 1130 unique GO terms from B2G
+length(unique(B2G_results_GO$gene_id)) # 1458 unique gene ids from B2G
 
 
 
@@ -174,23 +194,103 @@ UBunique_gene <- setdiff(uniprot_GO$gene_id, B2G_results_GO$gene_id)
 length(unique(UBunique_gene)) # 53 gene ids unique to uniprot
 
 
+
 ## Merge Annotations - uniprot + b2g
-pver_annot <- left_join(pver_blast, B2G_results, by="seqName")
-pver_annot <- select(pver_annot, seqName, top_hit.x, length.x, evalue, bitscore, simMean, GO.ID, GO_names)
-colnames(pver_annot) <- c("gene_id", "top_hit", "length", "evalue", "bitscore", "simMean", "GO.ID", "GO_names")
+acerv_annot <- left_join(acerv_blast, B2G_results, by="seqName")
+acerv_annot <- select(acerv_annot, seqName, top_hit.x, length.x, evalue, bitscore, simMean, GO.ID, GO_names)
+colnames(acerv_annot) <- c("gene_id", "top_hit", "length", "evalue", "bitscore", "simMean", "GO.ID", "GO_names")
 uniprot_results_GO <- select(uniprot_results_GO, -top_hit)
 uniprot_results_GO <- rename(uniprot_results_GO, "top_hit"="my_list")
-pver_annot <- merge(pver_annot, uniprot_results_GO, by="top_hit", all.x = T)
-pver_annot$GO.IDs <- paste(pver_annot$GO.ID, pver_annot$go_ids, sep=';') #generate new column with concatenated GO IDs
-pver_annot$GO_terms <- paste(pver_annot$GO_names, pver_annot$gene_ontology, sep=';') #generate new column with concatenated GO IDs
-pver_annot <- select(pver_annot, c("top_hit", "gene_id", "length.x", "evalue", "bitscore", "simMean", "uniprotkb_entry", "status", "protein_names", "gene_names", "organism", "ko", "kegg", "GO.IDs", "GO_terms"))
-pver_annot <- rename(pver_annot, "GO.ID"="GO.IDs")
-names(pver_annot)
-head(pver_annot)
-tail(pver_annot)
-dim(pver_annot) # 21606 x 16
-write.csv(pver_annot, "Functional_Annotation/Final_Annotations/pver_FuncAnn_UniP_B2G.csv")
+acerv_annot <- merge(acerv_annot, uniprot_results_GO, by="top_hit", all.x = T)
+acerv_annot$GO.IDs <- paste(acerv_annot$GO.ID, acerv_annot$go_ids, sep=';') #generate new column with concatenated GO IDs
+acerv_annot$GO_terms <- paste(acerv_annot$GO_names, acerv_annot$gene_ontology, sep=';') #generate new column with concatenated GO IDs
+acerv_annot <- select(acerv_annot, c("top_hit", "gene_id", "length.x", "evalue", "bitscore", "simMean", "uniprotkb_entry", "status", "protein_names", "gene_names", "organism", "ko", "kegg", "GO.IDs", "GO_terms"))
+acerv_annot <- rename(acerv_annot, "GO.ID"="GO.IDs")
+names(acerv_annot)
+head(acerv_annot)
+tail(acerv_annot)
+dim(acerv_annot) # 29515 x 16
+write.csv(acerv_annot, "~/Desktop/acerv_FuncAnn_UniP_B2G.csv")
 
+
+
+
+
+
+
+
+# IPS
+IPS_GO <- read.csv("~/Desktop/PutnamLab/Repositories/SedimentStress/SedimentStress/Output/GOseq/acerv_GOterms.csv", header=TRUE)
+IPS_GO <- select(IPS_GO, -X)
+colnames(IPS_GO)[1] <-"gene_id"
+#IPS_GO$gene_id <- gsub(".m1", "", IPS_GO$gene_id)
+#IPS_GO$gene_id <- gsub("model", "TU", IPS_GO$gene_id)
+length(unique(IPS_GO$gene_id)) # 12828
+IPS_GO <- select(IPS_GO, c("gene_id", "GO_term")) # taking out source and score tho I want to leave them in--just for comparison though
+splitted <- strsplit(as.character(IPS_GO$GO), ",") #split into multiple GO ids
+IPS_GO <- data.frame(v1 = rep.int(IPS_GO$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their 
+colnames(IPS_GO) <- c("gene_id", "GO.ID")
+IPS_GO <- unique(IPS_GO)
+head(IPS_GO)
+nrow(IPS_GO) # 30085 total GO terms from IPS
+length(unique(IPS_GO$GO.ID)) # 1945 unique GO terms from IPS
+length(unique(IPS_GO$gene_id)) # 12828 unique gene ids from IPS
+
+# From B2G and Uniprot
+FuncAnn_UniP_B2G <- read.csv("~/Desktop/PutnamLab/Repositories/FunctionalAnnotation/FunctionalAnnotation/final_Annotations/acerv_FuncAnn_UniP_B2G.csv")
+length(unique(FuncAnn_UniP_B2G$gene_id)) # 29515
+FuncAnn_UniP_B2G_GO <- filter(FuncAnn_UniP_B2G, grepl("GO",GO.ID)) #Select only gnes with GO terms
+length(unique(FuncAnn_UniP_B2G_GO$gene_id)) # 2172
+FuncAnn_UniP_B2G_GO <- select(FuncAnn_UniP_B2G_GO, c("gene_id", "GO.ID")) # taking out source and score tho I want to leave them in--just for comparison though
+splitted <- strsplit(as.character(FuncAnn_UniP_B2G_GO$GO.ID), ";") #split into multiple GO ids
+FuncAnn_UniP_B2G_GO <- data.frame(v1 = rep.int(FuncAnn_UniP_B2G_GO$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their 
+colnames(FuncAnn_UniP_B2G_GO) <- c("gene_id", "GO.ID")
+FuncAnn_UniP_B2G_GO$GO.ID <- gsub("F:", "", FuncAnn_UniP_B2G_GO$GO.ID)
+FuncAnn_UniP_B2G_GO$GO.ID <- gsub("C:", "", FuncAnn_UniP_B2G_GO$GO.ID)
+FuncAnn_UniP_B2G_GO$GO.ID <- gsub("P:", "", FuncAnn_UniP_B2G_GO$GO.ID)
+FuncAnn_UniP_B2G_GO$GO.ID <- gsub(" ", "", FuncAnn_UniP_B2G_GO$GO.ID)
+FuncAnn_UniP_B2G_GO <- unique(FuncAnn_UniP_B2G_GO)
+head(FuncAnn_UniP_B2G_GO)
+nrow(FuncAnn_UniP_B2G_GO) # 8390 total GO terms from B2G + Uniprot
+length(unique(FuncAnn_UniP_B2G_GO$GO.ID)) # 1329 unique GO terms from B2G + Uniprot
+length(unique(FuncAnn_UniP_B2G_GO$gene_id)) # 2172 unique gene ids from B2G + Uniprot
+
+# Find intersections and unique results for each method (B2G + Uniprot and IPS)
+## GO
+# Intersection between GO terms for B2G + Uniprot and IPS
+IF_GO <- intersect(IPS_GO$GO.ID, FuncAnn_UniP_B2G_GO$GO.ID)
+length(unique(IF_GO)) # 747 similar GO terms between B2G + Uniprot and IPS
+
+# Difference in GO terms for B2G + Uniprot and IPS - FuncAnn first
+FIunique_GO <- setdiff(FuncAnn_UniP_B2G_GO$GO.ID, IPS_GO$GO.ID)
+length(unique(FIunique_GO)) # 582 GO terms unique to B2G + Uniprot
+
+# Difference in GO terms for B2G + Uniprot and IPS - IPS
+IFunique_GO <- setdiff(IPS_GO$GO.ID, FuncAnn_UniP_B2G_GO$GO.ID)
+length(unique(IFunique_GO)) # 1198 GO terms unique to Uniprot
+
+## gene id
+# Intersection between GO terms for B2G + Uniprot and IPS
+IF_gene<- intersect(IPS_GO$gene_id, FuncAnn_UniP_B2G_GO$gene_id)
+length(unique(IF_gene)) # 1140 similar gene ids between B2G + Uniprot and IPS
+
+# Difference in gene ids for B2G + Uniprot and IPS - B2G + Uniprot
+FIunique_gene <- setdiff(FuncAnn_UniP_B2G_GO$gene_id, IPS_GO$gene_id)
+length(unique(FIunique_gene)) # 1032 gene ids unique to B2G + Uniprot
+
+# Difference in gene ids for B2G + Uniprot and IPS - IPS
+IFunique_gene <- setdiff(IPS_GO$gene_id, FuncAnn_UniP_B2G_GO$gene_id)
+length(unique(IFunique_gene)) # 11688 gene ids unique to IPS
+
+
+# Aggregate results 
+agg <- aggregate(IPS_GO$GO.ID, list(IPS_GO$gene_id), paste, collapse = ",")
+colnames(agg) <- c("gene_id", "GO.ID")
+
+full_annot <- merge(agg, FuncAnn_UniP_B2G, by = "gene_id", all.x = T)
+full_annot$GO.IDs <- paste(full_annot$GO.ID.x, full_annot$GO.ID.y, sep=';') #generate new column with concatenated GO IDs
+full_annot <- select(full_annot, -c(X, GO.ID.x, GO.ID.y))
+write.csv(full_annot, file = "~/Desktop/PutnamLab/Repositories/FunctionalAnnotation/FunctionalAnnotation/final_Annotations/acerv_fullAnnot.csv")
 
 
 
