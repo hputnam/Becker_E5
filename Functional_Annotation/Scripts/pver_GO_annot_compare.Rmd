@@ -1,0 +1,84 @@
+---
+title: "pver_GO_annot_compare"
+author: "daniellembecker"
+date: "11/5/2021"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load libraries 
+library("tidyverse")
+```
+
+
+## pvericornis
+```{r}
+# Load pver full annot results (diamond blast, swissprot, InterProScan; B2G)
+pver_annot <- read.csv("Functional_Annotation/Blast2GO/pver_blast2go_swissprot_interproscan_table.csv", header=T, na.strings=c("","NA", "---NA---", "no IPS match", "no GO terms", "n/a"))
+dim(pver_annot) # make sure the row number = the number of sequences that were queried
+```
+
+```{r}
+# Count #GO terms, and enzyme codes 
+
+length(na.omit(pver_annot$Swissprot_Hits)) # 19,536 sequences had hits against SwissProt database -- said 19,540 in our output file
+length(na.omit(pver_annot$SwissProt_GO_IDs)) # 13,211 sequences were assigned GO terms
+length(na.omit(pver_annot$SwissProt_Enzyme_Codes)) # 5,274 sequences were assigned enzyme codes 
+
+# Count # InterProScan hits and GO terms
+length(na.omit(pver_annot$InterPro.IDs)) # 25,679 sequences had hits against IPS database 
+length(na.omit(pver_annot$InterPro.GO.IDs)) # 15,946 sequences were assigned GO terms 
+```
+
+```{r}
+mean(na.omit(pver_annot$SwissProt_Num_GO)) # on average, ~12 GO terms assigned to a sequence for Swiss Prot
+
+```
+
+```{r}
+# dfs separating GO IDs so each GO ID has its own row 
+
+
+# SwissProt
+GO_swiss <- select(pver_annot, SeqName, SwissProt_GO_IDs)
+GO_swiss$SwissProt_GO_IDs <- gsub(",", ";", GO_swiss$SwissProt_GO_IDs)
+splitted <- strsplit(as.character(GO_swiss$SwissProt_GO_IDs), ";") #split into multiple GO ids
+GO_swiss <- data.frame(v1 = rep.int(GO_swiss$SeqName, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row
+colnames(GO_swiss) <- c("SeqName", "GO.ID")
+GO_swiss$GO.ID <- gsub("F:", "", GO_swiss$GO.ID)
+GO_swiss$GO.ID <- gsub("P:", "", GO_swiss$GO.ID)
+GO_swiss$GO.ID <- gsub("C:", "", GO_swiss$GO.ID)
+GO_swiss$GO.ID <- gsub(" ", "", GO_swiss$GO.ID)
+GO_swiss[GO_swiss == "NA"] <- NA
+GO_swiss <- na.omit(GO_swiss) # remove rows with NAs
+dim(GO_swiss) # 165053 total GO terms
+
+# InterProScan
+GO_IPS <- select(pver_annot, SeqName, InterPro.GO.IDs)
+GO_IPS$InterPro.GO.IDs <- gsub(",", ";", GO_IPS$InterPro.GO.IDs)
+splitted <- strsplit(as.character(GO_IPS$InterPro.GO.IDs), ";") #split into multiple GO ids
+GO_IPS <- data.frame(v1 = rep.int(GO_IPS$SeqName, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row
+colnames(GO_IPS) <- c("SeqName", "GO.ID")
+GO_IPS$GO.ID <- gsub("F:", "", GO_IPS$GO.ID)
+GO_IPS$GO.ID <- gsub("P:", "", GO_IPS$GO.ID)
+GO_IPS$GO.ID <- gsub("C:", "", GO_IPS$GO.ID)
+GO_IPS$GO.ID <- gsub(" ", "", GO_IPS$GO.ID)
+GO_IPS[GO_IPS == "NA"] <- NA
+GO_IPS <- na.omit(GO_IPS) # remove rows with NAs
+dim(GO_IPS) # 42,128 total GO terms 
+```
+
+```{r}
+# Join all GO dfs and remove duplicate rows 
+GO_all <- rbind(GO_swiss, GO_IPS)
+GO_all <- unique(GO_all)
+write.csv(GO_all, "Functional_Annotation/Final_Annotations/pver_GOterms_interprot_swissprot_20211105.csv")
+
+# Identify how many unique seqNames and GO IDs are in the df 
+length(unique(GO_all$SeqName)) # 19035 seqs have one or more GO terms 
+length(unique(GO_all$GO.ID)) # 16121 unique GO terms 
+```
+
