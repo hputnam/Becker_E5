@@ -366,6 +366,31 @@ write.csv(GO.enrichment.summary, 'RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.s
 
 
 
+## Modified biological processes heatmap
+```{r}
+
+GO.BP2 <- GO.BP %>%
+  group_by(slim_term) %>%
+  filter(n() > 4)
+
+BPplot2 <- GO.BP2 %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 10)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 20, face = "bold"),
+      strip.text.y.right = element_text(angle=90, size = 30, face = "bold"),
+      strip.text.x = element_text(size = 22, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 22), legend.title = element_text(size = 22), legend.text =     element_text(size = 22)) 
+
+
+
+ggsave("../../../Downloads/modified.heatmap.png", BPplot2, width = 25, height = 30, units = c("in"))
+```
+
 
 
 

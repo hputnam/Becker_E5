@@ -151,36 +151,35 @@ for(i in 1:length(sub_meth_table.5x$gene)){
   results.5x <- rbind(results.5x, df)
   
 }
-# An error will be generated here for contrasts. 
+ # An error will be generated here for contrasts. 
 #This potential for contrasts (interactions) is included in the case one wants to examine the role of position of CpG within a gene
 #Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
 #Continuing the analysis from results line will generate the results in the absence of the contrast (interaction).
 
 results.5x[is.na(results.5x)] <- 0
-results.5x$adj.pval.treatment <- p.adjust(results$pval.treatment, method='BH') #BH is a less conservative Benjamini & Hochberg (1995) correction in which p-values are multiplied by the number of comparisons
+results.5x$adj.pval.treatment <- p.adjust(results.5x$pval.treatment, method='BH') #BH is a less conservative Benjamini & Hochberg (1995) correction in which p-values are multiplied by the number of comparisons
 
 #results$adj.pval.position <- p.adjust(results$pval.position, method='BH') #uncomment if you want to include position of CpG within a gene
 #result $adj.pval.treatment_x_position <- p.adjust(results$pval.treatment_x_position, method='BH') #uncomment if you want to include position of CpG within a gene interaction with treatment
 
 # Identifying DMG with significant main effect 
-Amb.sig <-results
-Amb.sig <- Amb.sig[,c(1,3)]
-Amb.sig <- Amb.sig[order(Treatment.Amb.sig$adj.pval.Enriched),]
-Amb.sig <- Amb.sig[which(Treatment.Amb.sig$adj.pval.Enriched<0.05), ]
+DMG.sig.5x <-results.5x
+DMG.sig.5x <- DMG.sig.5x[order(DMG.sig.5x$adj.pval.treatment),]
+DMG.sig.5x <- DMG.sig.5x[which(DMG.sig.5x$adj.pval.treatment<0.05), ]
 
 # Annotation of DMG under between treatments 
-Treatment.Amb.annot <- merge(Treatment.Amb.sig , Annot, by="gene", all.x=TRUE)
-Treatment.Amb.annot <- Treatment.Amb.annot[order(Treatment.Amb.annot$adj.pval.TimePoint),]
-Treatment.Amb.annot <- Treatment.Amb.annot[!duplicated(Treatment.Amb.annot$gene),]
-write.table(Treatment.Amb.annot, 'Table_S1_Time_sig_annot.tsv', sep='\t', row.names=FALSE)
+DMG.sig.annot.5x <- left_join(DMG.sig.5x , Annot, by="gene")
+#DMG.sig.annot <- DMG.sig.annot[!duplicated(DMG.sig.annot$gene),]
+write.table(DMG.sig.annot.5x, 'RAnalysis/Output/WGBS/Treatment_sig_annot.5x.tsv', sep='\t', row.names=FALSE)
 
-#Sanity check plotting of top DMGs by treatment
-high <- MD.Treatment %>%	
-  filter(gene== Treatment.Amb.sig$gene[1])
-means <- aggregate(per.meth ~ Treatment, data=high, FUN=mean)
-ses <- aggregate(per.meth ~ Treatment, data=high, FUN=std.error)
+#Sanity check plotting of DMGs by treatment
+subdf <- MD.5x %>%	
+  filter(gene== DMG.sig.annot.5x$gene[4])
+means <- aggregate(per.meth ~ treatment, data=subdf, FUN=mean)
+ses <- aggregate(per.meth ~ treatment, data=subdf, FUN=std.error)
 means$ses <- ses$per.meth
-ggplot(means, aes(x=Treatment, y=per.meth)) +
+means$per.meth <- means$per.meth * 100
+ggplot(means, aes(x=treatment, y=per.meth)) +
   geom_bar(stat="identity", color="black",
              position=position_dodge()) +
     geom_errorbar(aes(ymin=per.meth-ses, ymax=per.meth+ses), width=.2,
@@ -188,10 +187,12 @@ ggplot(means, aes(x=Treatment, y=per.meth)) +
     xlab("Treatment") + #plot x axis label
     ylab("Percent Methylation") + #plot y axis label
     ylim(0,100)+ #set y limits to 0 and 100%
-    scale_fill_manual(values = c("blue", "purple"))+
     theme_bw()
 
+ggsave("RAnalysis/Output/WGBS/per.meth.5x.pdf")
+
 ```
+
 # Testing for Differentially Methylated Genes at 10X coverage
 ```{r}
 # Comparison of enriched vs control nutrient treatments
@@ -246,21 +247,22 @@ results.10x$adj.pval.treatment <- p.adjust(results.10x$pval.treatment, method='B
 #result $adj.pval.treatment_x_position <- p.adjust(results$pval.treatment_x_position, method='BH') #uncomment if you want to include position of CpG within a gene interaction with treatment
 
 # Identifying DMG with significant main effect 
-DMG.sig <-results.10x
-DMG.sig <- DMG.sig[order(DMG.sig$adj.pval.treatment),]
-DMG.sig <- DMG.sig[which(DMG.sig$adj.pval.treatment<0.05), ]
+DMG.sig.10x <-results.10x
+DMG.sig.10x <- DMG.sig.10x[order(DMG.sig.10x$adj.pval.treatment),]
+DMG.sig.10x <- DMG.sig.10x[which(DMG.sig.10x$adj.pval.treatment<0.05), ]
 
 # Annotation of DMG under between treatments 
-DMG.sig.annot <- left_join(DMG.sig , Annot, by="gene")
+DMG.sig.annot.10x <- left_join(DMG.sig.10x , Annot, by="gene")
 #DMG.sig.annot <- DMG.sig.annot[!duplicated(DMG.sig.annot$gene),]
-write.table(DMG.sig.annot, 'RAnalysis/Output/WGBS/Treatment_sig_annot.tsv', sep='\t', row.names=FALSE)
+write.table(DMG.sig.annot.10x, 'RAnalysis/Output/WGBS/Treatment_sig_annot.10x.tsv', sep='\t', row.names=FALSE)
 
 #Sanity check plotting of DMGs by treatment
 subdf <- MD.10x %>%	
-  filter(gene== DMG.sig.annot$gene[4])
+  filter(gene== DMG.sig.annot.10x$gene[4])
 means <- aggregate(per.meth ~ treatment, data=subdf, FUN=mean)
 ses <- aggregate(per.meth ~ treatment, data=subdf, FUN=std.error)
 means$ses <- ses$per.meth
+means$per.meth <- means$per.meth * 100
 ggplot(means, aes(x=treatment, y=per.meth)) +
   geom_bar(stat="identity", color="black",
              position=position_dodge()) +
@@ -271,7 +273,10 @@ ggplot(means, aes(x=treatment, y=per.meth)) +
     ylim(0,100)+ #set y limits to 0 and 100%
     theme_bw()
 
+ggsave("RAnalysis/Output/WGBS/per.meth.10x.pdf")
+
 ```
+
 ## 10x GO enrichment
 ```{r}
 # GO Enrichment Analysis of Treatment for 10x data
