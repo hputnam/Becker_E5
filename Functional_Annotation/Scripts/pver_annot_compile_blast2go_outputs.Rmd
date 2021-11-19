@@ -97,7 +97,7 @@ head(interprotscan)
 
 ## Merge Annotations - trembl, swissprot, and interprotscan
 ```{r}
-#Jill made two files due to the different GO terms, csv that had 
+#combining all blast2go and diamond results
 swiss_trem <- left_join(swissprot, trembl, by= c("gene_id"))
 swiss_trem_inter <- left_join(swiss_trem, interprotscan, by = c("gene_id"))
 swiss_trem_inter_diamond <- left_join(swiss_trem_inter, diamond, by= c("gene_id"))
