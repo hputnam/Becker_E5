@@ -209,6 +209,43 @@ dim(GO_blast) # 11,288 total GO terms
 ```
 
 ```{r}
+
+# Compare GO terms across databases
+# Make db identifier column
+
+GO_blast$database <- "blast"
+GO_swiss$database <- "swissprot"
+GO_IPS$database <- "IPS"
+GO_trembl$database <- "trembl"
+
+# Merge dfs by gene_id 
+# First, merge by blast and swissprot
+db_compare <- merge(GO_blast, GO_swiss, by = "gene_id", all = T)
+# Then merge w/ IPS
+db_compare <- merge(db_compare, GO_IPS, by = "gene_id", all = T)
+colnames(db_compare) <- c("gene_id", "GO.ID.blast", "database.blast", "GO.ID.swissprot", "database.swissprot", "GO.ID.IPS", "database.IPS")
+# Find intersections among dbs
+all <- na.omit(as.data.frame(intersect(intersect(db_compare$GO.ID.blast, db_compare$GO.ID.swissprot), db_compare$GO.ID.IPS)))
+colnames(all) <- "Blast_SP_IPS"
+db1 <- na.omit(as.data.frame(intersect(db_compare$GO.ID.blast, db_compare$GO.ID.swissprot)))
+colnames(db1) <- "Blast_SP"
+db2 <- na.omit(as.data.frame(intersect(db_compare$GO.ID.blast, db_compare$GO.ID.IPS)))
+colnames(db2) <- "Blast_IPS"
+db3 <- na.omit(as.data.frame(intersect(db_compare$GO.ID.IPS, db_compare$GO.ID.swissprot)))
+colnames(db3) <- "SP_IPS"
+dim(all) # 425 GO terms shared between blast, swissprot, and IPS
+dim(db1) # 618 GO terms shared between blast & swissprot
+dim(db2) # 429 GO terms shared between blast & IPS
+dim(db3) # 1588 GO terms shared between swissprot & IPS
+# Check unique values 
+length(unique(all$Blast_SP_IPS)) # 425
+length(unique(db1$Blast_SP)) # 618
+length(unique(db2$Blast_IPS)) # 429
+length(unique(db3$SP_IPS)) # 1588
+```
+
+
+```{r}
 # Join all GO dfs and remove duplicate rows 
 GO_all <- rbind(GO_swiss, GO_IPS, GO_blast, GO_trembl)
 GO_all <- unique(GO_all)
