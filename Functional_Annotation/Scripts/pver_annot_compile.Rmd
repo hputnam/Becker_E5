@@ -14,7 +14,7 @@ library("tidyverse")
 library("dplyr")
 ```
 
-#This script takes the results of functional annotation services and combines the results. Protein sequences from ReefGenomics (http://pver.reefgenomics.org/download/) were annotated using SWISSPROT BLASTP, TREMBL BLASTP, and DIAMONDSEARCH BLASTP. These hits were used as input into:
+#The first part of this script takes the results of functional annotation services and combines the results. Protein sequences from ReefGenomics (http://pver.reefgenomics.org/download/) were annotated using SWISSPROT BLASTP, TREMBL BLASTP, and DIAMONDSEARCH BLASTP. These hits were used as input into:
 
 #  - Blast2GO
 
@@ -145,6 +145,10 @@ mean(na.omit(pver_annot$BLAST_.GO)) # on average, ~3 GO terms assigned to a sequ
 
 ```
 
+############################################################################################
+
+#The second part of this script takes the combined functional annotation results and organizes a list of GO terms per each gene model.
+
 ```{r}
 # make individual dfs separating GO IDs so each GO ID has its own row for each software
 
@@ -212,7 +216,6 @@ dim(GO_blast) # 11,288 total GO terms
 
 # Compare GO terms across databases
 # Make db identifier column
-
 GO_blast$database <- "blast"
 GO_swiss$database <- "swissprot"
 GO_IPS$database <- "IPS"
@@ -221,27 +224,49 @@ GO_trembl$database <- "trembl"
 # Merge dfs by gene_id 
 # First, merge by blast and swissprot
 db_compare <- merge(GO_blast, GO_swiss, by = "gene_id", all = T)
+
 # Then merge w/ IPS
 db_compare <- merge(db_compare, GO_IPS, by = "gene_id", all = T)
 colnames(db_compare) <- c("gene_id", "GO.ID.blast", "database.blast", "GO.ID.swissprot", "database.swissprot", "GO.ID.IPS", "database.IPS")
+
+# Then merge w/ trembl
+db_compare <- merge(db_compare, GO_trembl, by = "gene_id", all = T)
+colnames(db_compare) <- c("gene_id", "GO.ID.blast", "database.blast", "GO.ID.swissprot", "database.swissprot", "GO.ID.IPS", "database.IPS", "GO.ID.trembl", "database.trembl")
+
 # Find intersections among dbs
-all <- na.omit(as.data.frame(intersect(intersect(db_compare$GO.ID.blast, db_compare$GO.ID.swissprot), db_compare$GO.ID.IPS)))
-colnames(all) <- "Blast_SP_IPS"
+all <- na.omit(as.data.frame(intersect(intersect(intersect(db_compare$GO.ID.blast, db_compare$GO.ID.swissprot), db_compare$GO.ID.IPS), db_compare$GO.ID.trembl)))
+colnames(all) <- "Blast_SP_IPS_blast_trembl"
 db1 <- na.omit(as.data.frame(intersect(db_compare$GO.ID.blast, db_compare$GO.ID.swissprot)))
 colnames(db1) <- "Blast_SP"
 db2 <- na.omit(as.data.frame(intersect(db_compare$GO.ID.blast, db_compare$GO.ID.IPS)))
 colnames(db2) <- "Blast_IPS"
 db3 <- na.omit(as.data.frame(intersect(db_compare$GO.ID.IPS, db_compare$GO.ID.swissprot)))
 colnames(db3) <- "SP_IPS"
-dim(all) # 425 GO terms shared between blast, swissprot, and IPS
-dim(db1) # 618 GO terms shared between blast & swissprot
-dim(db2) # 429 GO terms shared between blast & IPS
-dim(db3) # 1588 GO terms shared between swissprot & IPS
+db4 <- na.omit(as.data.frame(intersect(db_compare$GO.ID.swissprot, db_compare$GO.ID.trembl)))
+colnames(db4) <- "SP_trembl"
+db5 <- na.omit(as.data.frame(intersect(db_compare$GO.ID.blast, db_compare$GO.ID.trembl)))
+colnames(db5) <- "blast_trembl"
+db6 <- na.omit(as.data.frame(intersect(db_compare$GO.ID.IPS, db_compare$GO.ID.trembl)))
+colnames(db6) <- "IPS_trembl"
+
+
+dim(all) # 520 GO terms shared between blast, swissprot, IPS, and trembl
+dim(db1) # 1185 GO terms shared between blast & swissprot
+dim(db2) # 1056 GO terms shared between blast & IPS
+dim(db3) # 2805 GO terms shared between swissprot & IPS
+dim(db4) # 1100 GO terms shared between swissprot & trembl
+dim(db5) # 593 GO terms shared between blast & trembl
+dim(db6) # 794 GO terms shared between IPS & trembl
+
 # Check unique values 
-length(unique(all$Blast_SP_IPS)) # 425
+length(unique(all$Blast_SP_IPS_blast_trembl)) # 520
 length(unique(db1$Blast_SP)) # 618
 length(unique(db2$Blast_IPS)) # 429
 length(unique(db3$SP_IPS)) # 1588
+length(unique(db4$SP_trembl)) # 1100
+length(unique(db5$blast_trembl)) # 593
+length(unique(db6$IPS_trembl)) # 794
+
 ```
 
 
