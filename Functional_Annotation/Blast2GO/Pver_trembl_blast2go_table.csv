@@ -1,4 +1,4 @@
-,Tags,SeqName,Description,Length,#Hits,e-Value,sim mean,#GO,GO IDs,GO Names,Enzyme Codes,Enzyme Names,InterPro IDs,InterPro GO IDs,InterPro GO Names
+,Tags,SeqName,TREMBL_Description,TREMBL_Length,TREMBL_#Hits,TREMBL_e-Value,TREMBL_sim mean,TREMBL_#GO,TREMBL_GO IDs,TREMBL_GO Names,TREMBL_Enzyme Codes,TREMBL_Enzyme Names,InterPro IDs,InterPro GO IDs,InterPro GO Names
 TRUE,"[BLASTED, MAPPED, ANNOTATED]",Pver_g6.t1,A0A3M6V513_POCDAUncharacterized protein OS=Pocillopora damicornis OX=46731 GN=pdam_00017406 PE=4 SV=1,205,5,6.51E-125,84.96,1,F:GO:0005509,F:calcium ion binding,,,,,
 TRUE,[BLASTED],Pver_g15.t1,A7S2W1_NEMVEPredicted protein OS=Nematostella vectensis OX=45351 GN=v1g205942 PE=4 SV=1,362,5,0,66.95,,,,,,,,
 TRUE,"[BLASTED, MAPPED]",Pver_g16.t1,A0A3M6V0T1_POCDAFibrinogen C-terminal domain-containing protein OS=Pocillopora damicornis OX=46731 GN=pdam_00003652 PE=4 SV=1,415,5,0,82.87,1,F:GO:0005201,F:extracellular matrix structural constituent,,,,,

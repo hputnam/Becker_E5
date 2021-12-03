@@ -1,4 +1,4 @@
-﻿,Tags,SeqName,Description,Length,#Hits,e-Value,sim mean,#GO,GO IDs,GO Names,Enzyme Codes,Enzyme Names,InterPro IDs,InterPro GO IDs,InterPro GO Names
+﻿,Tags,SeqName,BLAST_Description,BLAST_Length,BLAST_#Hits,BLAST_e-Value,BLAST_sim mean,BLAST_#GO,BLAST_GO IDs,BLAST_GO Names,BLAST_Enzyme Codes,BLAST_Enzyme Names,InterPro IDs,InterPro GO IDs,InterPro GO Names
 TRUE,"[BLASTED, MAPPED, ANNOTATED]",Pver_g1.t2,RMX60962.1,317,1,7.00E-154,99.23,1,C:GO:0016021,C:integral component of membrane,,,,,
 TRUE,[BLASTED],Pver_g2.t1,XP_027059480.1,259,1,8.80E-155,99.61,,,,,,,,
 TRUE,[BLASTED],Pver_g3.t1,XP_027059480.1,253,1,3.90E-147,99.2,,,,,,,,
