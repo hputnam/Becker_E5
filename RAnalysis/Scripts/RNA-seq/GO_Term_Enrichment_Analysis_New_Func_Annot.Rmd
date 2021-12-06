@@ -49,6 +49,26 @@ length(unique(GFF3$V9)) # 27439
 colnames(GFF3) <- c("prot", "Predict", "id", "start","stop", "pos1", "pos2","pos3", "gene_id") #name columns
 GFF3$length <- GFF3$stop - GFF3$start #calculate gene length
 
+#Rename gene_id column to match DESeq2 results, currently has too many characters and separations
+GFF3$gene_id <-  gsub(";.*","",GFF3$gene_id) #remove extra characters after the first ;
+#There also appears to be the presence of the characters ID= in each row
+GFF3$gene_id <- gsub("ID=","",GFF3$gene_id) #remove ID=
+#There is also an extra "-g#" that can be removed
+GFF3$gene_id <-  gsub("-.*","",GFF3$gene_id) #remove the extra g number after the dash
+
+#remove the extra "gene" to match the "Pver_gene_g#" format
+GFF3$gene_id <-  gsub("Pver_gene_novel_gene_","Pver_novel_gene_",GFF3$gene_id)
+GFF3$gene_id <-  gsub("Pver_gene_split_gene_g","Pver_split_gene_g",GFF3$gene_id)
+
+#remove the _split_ from gene_id name
+GFF3$gene_id <-  gsub("Pver_split_gene_g","Pver_gene_g",GFF3$gene_id)
+
+#remove extra characters to match DESeq2
+GFF3$gene_id <-  gsub("_gene_g","_g",GFF3$gene_id) #sub gene_g with _g
+GFF3$gene_id <-  gsub("_gene_","_",GFF3$gene_id) #remove extra _
+GFF3$gene_id <-  gsub("_split_","_",GFF3$gene_id) #remove split naming in gene id
+
+
 ```
 
 
@@ -65,6 +85,9 @@ DEG.res <- read.csv("RAnalysis/Output/RNA-seq/DEG/DEGSeq2.sig.results.csv")[,-1]
 nrow(DEG.res)
 DEG.res$gene_id <-  gsub("_gene","",DEG.res$gene_id) #remove extra characters
 
+colnames(DEG.res)[7] <-"gene_id" # make colnames a true column called gene_id
+head(DEG.res)
+
 ```
 
 # Set ID and gene length vectors, and make a binary matrix indicating which genes are differentially expressed. These are used as input to nullp, which for calculates a Probability Weighting Function for each set of DEGs.
@@ -72,18 +95,24 @@ DEG.res$gene_id <-  gsub("_gene","",DEG.res$gene_id) #remove extra characters
 #GOseq requires a vector of all genes, all differentially expressed genes, and gene lengths
 ```{r}
 #Make ID and length vectors
-DEG.vector <- DEG.res$gene_id #the enrichment test list
-ALL.vector <- GFF3$gene_id #the full gene list
-ID.vector <- GFF3$gene_id #id obtained from gff3 file
-length.vector <- GFF3$length #length obtained from gff3 file
 
-gene.vector=as.integer(ALL.vector%in%DEG.vector) #Construct new vector with 1 for DEG and 0 for others
-names(gene.vector)=ALL.vector #set names
+DEG <- GFF3[GFF3$gene_id %in% DEG.res$gene_id, ]
+dim(DEG) # 213 x 10
+DEG_names <- as.vector(DEG$gene_id)
+gene_vector <- as.integer(GFF3$gene_id%in%DEG_names)
+names(gene_vector) <- GFF3$gene_id
+
+# Make ID vector 
+IDvector <- GFF3$gene_id
+
+# Make length vector
+lengthVector <- GFF3$length
+
 ```
 
 #Calculate Probability Weighting Function
 ```{r}
-pwf<-nullp(gene.vector, ID.vector, bias.data=length.vector) #weight vector by length of gene
+pwf<-nullp(gene_vector, ID.vector, bias.data=lengthVector) #weight vector by length of gene
 ```
 
 
@@ -101,6 +130,9 @@ annot_GO$GO.ID <- replace_na(annot_GO$GO.ID, "unknown")
 annot_GO$GO.ID <- as.factor(annot_GO$GO.ID)
 annot_GO$gene_id <- as.factor(annot_GO$gene_id)
 annot_GO <- unique(annot_GO)
+annot_GO$gene_id <-  gsub("\\..*","",annot_GO$gene_id) #remove extra characters after the first .
+
+
 dim(annot_GO) # 282963 x 2
 length(unique(annot_GO$GO.ID)) # 17023 unique GO.IDs
 head(annot_GO)
@@ -111,14 +143,14 @@ head(annot_GO)
 ## Find enriched GO terms, "selection-unbiased testing for category enrichment amongst differentially expressed (DE) genes for RNA-seq data"
 ```{r}
 ### Perform GOseq
+## Perform GOseq
 # Find enriched GO terms, "selection-unbiased testing for category enrichment amongst differentially expressed (DE) genes for RNA-seq data"
-GO.wall<-goseq(pwf, ID.vector, gene2cat=annot_GO, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
-
+# should I include this: test.cats=c("GO:CC", "GO:BP", "GO:MF") ?
+GO.wall<-goseq(pwf, ID_vector, gene2cat=annot_GO, method="Wallenius", use_genes_without_cat=TRUE)
 # Using manually entered categories.
 # Calculating the p-values...
 # 'select()' returned 1:1 mapping between keys and columns
-
-write.csv(GO.wall, file = "Output/GOSeq/acerv/pver_GO_ALL_20211203.csv")
+write.csv(GO.wall, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_sub_GO_ALL.csv")
 
 # Check GO.wall df
 class(GO.wall)
@@ -142,10 +174,10 @@ CC <- subset(enriched.GO.05, ontology=="CC")
 CC <- CC[order(-CC$numDEInCat),] 
 BP <- subset(enriched.GO.05, ontology=="BP")
 BP <- BP[order(-BP$numDEInCat),]
-write.csv(MF, file = "Output/GOSeq/acerv/acerv_sub_MF_Sig_Enriched_GO.05_20211104.csv")
-write.csv(CC, file = "Output/GOSeq/acerv/acerv_CC_Sig_Enriched_GO.05_20211104.csv") 
-write.csv(BP, file = "Output/GOSeq/acerv/acerv_sub_BP_Sig_Enriched_GO.05_20211104.csv")
-write.csv(enriched.GO.05, file = "Output/GOSeq/acerv/acerv_sub_Sig_Enriched_GO.05_ALL_20211104.csv")
+write.csv(MF, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_sub_MF_Sig_Enriched_GO.05.csv")
+write.csv(CC, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_sub_CC_Sig_Enriched_GO.05.csv") 
+write.csv(BP, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_sub_BP_Sig_Enriched_GO.05.csv")
+write.csv(enriched.GO.05, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_sub_Sig_Enriched_GO.05_ALL.csv")
 ```
 
 ## Merge DEG gene ids and GO info
@@ -161,16 +193,16 @@ merge_again <- merge(merge, DEG, by = "gene_id") # contains GO info and gene cou
 ## Add treatment info to df and save 
 ```{r}
 # Read in DEG treatment info
-acerv_treatment <- read.csv("Output/DESeq2/acerv/acerv_sub_DEGs.all_treatment_20210219.csv", header = TRUE)
-acerv_treatment <- select(acerv_treatment, c("baseMean", "log2FoldChange", "lfcSE", "stat", "pvalue", "padj", "Treatment_Compare", "gene_id"))
-acerv_treatment$gene_id <- gsub("TU", "model", acerv_treatment$gene_id)
+pver_treatment <- read.csv("Output/DESeq2/pver/pver_sub_DEGs.all_treatment_20210219.csv", header = TRUE)
+pver_treatment <- select(pver_treatment, c("baseMean", "log2FoldChange", "lfcSE", "stat", "pvalue", "padj", "Treatment_Compare", "gene_id"))
+pver_treatment$gene_id <- gsub("TU", "model", pver_treatment$gene_id)
 # Merge treatment info with GO info 
-merge_all <- merge(merge_again, acerv_treatment, by = "gene_id")
+merge_all <- merge(merge_again, pver_treatment, by = "gene_id")
 # yay now I have a df with all the info - GO info, gene ids, DESeq2 stats, gene counts
 dim(merge_all) # 994 x 29
 length(unique(merge_all$gene_id)) # 83 unique genes that are differentially expressed and have GO term info
 length(unique(merge_all$category)) # 366 unique GO terms 
-write.csv(merge_all, file = "Output/GOSeq/acerv/acerv_sub_ByTreatment_GO.terms_20211104.csv")
+write.csv(merge_all, file = "Output/GOSeq/pver/pver_sub_ByTreatment_GO.terms_20211104.csv")
 # Subset enriched GO terms by ontology (BP, CC, MF) and save as csv. 
 MF_ByTreatment <- subset(merge_all, ontology=="MF")
 MF_ByTreatment <- MF_ByTreatment[order(-MF_ByTreatment$numDEInCat),]
@@ -178,9 +210,9 @@ CC_ByTreatment <- subset(merge_all, ontology=="CC")
 CC_ByTreatment <- CC_ByTreatment[order(-CC_ByTreatment$numDEInCat),] # no sig enriched under CC
 BP_ByTreatment <- subset(merge_all, ontology=="BP")
 BP_ByTreatment <- BP_ByTreatment[order(-BP$numDEInCat),]
-write.csv(MF_ByTreatment, file = "Output/GOSeq/acerv/acerv_sub_MF_Sig_Enriched_ByTreatment_GO.05_20211104.csv")
-write.csv(CC_ByTreatment, file = "Output/GOSeq/acerv/acerv_sub_CC_Sig_Enriched_ByTreatment_GO.05_20211104.csv")
-write.csv(BP_ByTreatment, file = "Output/GOSeq/acerv/acerv_sub_BP_Sig_Enriched_ByTreatment_GO.05_20211104.csv")
+write.csv(MF_ByTreatment, file = "Output/GOSeq/pver/pver_sub_MF_Sig_Enriched_ByTreatment_GO.05_20211104.csv")
+write.csv(CC_ByTreatment, file = "Output/GOSeq/pver/pver_sub_CC_Sig_Enriched_ByTreatment_GO.05_20211104.csv")
+write.csv(BP_ByTreatment, file = "Output/GOSeq/pver/pver_sub_BP_Sig_Enriched_ByTreatment_GO.05_20211104.csv")
 ```
 
 ## Plot terms by ontology numbers 
@@ -255,7 +287,7 @@ BPplot <- BP %>% mutate(term = fct_reorder(term, numDEInCat)) %>%
 BPplot # lots of BP, hard to see. Could subset df and plot by BP dfs
 # Save MF, CC, and BP plot in grid layout
 GOplot <- grid.arrange(MFplot, BPplot, ncol=3, clip="off")
-ggsave("Output/Figs/acerv/acerv_sub_GOplot_05_FullAnnot_20211104.pdf", GOplot, width = 21, height = 21, units = c("in"))
+ggsave("Output/Figs/pver/pver_sub_GOplot_05_FullAnnot_20211104.pdf", GOplot, width = 21, height = 21, units = c("in"))
 ```
 
 # Combining MF, CC, and BP into one plot and order by pvalue
@@ -282,7 +314,7 @@ GOplot2 <- enriched.GO.05 %>% drop_na(ontology) %>% mutate(term = fct_reorder(te
         axis.line = element_line(colour = "black"), #Set axes color
         plot.background=element_blank()) #Set the plot background #set title attributes
 GOplot2
-ggsave("Output/Figs/acerv/acerv_sub_GOplot2_05_FullAnnot_20211104.pdf", GOplot2, width = 28, height = 28, units = c("in"))
+ggsave("Output/Figs/pver/pver_sub_GOplot2_05_FullAnnot_20211104.pdf", GOplot2, width = 28, height = 28, units = c("in"))
 # Combining into one plot and order by pvalue 
 GOplot_pvalue <- enriched.GO.05 %>% drop_na(ontology) %>% mutate(term = fct_reorder(term, over_represented_pvalue)) %>%
   mutate(term = fct_reorder(term, ontology)) %>%
@@ -306,7 +338,7 @@ GOplot_pvalue <- enriched.GO.05 %>% drop_na(ontology) %>% mutate(term = fct_reor
         axis.line = element_line(colour = "black"), #Set axes color
         plot.background=element_blank()) #Set the plot background #set title attributes
 GOplot_pvalue
-ggsave("Output/Figs/acerv/acerv_sub_GOplot_pvalue_05_FullAnnot_20211104.pdf", GOplot_pvalue, width = 28, height = 28, units = c("in"))
+ggsave("Output/Figs/pver/pver_sub_GOplot_pvalue_05_FullAnnot_20211104.pdf", GOplot_pvalue, width = 28, height = 28, units = c("in"))
 ```
 
 
