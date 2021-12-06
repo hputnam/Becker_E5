@@ -1,0 +1,398 @@
+---
+title: "GO_Term_Enrichment_Analysis"
+author: "daniellembecker"
+edited by: "daniellembecker"
+date: "9/20/2021"
+output: html_document
+---
+
+# Molecular Underpinnings Chronic Nutrient Enrichment Project
+
+## RNAseq Gene Ontology (GO) Enrichment Analysis 
+## Previous steps include RNAseq workflow in Bioinformatics>RNAseq>RNAseq workflow and Differential Gene Expression statistical analysis in RAnalysis>Scripts>RNAseq_Differential_Gene_Expression to make DEG statistical data sheet
+
+
+Load necessary libraries
+```{r, echo=FALSE}
+library(goseq)
+library(tidyverse)
+library(GSEABase)
+library(data.table)
+library(ggplot2)
+library(cowplot)
+library(patchwork)
+library(ape)
+library(stringr)
+library(dplyr)
+```
+
+# Import the data files 
+```{r, echo=FALSE}
+#load gene functional annotation file (found in supplmental data from Buitrago-Lopez et al. 2020 paper https://academic.oup.com/gbe/article/12/10/1911/5898631#209703315)
+Annot <- read_tsv( "RAnalysis/Genome/Pver_gene_annotation_file.txt", col_names = TRUE) #biological annotation information
+colnames(Annot)[2] <- "gene_id" #set column name for consistency across files
+#structural annotation file needed to calculate the length by stop position - start position 
+#bring in the gene specific gff3 and pull out gene id 
+GFF3 <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0.gene.gff3", header = FALSE, sep="", skip = 1)
+length(unique(GFF3$V9)) # 27439
+colnames(GFF3) <- c("prot", "Predict", "id", "start","stop", "pos1", "pos2","pos3", "gene_id") #name columns
+GFF3$length <- GFF3$stop - GFF3$start #calculate gene length
+```
+
+```{r}
+#testing if there are inconsistencies in gene_ID formats across GO and GFF3 files
+test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
+nrow(test.GFF.GO)
+#>27,439 genes for gene_id means naming is off between files
+
+#conclusion: we have more genes than the expected 27,439, a number of gene ID names are present in the GO annotation file in annot that do not exist the gene names of the GFF3
+
+#this section was used to test the KOfamscan resulting file with GFF3 and the functional annotation file
+#test.GFF.KO <- full_join(GFF3, Kegg.name, by = "gene_id")
+#nrow(test.GFF.KO)
+##conclusion: we have more genes than the expected 27,439, a number of gene ID names are present in the KEGG annotation file in annot that do not exist the gene names of the GFF3
+
+#test.GO.KO <- full_join(Annot, Kegg.name, by = "gene_id")
+#nrow(test.GO.KO)
+#conclusion: 
+# if we use the query column as gene_id we have the expected 27,439
+# if we use the gene column as gene_id we have a duplicated 27,439
+
+#conclusion: The three files have the right number of gene_id rows = 27439.  
+#When you join the functional annotation with the GFF3 they duplicate the number to = 54878. This indicates there is a naming inconsistency in all gene_id's. 
+
+#check to see if there is a way to convert the GFF3 names to the functional annotation names
+#Let's start with the canonical GFF3 file. This looks like it has duplicated names, so we can remove everything after the first ;
+GFF3$gene_id <-  gsub(";.*","",GFF3$gene_id) #remove extra characters after the first ;
+#There also appears to be the presence of the characters ID= in each row
+GFF3$gene_id <- gsub("ID=","",GFF3$gene_id) #remove ID=
+#There is also an extra "-g#" that can be removed
+GFF3$gene_id <-  gsub("-.*","",GFF3$gene_id) #remove the extra g number after the dash
+
+#test after GFF3 changes
+test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
+nrow(test.GFF.GO)
+#still >27439, 28,153
+
+#format of the gene_id in the GFF3 now appears to be Pver_gene_g1
+#Let's count all of the occurrences of "Pver_gene_g" to see if this equals 27439
+present <- GFF3 %>%
+  filter(str_detect(gene_id, "Pver_gene_g"))
+nrow(present)
+#This is less than 27439, so we have other characters in the pattern as well
+
+#Let's count all of the rows that do not have occurrences of "Pver_gene_g" 
+absent <- GFF3 %>%
+  filter(!str_detect(gene_id, "Pver_gene_g"))
+nrow(absent)
+
+
+#examine patterns of the rows not containing "Pver_gene_g" 
+head(absent)
+#found a pattern of "Pver_gene_split_gene_g408-g18"
+tail(absent)
+#found a pattern of "Pver_gene_novel_gene_742_5de57afd"
+
+#we now have at least 3 formats in the GFF#
+#Pver_gene_g#
+#Pver_gene_novel_gene_#_5de57afd
+#Pver_gene_split_gene_g1652-g72
+
+#remove the extra "gene" to match the "Pver_gene_g#" format
+GFF3$gene_id <-  gsub("Pver_gene_novel_gene_","Pver_novel_gene_",GFF3$gene_id)
+GFF3$gene_id <-  gsub("Pver_gene_split_gene_g","Pver_split_gene_g",GFF3$gene_id)
+
+#test after GFF3 changes
+#Let's count all of the occurrences of "Pver_gene_g" to see if this equals 27439
+present <- GFF3 %>%
+  filter(str_detect(gene_id, "Pver_gene_g"))
+nrow(present)
+#This is less than 27439, so we have other characters in the pattern as well
+
+#Let's count all of the rows that do not have occurrences of "Pver_gene_g" 
+absent <- GFF3 %>%
+  filter(!str_detect(gene_id, "Pver_gene_g"))
+nrow(absent)
+
+#test after finding these errors
+test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
+nrow(test.GFF.GO)
+#still >27439
+
+#Annot appears to have an extra Pver_g1.t2 and are missing the word gene
+Annot$gene_id <-  gsub("\\..*","", Annot$gene_id)
+#Annot and KO appear to have Pver_novel_model_339_5de57afd with model instead of gene
+Annot$gene_id <-  gsub("Pver_novel_model_","Pver_novel_gene_",Annot$gene_id)
+#g# is duplicated after dash 
+Annot$gene_id <-  gsub("-.*","",Annot$gene_id) #remove the extra g number after the dash
+
+#test after GFF3 and Annot changes
+test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
+nrow(test.GFF.GO)
+#84 genes not joining due to name issues
+
+#Annot format = Pver_gene_g408 while GFF3 format = Pver_split_gene_g408, so these rows are not joining
+#remove the _split_ from gene_id name
+GFF3$gene_id <-  gsub("Pver_split_gene_g","Pver_gene_g",GFF3$gene_id)
+
+#test after GFF3 and Annot changes
+test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
+nrow(test.GFF.GO)
+#42 genes not joining due to name issues
+
+#Annot format = Pver_gene_g162_gene_g164 while GFF3 format = Pver_gene_g162_g164, so these rows are not joining
+GFF3$gene_id <-  gsub("_gene_g","_g",GFF3$gene_id) #sub gene_g with _g
+GFF3$gene_id <-  gsub("_gene_","_",GFF3$gene_id) #remove extra _
+GFF3$gene_id <-  gsub("_split_","_",GFF3$gene_id) #remove split naming in gene id
+
+#test after GFF3 and Annot changes
+test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
+nrow(test.GFF.GO)
+#still >27,439
+
+#need to apply the same changes from GFF3 to the Annot file
+Annot$gene_id <-  gsub("_gene_g","_g",Annot$gene_id) #sub gene_g with _g
+Annot$gene_id <-  gsub("_gene_","_",Annot$gene_id) #remove extra _
+Annot$gene_id <-  gsub("_split_","_",Annot$gene_id) #remove split naming in gene id
+
+#test after GFF3 and Annot changes
+test.GFF.GO <- full_join(GFF3, Annot, by = "gene_id")
+nrow(test.GFF.GO)
+#yes! when combined, both files have 27,439 total when joined
+
+write.csv(GFF3, 'RAnalysis/Output/RNA-seq/GOSeq/GFF3.name.edit.csv') 
+write.csv(Annot, 'RAnalysis/Output/RNA-seq/GOSeq/Annot.name.edit.csv') 
+
+```
+
+# Identifying treatment and DEGs
+```{r}
+#treatment information
+treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
+str(treatmentinfo)
+head(treatmentinfo)
+
+#DEG significant results
+DEG.res <- read.csv("RAnalysis/Output/RNA-seq/DEG/DEGSeq2.sig.results.csv")[,-1]
+nrow(DEG.res)
+DEG.res$gene_id <-  gsub("_gene","",DEG.res$gene_id) #remove extra characters
+
+```
+
+# Set ID and gene length vectors, and make a binary matrix indicating which genes are differentially expressed. These are used as input to nullp, which for calculates a Probability Weighting Function for each set of DEGs.
+```{r}
+#Make ID and length vectors
+
+DEG.vector <- DEG.res$gene_id #the enrichment test list
+ALL.vector <- GFF3$gene_id #the full gene list
+ID.vector <- GFF3$gene_id #id obtained from gff3 file
+length.vector <- GFF3$length #length obtained from gff3 file
+
+gene.vector=as.integer(ALL.vector%in%DEG.vector) #Construct new vector with 1 for DEG and 0 for others
+names(gene.vector)=ALL.vector #set names
+
+#Calculate Probability Weighting Function
+pwf<-nullp(gene.vector, ID.vector, bias.data=length.vector) #weight vector by length of gene
+```
+
+# Prepare GO term dataframe
+```{r}
+# identifying GO term data for GO enrichment analysis
+GO.data <- Annot[,c(2,13)] #select gene names and GO IDs
+splitted <- strsplit(as.character(GO.data$Gene_ontology_IDs), "; ") #split into multiple GO IDs
+Gene.GO.IDs <- data.frame(v1 = rep.int(GO.data$gene_id, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row 
+colnames(Gene.GO.IDs) <- c("gene_id", "GO.IDs") #rename columns
+#Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
+Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
+Gene.GO.IDs$gene_id <-  gsub("_gene","",Gene.GO.IDs$gene_id) #remove extra characters
+length(unique(Gene.GO.IDs$GO.ID)) # 15,433 unique GO.IDs
+```
+
+
+```{r}
+#Find enriched GO terms, 
+GO.wall<-goseq(pwf, ID.vector, gene2cat=Gene.GO.IDs, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
+
+#Find only enriched GO terms that are statistically significant at cutoff
+GO.sig.trt <- GO.wall %>%
+  filter(over_represented_pvalue <0.05) %>%
+  arrange(., ontology)
+write.csv(GO.sig.trt , file = "RAnalysis/Output/RNA-seq/GOSeq/RNASeq.GO.sig.trt.csv")
+
+nrow(GO.sig.trt)
+nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms
+nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms 
+nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms
+```
+
+## Find GOslim terms
+
+# Run GOslim to get broader categories
+```{r}
+#load in generic GO database, has all of the upperlevel categories for GO terms. Ex: regulation of cell division would be under cellular regulation
+slim <- getOBOCollection("http://current.geneontology.org/ontology/subsets/goslim_generic.obo") #get GO database
+
+## filtering all of BP (do MF and CC seperately)
+BP_GO <- GO.sig.trt %>%
+  filter(ontology=="BP")
+BPGO_collection <- GOCollection(BP_GO$category) #Make library of query terms
+slims_bp <- data.frame(goSlim(BPGO_collection, slim, "BP")) #Find common parent terms to slim down our list
+slims_bp$category <- row.names(slims_bp) #save rownames as category
+
+## filtering all of MF
+MF_GO <- GO.sig.trt %>%
+  filter(ontology=="MF")
+MFGO_collection <- GOCollection(MF_GO$category) #Make library of query terms
+slims_mf <- data.frame(goSlim(MFGO_collection, slim, "MF")) #Find common parent terms to slim down our list
+slims_mf$category <- row.names(slims_mf) #save rownames as category
+
+## filtering all of CC
+CC_GO <- GO.sig.trt %>%
+  filter(ontology=="CC")
+CCGO_collection <- GOCollection(CC_GO$category) #Make library of query terms
+slims_cc <- data.frame(goSlim(CCGO_collection, slim, "CC")) #Find common parent terms to slim down our list
+slims_cc$category <- row.names(slims_cc) #save rownames as category
+```
+
+# Get mapped terms, using functions from Sam White's Biostars [post](https://support.bioconductor.org/p/128407/#128409).
+```{r}
+#custom function from Sam White's, gets mapped ids for all of your query terms 
+#Write function mappedIds to get the query terms that mapped to the slim categories
+mappedIds <-
+  function(df, collection, OFFSPRING) #the command to run requires a dataframe of slim terms, like slims_MF above, your list of query terms, and the offspring from the GOCollection by goSlim
+  {
+    map <- as.list(OFFSPRING[rownames(df)]) # Subset GOcollection offspring by the rownames of your dataframe
+    mapped <- lapply(map, intersect, ids(collection)) #Find the terms that intersect between the subset made above of your query terms and the GOids from the GO collection
+    df[["go_terms"]] <- vapply(unname(mapped), paste, collapse = ";", character(1L)) #Add column "go_terms" with matching terms 
+    df #show resulting dataframe
+  }
+#Run function for MF and BP terms
+BPslim <- mappedIds(slims_bp, BPGO_collection, GOBPOFFSPRING)
+MFslim <- mappedIds(slims_mf, MFGO_collection, GOMFOFFSPRING)
+CCslim <- mappedIds(slims_cc, CCGO_collection, GOCCOFFSPRING)
+```
+
+# Remove duplicate matches, keeping the broader umbrella term
+```{r}
+#filtering out duplicates
+
+#BP
+BPslim <- filter(BPslim, Count>0 & Term!="biological_process") #filter out empty slims and term "biological process"
+BPsplitted <- strsplit(as.character(BPslim$go_terms), ";") #split into multiple GO ids
+BPslimX <- data.frame(Term = rep.int(BPslim$Term, sapply(BPsplitted, length)), go_term = unlist(BPsplitted)) #list all
+BPslimX <- merge(BPslimX, BPslim[,c(1,3:4)], by="Term") #Add back counts, term, and category info
+BPslimX <- unique(setDT(BPslimX)[order(go_term, -Count)], by = "go_term") #remove duplicate offspring terms, keeping only those that appear in the larger umbrella term (larger Count number)
+BPslim <- data.frame(slim_term=BPslimX$Term, slim_cat=BPslimX$category, category=BPslimX$go_term) #rename columns
+head(BPslim)
+
+#MF
+MFslim <- filter(MFslim, Count>0 & Term!="molecular_function") #filter out empty slims and term "molecular function"
+MFsplitted <- strsplit(as.character(MFslim$go_terms), ";") #split into multiple GO ids
+MFslimX <- data.frame(Term = rep.int(MFslim$Term, sapply(MFsplitted, length)), go_term = unlist(MFsplitted)) #list all
+MFslimX <- merge(MFslimX, MFslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
+MFslimX <- unique(setDT(MFslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
+MFslim <- data.frame(slim_term=MFslimX$Term, slim_cat=MFslimX$category, category=MFslimX$go_term) #rename columns
+head(MFslim)
+
+#CC
+CCslim <- filter(CCslim, Count>0 & Term!="cellular_component") #filter out empty slims and term "molecular function"
+CCsplitted <- strsplit(as.character(CCslim$go_terms), ";") #split into multiple GO ids
+CCslimX <- data.frame(Term = rep.int(CCslim$Term, sapply(CCsplitted, length)), go_term = unlist(CCsplitted)) #list all
+CCslimX <- merge(CCslimX, CCslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
+CCslimX <- unique(setDT(CCslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
+CCslim <- data.frame(slim_term=CCslimX$Term, slim_cat=CCslimX$category, category=CCslimX$go_term) #rename columns
+head(CCslim)
+
+```
+
+# Save slim info with GO enrichment info for heatmap dataframes.
+```{r}
+GO.BP <- right_join(BPslim, filter(GO.sig.trt, ontology=="BP"), by="category") #add back GO enrichment info for each offspring term
+GO.MF <- right_join(MFslim, filter(GO.sig.trt, ontology=="MF"), by="category") #add back GO enrichment info for each offspring term
+GO.CC <- right_join(CCslim, filter(GO.sig.trt, ontology=="CC"), by="category") #add back GO enrichment info for each offspring term
+```
+
+
+## Make heatmap
+```{r}
+BPplot <- GO.BP %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
+      strip.text.x = element_text(size = 12, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =     
+      element_text(size = 11))
+MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>% 
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
+      strip.text.x = element_text(size = 12, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =
+      element_text(size = 11))
+fig5 <- BPplot + MFplot
+ggsave("RAnalysis/Output/RNA-seq/GOSeq/DEG_heatmap_GO_terms.pdf", fig5, width = 30, height = 30, units = c("in"))
+```
+
+## Make supplemental table summarizing GO enrichment
+```{r}
+GO.enrichment.dat <- bind_rows(GO.BP, GO.MF, GO.CC)
+head(GO.enrichment.dat)
+
+#Make dataframe of GO results for clustering and heatmap. 
+#add gene_IDs. To get gene_IDs we will merge with the GO.terms DF.
+GOgenes <- data.frame(gene_id=Gene.GO.IDs$gene_id, category=Gene.GO.IDs$GO.ID) 
+GOgenes$gene_id <- as.character(GOgenes$gene_id) #make gene ID a character so we can collapse our many near-identical columns
+
+GO.enrichment.summary  <- left_join(GO.enrichment.dat, GOgenes, by="category" ) #join the DFs
+
+GO.enrichment.summary <- GO.enrichment.summary %>% #collapse and have gene IDs for a particular term in a single row as a comma-sep list. 
+  group_by(slim_term, slim_cat, category, over_represented_pvalue, under_represented_pvalue, numDEInCat, numInCat, term, ontology) %>%
+  summarise(genes = toString(gene_id)) %>% #rename collapsed gene_ID column "gene"
+  ungroup()
+
+write.csv(GO.enrichment.summary, 'RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.summary.table.csv') 
+```
+
+
+
+
+## Modified biological processes heatmap
+```{r}
+
+GO.BP2 <- GO.BP %>%
+  group_by(slim_term) %>%
+  filter(n() > 4)
+
+BPplot2 <- GO.BP2 %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 10)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 20, face = "bold"),
+      strip.text.y.right = element_text(angle=90, size = 30, face = "bold"),
+      strip.text.x = element_text(size = 22, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 22), legend.title = element_text(size = 22), legend.text =     element_text(size = 22)) 
+
+
+
+ggsave("../../../Downloads/modified.heatmap.png", BPplot2, width = 25, height = 30, units = c("in"))
+```
+
+
+
+
+
+
