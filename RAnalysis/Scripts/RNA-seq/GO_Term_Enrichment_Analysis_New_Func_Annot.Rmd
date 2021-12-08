@@ -438,7 +438,7 @@ MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %
       axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =
       element_text(size = 11))
 fig5 <- BPplot + MFplot
-ggsave("RAnalysis/Output/RNA-seq/GOSeq/DEG_heatmap_GO_terms.pdf", fig5, width = 30, height = 30, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/GO_enrichment_DEG_heatmap_.pdf", fig5, width = 30, height = 30, units = c("in"))
 ```
 
 ## Make supplemental table summarizing GO enrichment
