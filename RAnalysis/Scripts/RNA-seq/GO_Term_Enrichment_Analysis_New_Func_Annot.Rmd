@@ -35,6 +35,8 @@ library("gridExtra")
 library("clusterProfiler")
 library("DataCombine")
 library("VennDiagram")
+library("GSEABase")
+library("data.table")
 ```
 
 
@@ -327,7 +329,7 @@ ggsave("RAnalysis/Output/Final_Figures/pver_GOplot_pvalue_05_FullAnnot.pdf", GOp
 
 # Run GOslim to get broader categories
 ```{r}
-#load in generic GO database, has all of the upperlevel categories for GO terms. Ex: regulation of cell division would be under cellular regulation
+#load in generic GO database, has all of the upper level categories for GO terms. Ex: regulation of cell division would be under cellular regulation
 slim <- getOBOCollection("http://current.geneontology.org/ontology/subsets/goslim_generic.obo") #get GO database
 
 ## filtering all of BP (do MF and CC seperately)
@@ -461,6 +463,40 @@ GO.enrichment.summary <- GO.enrichment.summary %>% #collapse and have gene IDs f
 
 write.csv(GO.enrichment.summary, 'RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.summary.table.csv') 
 ```
+
+
+## Exploring unique go_slim terms
+
+```{r}
+#number of unique go slim terms per category
+length(unique(GO.enrichment.summary$slim_term)) #47 unique go terms
+
+#view slim terms per ontology category
+## filtering go slim category of BP 
+BP_slim <- GO.enrichment.summary %>%
+  filter(ontology=="BP")
+view(BP_slim)
+#number of BP go slim terms
+length(unique(BP_slim$slim_term)) #33
+
+## filtering go slim category of MF 
+MF_slim <- GO.enrichment.summary %>%
+  filter(ontology=="MF")
+view(MF_slim)
+#number of BP go slim terms
+length(unique(MF_slim$slim_term)) #12
+
+## filtering go slim category of CC 
+CC_slim <- GO.enrichment.summary %>%
+  filter(ontology=="CC")
+view(CC_slim)
+#number of BP go slim terms
+length(unique(CC_slim$slim_term)) #4
+
+
+```
+
+
 
 
 

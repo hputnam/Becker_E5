@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## KEGG enrichment analysis
-## Obtained KEGG ontology terms by using KofamScan in command-line; see step 3 in E. Chille lab notebook https://github.com/echille/E.-Chille-Open-Lab-Notebook/blob/master/_posts/2020-10-08-M-capitata-functional-annotation-pipeline.md for instructions. 
+## Obtained KEGG ontology terms by using KofamScan in command-line; see step 3 in E. Chille [lab notebook](https://github.com/echille/E.-Chille-Open-Lab-Notebook/blob/master/_posts/2020-10-08-M-capitata-functional-annotation-pipeline.md) for instructions. 
 ## If run into issues with downloading KofamScan software, etc.; see https://github.com/Putnam-Lab/Lab_Management/issues/21
 
 # INFORMATION FOR KEGG ENRICHMENT ANALYSIS FOR R FOUND HERE:
@@ -51,13 +51,43 @@ Pdam_genome_dataframe <- as.data.frame(Pdam_genome) %>%  rownames_to_column() # 
 colnames(Pdam_genome_dataframe) <- c('gene_id') # rename the columns
 
 # load the Pver annotation file to use downstream in KEGG pathway analysis, bringing from output folder because we had to edit all naming information for gene_ID in the GO enrichment script
-Pver_annot <- read_csv("RAnalysis/Output/RNA-seq/GOSeq/Annot.name.edit.csv") 
+#remove first column (x)
+Pver_annot <- read_csv("Functional_Annotation/Final_Annotations/pver_annot_full.csv")[-1]
+Pver_annot$gene_id <-  gsub("\\..*","", Pver_annot$gene_id) #remove extra characters after the first .
+#remove model after novel for novel genes to match gff3
+Pver_annot$gene_id <-  gsub("Pver_novel_model_","Pver_novel_", Pver_annot$gene_id)
+Pver_annot$gene_id <-  gsub("-.*","", Pver_annot$gene_id) #remove the extra g number after the dash
+Pver_annot$gene_id <-  gsub("_gene_g","_g", Pver_annot$gene_id) #sub gene_g with _g
+Pver_annot$gene_id <-  gsub("_gene_","_", Pver_annot$gene_id) #remove extra _
 
-#load GFF3 to use downstream in KEGG pathway analysis, bringing from output folder because we had to edit all naming information for gene_ID in the GO enrichment script
-GFF3 <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/GFF3.name.edit.csv")
+#load GFF3 and edit all naming information for gene_ID to match between data frames
+#remove first column (x)
+GFF3 <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0.gene.gff3", header = FALSE, sep="", skip = 1)
+length(unique(GFF3$V9)) # 27439
+colnames(GFF3) <- c("prot", "Predict", "id", "start","stop", "pos1", "pos2","pos3", "gene_id") #name columns
+GFF3$length <- GFF3$stop - GFF3$start #calculate gene length 
+GFF3$gene_id <-  gsub(";.*","",GFF3$gene_id) #remove extra characters after the first ;
+#There also appears to be the presence of the characters ID= in each row
+GFF3$gene_id <- gsub("ID=","",GFF3$gene_id) #remove ID=
+#There is also an extra "-g#" that can be removed
+GFF3$gene_id <-  gsub("-.*","",GFF3$gene_id) #remove the extra g number after the dash
+#remove the extra "gene" to match the "Pver_gene_g#" format
+GFF3$gene_id <-  gsub("Pver_gene_novel_gene_","Pver_novel_gene_",GFF3$gene_id)
+GFF3$gene_id <-  gsub("Pver_gene_split_gene_g","Pver_split_gene_g",GFF3$gene_id)
+GFF3$gene_id <-  gsub("_gene_g","_g",GFF3$gene_id) #sub gene_g with _g
+GFF3$gene_id <-  gsub("_gene_","_",GFF3$gene_id) #remove extra _
+
+
+#check unmatched gene_id names
+unmatched <- anti_join(GFF3, Pver_annot, by=c("gene_id"))
+
+#remove last _g string after the first _g string
+
 
 #test to make sure gene_id nomenclature still matches between both files
 test <- full_join(GFF3, Pver_annot)
+
+
 
 ```
 

@@ -57,14 +57,20 @@ Genes$gene <- gsub("ID=","",Genes$gene) #remove extra characters
 Genes$length <- Genes$stop-Genes$start # calculated lengths from start and stop
 
 #Load annotation file
-Annot <- read.csv("RAnalysis/Genome/Pver_gene_annotation_file.txt", header=TRUE, sep="\t", na.string="NA", stringsAsFactors = FALSE, skip=0)
-colnames(Annot)[2] <- "gene"
-GO.data <- Annot[,c(2,13)] #select gene names and GO IDs
-splitted <- strsplit(as.character(GO.data$Gene_ontology_IDs), "; ") #split into multiple GO IDs
-Gene.GO.IDs <- data.frame(v1 = rep.int(GO.data$gene, sapply(splitted, length)), v2 = unlist(splitted)) #list all genes with each of their GO terms in a single row 
-colnames(Gene.GO.IDs) <- c("gene", "GO.IDs") #rename columns
+Annot <- read.csv("Functional_Annotation/Final_Annotations/pver_annot_full.csv", row.names = 1)
+colnames(Annot)[1] <- "gene"
+
+#load all gene GO IDs organized and split
+
+Gene.GO.IDs <- read.csv("Functional_Annotation/Final_Annotations/pver_GOterms_interprot_swissprot_blast_trembl_20211203.csv", row.names = 1)
+colnames(Gene.GO.IDs) <- c("gene", "GO.IDs", "database") #rename columns
+
+#edit gene ID to match GFF3
+Gene.GO.IDs$gene <-  gsub("\\..*","",Gene.GO.IDs$gene) #remove the all after . "t#" number after the dash
+Gene.GO.IDs$gene <-  gsub("_","_gene_",Gene.GO.IDs$gene) #add _gene_g#
 Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
 GO.IDs <-unique(Gene.GO.IDs$GO.IDs) #removes duplicates from columns, compiles both lists to get all GO terms without duplicates
+
 
 
 ```
