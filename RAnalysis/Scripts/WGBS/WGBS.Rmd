@@ -60,6 +60,11 @@ Genes$length <- Genes$stop-Genes$start # calculated lengths from start and stop
 Annot <- read.csv("Functional_Annotation/Final_Annotations/pver_annot_full.csv", row.names = 1)
 colnames(Annot)[1] <- "gene"
 
+#edit gene ID to match GFF3
+Annot$gene <-  gsub("\\..*","",Annot$gene) #remove the all after . "t#" number after the dash
+Annot$gene <-  gsub("_","_gene_",Annot$gene) #add _gene_g#
+
+
 #load all gene GO IDs organized and split
 
 Gene.GO.IDs <- read.csv("Functional_Annotation/Final_Annotations/pver_GOterms_interprot_swissprot_blast_trembl_20211203.csv", row.names = 1)
@@ -70,9 +75,6 @@ Gene.GO.IDs$gene <-  gsub("\\..*","",Gene.GO.IDs$gene) #remove the all after . "
 Gene.GO.IDs$gene <-  gsub("_","_gene_",Gene.GO.IDs$gene) #add _gene_g#
 Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
 GO.IDs <-unique(Gene.GO.IDs$GO.IDs) #removes duplicates from columns, compiles both lists to get all GO terms without duplicates
-
-
-
 ```
 
 
@@ -157,10 +159,16 @@ for(i in 1:length(sub_meth_table.5x$gene)){
   results.5x <- rbind(results.5x, df)
   
 }
+
+
+write.csv(results.5x, "RAnalysis/Output/WGBS/meth.results.5x.csv")
+
  # An error will be generated here for contrasts. 
 #This potential for contrasts (interactions) is included in the case one wants to examine the role of position of CpG within a gene
 #Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
 #Continuing the analysis from results line will generate the results in the absence of the contrast (interaction).
+
+results.5x <- read.csv("RAnalysis/Output/WGBS/meth.results.5x.csv", row.names = 1)
 
 results.5x[is.na(results.5x)] <- 0
 results.5x$adj.pval.treatment <- p.adjust(results.5x$pval.treatment, method='BH') #BH is a less conservative Benjamini & Hochberg (1995) correction in which p-values are multiplied by the number of comparisons
@@ -174,13 +182,12 @@ DMG.sig.5x <- DMG.sig.5x[order(DMG.sig.5x$adj.pval.treatment),]
 DMG.sig.5x <- DMG.sig.5x[which(DMG.sig.5x$adj.pval.treatment<0.05), ]
 
 # Annotation of DMG under between treatments 
-DMG.sig.annot.5x <- left_join(DMG.sig.5x , Annot, by="gene")
-#DMG.sig.annot <- DMG.sig.annot[!duplicated(DMG.sig.annot$gene),]
+DMG.sig.annot.5x <- left_join(DMG.sig.5x , Annot)
 write.table(DMG.sig.annot.5x, 'RAnalysis/Output/WGBS/Treatment_sig_annot.5x.tsv', sep='\t', row.names=FALSE)
 
 #Sanity check plotting of DMGs by treatment
 subdf <- MD.5x %>%	
-  filter(gene== DMG.sig.annot.5x$gene[4])
+  filter(gene== DMG.sig.annot.5x$gene[1])
 means <- aggregate(per.meth ~ treatment, data=subdf, FUN=mean)
 ses <- aggregate(per.meth ~ treatment, data=subdf, FUN=std.error)
 means$ses <- ses$per.meth
@@ -192,7 +199,7 @@ ggplot(means, aes(x=treatment, y=per.meth)) +
                   position=position_dodge(.9)) +
     xlab("Treatment") + #plot x axis label
     ylab("Percent Methylation") + #plot y axis label
-    ylim(0,100)+ #set y limits to 0 and 100%
+    #ylim(0,100)+ #set y limits to 0 and 100%
     theme_bw()
 
 ggsave("RAnalysis/Output/WGBS/per.meth.5x.pdf")
@@ -241,10 +248,15 @@ for(i in 1:length(sub_meth_table.10x$gene)){
   results.10x <- rbind(results.10x, df)
   
 }
-# An error will be generated here for contrasts. 
+
+write.csv(results.10x, "RAnalysis/Output/WGBS/meth.results.10x.csv")
+
+ # An error will be generated here for contrasts. 
 #This potential for contrasts (interactions) is included in the case one wants to examine the role of position of CpG within a gene
 #Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
 #Continuing the analysis from results line will generate the results in the absence of the contrast (interaction).
+
+results.10x <- read.csv("RAnalysis/Output/WGBS/meth.results.10x.csv")
 
 results.10x[is.na(results.10x)] <- 0
 results.10x$adj.pval.treatment <- p.adjust(results.10x$pval.treatment, method='BH') #BH is a less conservative Benjamini & Hochberg (1995) correction in which p-values are multiplied by the number of comparisons
