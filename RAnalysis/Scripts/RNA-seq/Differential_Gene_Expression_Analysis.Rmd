@@ -157,6 +157,8 @@ DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","control","enric
 head(DEGSeq2.results)
 sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
 
+#213
+
  
 #create data frame with only DESeq2 DEG's with < 0.05 significance 
 
@@ -234,7 +236,15 @@ write.csv(counts(DEGSeq2_list), file="RAnalysis/Output/RNA-seq/DEG/DEGSeq2_list_
 
 ```
 
-
+## DEG summary info 
+## Run to calculate the DEGs, and upregulated vs. downregulated genes
+```{r}
+length(unique(DEGSeq2.sig.results$gene_id)) # 213 unique DEGs
+poc_down <- DEGSeq2.sig.results %>% filter(log2FoldChange < 0) 
+length(unique(poc_down$gene_id)) # 147 unique DEGs downregulated
+poc_up <- DEGSeq2.sig.results %>% filter(log2FoldChange > 0)
+length(unique(poc_up$gene_id)) # 66 unique DEGs upregulated
+```
 
 
 

@@ -256,7 +256,7 @@ write.csv(results.10x, "RAnalysis/Output/WGBS/meth.results.10x.csv")
 #Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
 #Continuing the analysis from results line will generate the results in the absence of the contrast (interaction).
 
-results.10x <- read.csv("RAnalysis/Output/WGBS/meth.results.10x.csv")
+results.10x <- read.csv("RAnalysis/Output/WGBS/meth.results.10x.csv", row.names = 1)
 
 results.10x[is.na(results.10x)] <- 0
 results.10x$adj.pval.treatment <- p.adjust(results.10x$pval.treatment, method='BH') #BH is a less conservative Benjamini & Hochberg (1995) correction in which p-values are multiplied by the number of comparisons
@@ -276,7 +276,7 @@ write.table(DMG.sig.annot.10x, 'RAnalysis/Output/WGBS/Treatment_sig_annot.10x.ts
 
 #Sanity check plotting of DMGs by treatment
 subdf <- MD.10x %>%	
-  filter(gene== DMG.sig.annot.10x$gene[4])
+  filter(gene== DMG.sig.annot.10x$gene[2])
 means <- aggregate(per.meth ~ treatment, data=subdf, FUN=mean)
 ses <- aggregate(per.meth ~ treatment, data=subdf, FUN=std.error)
 means$ses <- ses$per.meth
@@ -288,7 +288,7 @@ ggplot(means, aes(x=treatment, y=per.meth)) +
                   position=position_dodge(.9)) +
     xlab("Treatment") + #plot x axis label
     ylab("Percent Methylation") + #plot y axis label
-    ylim(0,100)+ #set y limits to 0 and 100%
+    #ylim(0,100)+ #set y limits to 0 and 100%
     theme_bw()
 
 ggsave("RAnalysis/Output/WGBS/per.meth.10x.pdf")
@@ -300,7 +300,7 @@ ggsave("RAnalysis/Output/WGBS/per.meth.10x.pdf")
 # GO Enrichment Analysis of Treatment for 10x data
 ##### GO enrichment of DMGs #####
 
-DMG.trt <- as.character(DMG.sig$gene) #set the enrichment test list
+DMG.trt <- as.character(DMG.sig.10x$gene) #set the enrichment test list
 
 #change to vectors
 ALL.vector <-c(t(Genes$gene))
@@ -309,7 +309,7 @@ ID.vector <- Genes$gene
 LENGTH.vector <-Genes$length
 
 #DMG.trt.vector <-c(t(DMG.trt)) #change to vectors
-gene.vector=as.integer(ALL.vector%in%DMG.trt.vector) #Construct new vector with 1 for DEG and 0 for others
+gene.vector=as.integer(ALL.vector%in%DMG.vector) #Construct new vector with 1 for DEG and 0 for others
 names(gene.vector)=ALL.vector #set names
 DMG.pwf<-nullp(gene.vector, ID.vector, bias.data=LENGTH.vector) #weight vector by length of gene
 
@@ -319,15 +319,15 @@ GO.wall<-goseq(DMG.pwf, ID.vector, gene2cat=Gene.GO.IDs, test.cats=c("GO:CC", "G
 GO.sig.trt <- GO.wall %>%
   filter(over_represented_pvalue <0.05) %>%
   arrange(., ontology)
-write.csv(GO.sig.trt , file = "RAnalysis/Output/WGBS/GO.sig.trt.csv")
+write.csv(GO.sig.trt , file = "RAnalysis/Output/WGBS/GO.sig.trt.10x.csv")
 
 #GO.sig.trt$term <- as.factor(GO.sig.trt$term)
 GO.sig.trt[is.na(GO.sig.trt)] <- "UN"
 
 nrow(GO.sig.trt)
-nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms
-nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms
-nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms
+nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms (74)
+nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms (38)
+nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms (5)
 
 #check any missing GO terms manually and add as needed
 which(GO.sig.trt$ontology=="UN")
@@ -456,7 +456,7 @@ MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %
       axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =
       element_text(size = 11))
 fig5 <- BPplot + MFplot
-ggsave("RAnalysis/Output/WGBS/DMG_heatmap_GO_terms.pdf", fig5, width = 20, height = 20, units = c("in"))
+ggsave("RAnalysis/Output/WGBS/DMG_heatmap_GO_terms.10x.pdf", fig5, width = 20, height = 20, units = c("in"))
 
 ```
 
@@ -464,5 +464,5 @@ ggsave("RAnalysis/Output/WGBS/DMG_heatmap_GO_terms.pdf", fig5, width = 20, heigh
 ```{r}
 GO.enrichment.summary.table <- bind_rows(GO.BP, GO.MF, GO.CC)
 head(GO.enrichment.summary.table)
-write.csv(GO.enrichment.summary.table, 'RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.csv') 
+write.csv(GO.enrichment.summary.table, 'RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv') 
 ```
