@@ -115,5 +115,5 @@
 "114","GO:0003746",0.0328397254155496,0.997193171278716,2,23,"translation elongation factor activity","MF"
 "115","GO:0004099",0.0359508644692647,0.999671831703967,1,2,"chitin deacetylase activity","MF"
 "116","GO:1990518",0.0410804930368572,0.999357800616986,1,4,"single-stranded 3'-5' DNA helicase activity","MF"
-"117","GO:0016706",0.043868724638986,0.992124894421386,3,60,"innate immune response-activating signal transduction","BP"
-"118","GO:0140640",4.32367188306427e-12,1,15,87,"cell-cell adherens junction","CC"
+"117","GO:0016706",0.043868724638986,0.992124894421386,3,60,"2-oxoglutarate-dependent dioxygenase activity","MF"
+"118","GO:0140640",4.32367188306427e-12,1,15,87,NA,NA

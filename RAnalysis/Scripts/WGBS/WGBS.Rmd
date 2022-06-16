@@ -180,6 +180,9 @@ results.5x$adj.pval.treatment <- p.adjust(results.5x$pval.treatment, method='BH'
 DMG.sig.5x <-results.5x
 DMG.sig.5x <- DMG.sig.5x[order(DMG.sig.5x$adj.pval.treatment),]
 DMG.sig.5x <- DMG.sig.5x[which(DMG.sig.5x$adj.pval.treatment<0.05), ]
+sum(DMG.sig.5x$adj.pval.treatment < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
+
+#1019
 
 # Annotation of DMG under between treatments 
 DMG.sig.annot.5x <- left_join(DMG.sig.5x , Annot)
@@ -268,6 +271,9 @@ results.10x$adj.pval.treatment <- p.adjust(results.10x$pval.treatment, method='B
 DMG.sig.10x <-results.10x
 DMG.sig.10x <- DMG.sig.10x[order(DMG.sig.10x$adj.pval.treatment),]
 DMG.sig.10x <- DMG.sig.10x[which(DMG.sig.10x$adj.pval.treatment<0.05), ]
+sum(DMG.sig.10x$adj.pval.treatment < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
+
+#368
 
 # Annotation of DMG under between treatments 
 DMG.sig.annot.10x <- left_join(DMG.sig.10x , Annot, by="gene")
@@ -324,10 +330,10 @@ write.csv(GO.sig.trt , file = "RAnalysis/Output/WGBS/GO.sig.trt.10x.csv")
 #GO.sig.trt$term <- as.factor(GO.sig.trt$term)
 GO.sig.trt[is.na(GO.sig.trt)] <- "UN"
 
-nrow(GO.sig.trt)
-nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms (74)
-nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms (38)
-nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms (5)
+nrow(GO.sig.trt) #118
+nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms (75)
+nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms (37)
+nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms (6)
 
 #check any missing GO terms manually and add as needed
 which(GO.sig.trt$ontology=="UN")

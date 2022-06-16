@@ -29,6 +29,7 @@ library("ggplot2")
 library("gplots")
 library("limma")
 library("spdep") 
+library("patchwork")
 library("adegenet") 
 library("goseq")
 library("gridExtra")
@@ -422,25 +423,28 @@ BPplot <- GO.BP %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %
       facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
       theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
-      strip.text.x = element_text(size = 12, face = "bold"),
+      strip.text.y.left = element_text(angle=0, size = 20, face = "bold"),
+      strip.text.x = element_text(size = 30, face = "bold"),
       axis.title = element_blank(),
-      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =     
-      element_text(size = 11))
-MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>% 
+      axis.text.x = element_text(size = 30),
+      axis.text = element_text(size = 14), legend.title = element_text(size = 20), legend.text =     
+      element_text(size = 20))
+
+MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
     ggplot(aes(x = ontology, y = term)) + 
     geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
       scale_y_discrete(position = "right") +
       facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
       theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
-      strip.text.x = element_text(size = 12, face = "bold"),
+      strip.text.y.left = element_text(angle=0, size = 20, face = "bold"),
+      strip.text.x = element_text(size = 30, face = "bold"),
       axis.title = element_blank(),
-      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =
-      element_text(size = 11))
+      axis.text.x = element_text(size = 30),
+      axis.text = element_text(size = 14), legend.title = element_text(size = 20), legend.text =     
+      element_text(size = 20))
 fig5 <- BPplot + MFplot
-ggsave("RAnalysis/Output/Final_Figures/GO_enrichment_DEG_heatmap_.pdf", fig5, width = 30, height = 30, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/GO_enrichment_DEG_heatmap.pdf", fig5, width = 30, height = 30, units = c("in"))
 ```
 
 ## Make supplemental table summarizing GO enrichment
@@ -495,38 +499,6 @@ length(unique(CC_slim$slim_term)) #4
 
 
 ```
-
-
-
-
-
-## Modified biological processes heatmap
-```{r}
-# 
-# GO.BP2 <- GO.BP %>%
-#   group_by(slim_term) %>%
-#   filter(n() > 4)
-# 
-# BPplot2 <- GO.BP2 %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
-#     ggplot(aes(x = ontology, y = term)) + 
-#     geom_tile(aes(fill=over_represented_pvalue, width = 10)) + 
-#       scale_y_discrete(position = "right") +
-#       facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
-#       theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-#       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-#       strip.text.y.left = element_text(angle=0, size = 20, face = "bold"),
-#       strip.text.y.right = element_text(angle=90, size = 30, face = "bold"),
-#       strip.text.x = element_text(size = 22, face = "bold"),
-#       axis.title = element_blank(),
-#       axis.text = element_text(size = 22), legend.title = element_text(size = 22), legend.text =     element_text(size = 22)) 
-# 
-# 
-# 
-# ggsave("../../../Downloads/modified.heatmap.png", BPplot2, width = 25, height = 30, units = c("in"))
-```
-
-
-
 
 
 

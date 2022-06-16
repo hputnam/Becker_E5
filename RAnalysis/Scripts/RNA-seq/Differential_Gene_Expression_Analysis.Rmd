@@ -123,6 +123,22 @@ Our size factors are all less than 4, so we can use VST!
 gvst <- vst(gdds, blind=FALSE) #apply a variance stabilizing transformation to minimize effects of small counts and normalize library size
 ```
 
+#### Heatmap of sample to sample distances
+```{r}
+# Using vst object, plot heat-map of sample-to-sample distances
+sampleDists <- dist(t(assay(vst))) # calculate distance matrix
+sampleDistMatrix <- as.matrix(sampleDists) # create distance matrix
+rownames(sampleDistMatrix) <- colnames(vst) # assign row names
+colnames(sampleDistMatrix) <- NULL # assign col names 
+colors <- colorRampPalette(rev(brewer.pal(9, "Blues")))(255) # assign colors 
+heatmap <- pheatmap(sampleDistMatrix, # plot distance matrix
+         clustering_distance_rows = sampleDists, # cluster rows
+         clustering_distance_cols = sampleDists, # cluster cols
+         col=colors) # set colors
+heatmap
+```
+
+
 #### Principal component plot of samples
 ```{r}
 gPCAdata <- plotPCA(gvst, intgroup = c("treatment"), returnData=TRUE)
@@ -148,7 +164,13 @@ ggsave(path = "RAnalysis/Output/Final_Figures/", filename = "DEGSeq2_general_PCA
 
 #Run differential expression test using a Wald model. 
 ```{r, message = FALSE}
-DEGSeq2_wald <- DESeq(gdds) #run differential expression test by group using the Wald model
+DEGSeq2_wald <- DESeq(gdds) # run differential expression test by treatment (?) using wald test 
+# estimating size factors
+# estimating dispersions
+# gene-wise dispersion estimates
+# mean-dispersion relationship
+# final dispersion estimates
+# fitting model and testing
 ```
 
 #Explore significant p-values for treatment
@@ -167,6 +189,12 @@ DEGSeq2.sig.results <- as.data.frame(DEGSeq2.sig.results)
 DEGSeq2.sig.results$gene_id <-rownames(DEGSeq2.sig.results)
 write.csv(DEGSeq2.sig.results, 'RAnalysis/Output/RNA-seq/DEG/DEGSeq2.sig.results.csv')  
 
+```
+## Identify unique genes from DEGs from treatments 
+```{r}
+dim(DEGSeq2.sig.results) # 213 x 7
+length(unique(DEGSeq2.sig.results$gene_id)) # 213 unique genes between all treatments 
+write.csv(DEGSeq2.sig.results, file = "RAnalysis/Output/RNA-seq/DEG/DEGs.all_treatment_20220616.csv")
 ```
 
 ## Visualize differentially expressed genes from DESeq2
