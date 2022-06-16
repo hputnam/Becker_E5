@@ -136,6 +136,10 @@ heatmap <- pheatmap(sampleDistMatrix, # plot distance matrix
          clustering_distance_cols = sampleDists, # cluster cols
          col=colors) # set colors
 heatmap
+pdf(file = "RAnalysis/Output/RNA-seq/DEG/SAMPLETOSAMPLE_HEATMAP.pdf")
+heatmap
+dev.off()
+
 ```
 
 
@@ -181,7 +185,14 @@ sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were le
 
 #213
 
- 
+#### DESeq2, the function plotMA shows the log2 fold changes attributable to a given variable over the mean of normalized counts for all the samples in the DESeqDataSet.
+
+MA_PLOT <- plotMA(DEGSeq2.results, ylim=c(-2,2))
+pdf(file = "RAnalysis/Output/RNA-seq/DEG/MA_PLOT.pdf")
+MA_PLOT
+dev.off()
+
+
 #create data frame with only DESeq2 DEG's with < 0.05 significance 
 
 DEGSeq2.sig.results <- subset(DEGSeq2.results, padj < 0.05)
