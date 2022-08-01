@@ -288,3 +288,6 @@ length(unique(poc_up$gene_id)) # 66 unique DEGs upregulated
 
 
 
+
+
+

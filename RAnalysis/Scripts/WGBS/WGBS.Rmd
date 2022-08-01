@@ -96,6 +96,9 @@ meth.data.5x$Sample.ID <- gsub("_.*","",meth.data.5x$Sample.ID) #remove extra ch
 #meth.data.5x$Sample.ID <- gsub("-","_",meth.data.5x$Sample.ID) #remove extra characters
 #meth.data.5x$Sample.ID <- gsub("/","",meth.data.5x$Sample.ID) #remove extra characters (backslash from sample.ID name)
 MD.5x <- merge(meth.data.5x, sample.info, by="Sample.ID") #combine sample info and 5x coverage megafile
+
+#save sample info and percent methylation
+write.csv(MD.5x, "RAnalysis/Output/WGBS/sample_all_methylated_data_5x.csv")
 ```
 
 #Load filtered methylation counts 10x 
@@ -115,6 +118,9 @@ meth.data.10x$Sample.ID <- gsub("_.*","",meth.data.10x$Sample.ID) #remove extra 
 #meth.data.10x$Sample.ID <- gsub("-","_",meth.data.10x$Sample.ID) #remove extra characters
 #meth.data.10x$Sample.ID <- gsub("/","",meth.data.10x$Sample.ID) #remove extra characters (backslash from sample.ID name)
 MD.10x <- merge(meth.data.10x,sample.info, by="Sample.ID") #combine sample info and 10x coverage megafile
+
+#save sample info and percent methylation
+write.csv(MD.10x, "RAnalysis/Output/WGBS/sample_all_methylated_data_10x.csv")
 ```
 
 # Testing for Differentially Methylated Genes at 5X coverage
