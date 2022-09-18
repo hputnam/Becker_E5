@@ -64,21 +64,21 @@ Load metadata
 ```{r}
 #### Data ####
 # Read in metadata
-meta.data <- read.csv("../../Data/RNA-seq/metadata.RNAseq.csv", header=T, sep=",", na.string="NA", stringsAsFactors = F) #read in info
+meta.data <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header=T, sep=",", na.string="NA", stringsAsFactors = F) #read in info
 colnames(meta.data) <- c("colonyID","treatment","block","Sample_ID")
 ID <- meta.data$Sample_ID
 ```
 
 Processing expression data
 ```{r}
-counts <- read.csv("../../Data/RNA-seq/Poc_gene_count_matrix.csv", header = TRUE, row.names = 1) #read in genes count matrix
+counts <- read.csv("RAnalysis/Data/RNA-seq/Poc_gene_count_matrix.csv", header = TRUE, row.names = 1) #read in genes count matrix
 colnames(counts) <- str_sub(colnames(counts), 1, 3) #remove everything after the first _ to just have the sample names
 # Order columns by sample name
 colnames(counts) <- c("C17","C18","C19","C20","C21","C22","C23","C24","C25","C26","C27","C28","C29","C30","C31","C32","E10","E11","E12","E13","E14","E15","E16","E1","E2","E3", "E4", "E5", "E6", "E7", "E8", "E9")
 counts <- counts[, colnames(counts) %in% ID] #intersect with ID to maintain only samples a
 counts <- counts[, order(colnames(counts))]
 dge_gene <- DGEList(counts,genes = rownames(counts))
-saveRDS(dge_gene, "../../Data/GE_meth_compare/RNA_gene_preNormalization_DGEListObj.Rdata")
+saveRDS(dge_gene, "RAnalysis/Data/GE_meth_compare/RNA_gene_preNormalization_DGEListObj.Rdata")
 ```
 
 
@@ -91,7 +91,7 @@ saveRDS(dge_gene, "../../Data/GE_meth_compare/RNA_gene_preNormalization_DGEListO
 
 #SAMPLES E2, E16, AND C19 WERE EXCLUDED DUE TO DEDUPLICATION AND LOW COUNTS
 # Read in gene methylation data
-gene_dnam <- readRDS("../../Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
+gene_dnam <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
 
 #rename sample.ID to include corresponding E and C in front for enriched and control for later analysis
 gene_dnam <- gene_dnam %>%
@@ -113,19 +113,29 @@ rownames(m) <- m$gene
 m <- m[,-1]
 m <- as.matrix(m)
 m <- m/100
-saveRDS(m, "../../Data/GE_meth_compare/meth_dataset.RData")
+saveRDS(m, "RAnalysis/Data/GE_meth_compare/meth_dataset.RData")
 ## Create a summary of methylation for each gene ##
 mean <- rowMeans(m)
-# Mean gene meth enriched
-mean_E <- rowMeans(m[, meta.data$Sample_ID[meta.data$treatment == "enriched"]])
+
+# create list for sample IDs from metadata and select from that list with filtering, pipe, row means
+list_E <- filter(meta.data, treatment == "enriched") 
+
+list_C <- filter(meta.data, treatment == "control") 
+  
+# mean gene meth enriched per E sample ID
+mean_E <- rowMeans(m[, list_E$Sample_ID == "[E]+"])
+
 # Mean gene meth control
-mean_C <- rowMeans(m[, meta.data$Sample_ID[meta.data$site == "control"]])
+mean_C <- rowMeans(m[, list_C$treatment == "control"])
+
 # Coefficient of Variation for enriched samples
-sd_E <- rowSds(m[,meta.data$Sample_ID[meta.data$site == "enriched"]])
+sd_E <- rowSds(m[, list_E$treatment == "enriched"])
 cv_E <- sd_E/mean_E
+ 
 # Coefficient of Variation for control
 sd_C <- rowSds(m[,meta.data$Sample_ID[meta.data$site == "control"]])
 cv_C <- sd_C/mean_C
+
 # Coefficient of Variation among treatments
 meanAmongTrt <- cbind(mean_E,mean_C)
 sd_meanAmongTrt <- rowSds(meanAmongTrt)
