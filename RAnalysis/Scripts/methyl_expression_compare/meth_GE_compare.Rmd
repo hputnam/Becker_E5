@@ -118,15 +118,23 @@ saveRDS(m, "RAnalysis/Data/GE_meth_compare/meth_dataset.RData")
 mean <- rowMeans(m)
 
 # create list for sample IDs from metadata and select from that list with filtering, pipe, row means
-list_E <- filter(meta.data, treatment == "enriched") 
+list_E <- filter(meta.data, treatment == "enriched") #filter only enriched data from metadata
 
-list_C <- filter(meta.data, treatment == "control") 
+list_C <- filter(meta.data, treatment == "control") #filter only control data from metadata
+
+list_E <- as.list(list_E$Sample_ID) #make list of just enriched IDs
+
+list_C <- as.list(list_C$Sample_ID) #make list of just control IDs
   
-# mean gene meth enriched per E sample ID
-mean_E <- rowMeans(m[, list_E$Sample_ID == "[E]+"])
+# mean gene meth enriched 
+mean_E <- m[, colnames(m)%in%list_E] #subset data from main m matrix for just enriched data
+
+#mean_E <- rowMeans(subset_E)
 
 # Mean gene meth control
-mean_C <- rowMeans(m[, list_C$treatment == "control"])
+mean_C <- m[, colnames(m)%in%list_C] #subset data from main m matrix for just control data
+
+#mean_C <- rowMeans(subset_C)
 
 # Coefficient of Variation for enriched samples
 sd_E <- rowSds(m[, list_E$treatment == "enriched"])
