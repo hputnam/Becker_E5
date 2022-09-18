@@ -83,10 +83,8 @@ saveRDS(dge_gene, "RAnalysis/Data/GE_meth_compare/RNA_gene_preNormalization_DGEL
 
 
 ```{r}
-# Expression and Methylation Summary Table
-# load gene reference file - this contains the chromosome and starting gene coordinate (used to 
-# uniquely identify genes in the CpG file) and the gene_id which will be used to merge the expression
-# and CpG data. I created this before and saved it as gene_GeneLoc.RData
+# Methylation Summary Table
+# load gene reference file - this contains the chromosome and starting gene coordinate (used to uniquely identify genes in the CpG file) and the gene_id which will be used to merge the expression and CpG data. I created this before and saved it as gene_GeneLoc.RData
 #ref <- readRDS("../WGBS/data/gene_GeneLoc.RData")
 
 #SAMPLES E2, E16, AND C19 WERE EXCLUDED DUE TO DEDUPLICATION AND LOW COUNTS
@@ -97,25 +95,26 @@ gene_dnam <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata
 gene_dnam <- gene_dnam %>%
     mutate(Sample.ID = recode(Sample.ID, '1' = 'E1', '3' = 'E3', '4' = 'E4', '5' = 'E5', '6' = 'E6', '7' = 'E7', '8' = 'E8', '9' = 'E9','10' = 'E10', '11' = 'E11', '12' = 'E12','13' = 'E13', '14' = 'E14', '15' = 'E15', '16' = 'E16', '17' = 'C17', '18' = 'C18', '20' = 'C20', '21' = 'C21', '22' = 'C22', '23' = 'C23', '24' = 'C24', '25' = 'C25', '26' = 'C26', '27' = 'C27', '28' = 'C28', '29' = 'C29', '30' = 'C30', '31' = 'C31', '32' = 'C32'))
 
+
 #check to see all where renamed correctly
 unique(gene_dnam$Sample.ID)
 
 #change from long to wide format
-m <- data.frame (gene_dnam %>%
+meth <- data.frame (gene_dnam %>%
                    group_by(Sample.ID, gene) %>%
                    summarise(mean = mean(per.meth), n = n()) %>%
                    spread(., key = Sample.ID, value = mean))
 #filter for a min 3 Cpg per gene
-m <- m[which(m$n > 2),]
-cpg10xgene <- m[,1:2]  
+meth <- meth[which(meth$n > 2),]
+cpg10xgene <- meth[,1:2]  
 colnames(cpg10xgene) <- c("gene_id", "cov5_count")
-rownames(m) <- m$gene
-m <- m[,-1]
-m <- as.matrix(m)
-m <- m/100
+rownames(meth) <- meth$gene
+meth <- meth[,-1]
+meth <- as.matrix(meth)
+meth <- meth/100
 saveRDS(m, "RAnalysis/Data/GE_meth_compare/meth_dataset.RData")
 ## Create a summary of methylation for each gene ##
-mean <- rowMeans(m)
+mean_meth <- rowMeans(meth)
 
 # create list for sample IDs from metadata and select from that list with filtering, pipe, row means
 list_E <- filter(meta.data, treatment == "enriched") #filter only enriched data from metadata
@@ -127,60 +126,74 @@ list_E <- as.list(list_E$Sample_ID) #make list of just enriched IDs
 list_C <- as.list(list_C$Sample_ID) #make list of just control IDs
   
 # mean gene meth enriched 
-mean_E <- m[, colnames(m)%in%list_E] #subset data from main m matrix for just enriched data
+subset_meth_E <- meth[, colnames(meth)%in%list_E] #subset data from main m matrix for just enriched data
 
-#mean_E <- rowMeans(subset_E)
+mean_meth_E <- rowMeans(subset_meth_E)
 
 # Mean gene meth control
-mean_C <- m[, colnames(m)%in%list_C] #subset data from main m matrix for just control data
+subset_meth_C <- meth[, colnames(meth)%in%list_C] #subset data from main m matrix for just control data
 
-#mean_C <- rowMeans(subset_C)
+mean_meth_C <- rowMeans(subset_meth_C)
 
 # Coefficient of Variation for enriched samples
-sd_E <- rowSds(m[, list_E$treatment == "enriched"])
-cv_E <- sd_E/mean_E
+sd_meth_E <- rowSds(subset_meth_E)
+cv_meth_E <- sd_meth_E/mean_meth_E
  
 # Coefficient of Variation for control
-sd_C <- rowSds(m[,meta.data$Sample_ID[meta.data$site == "control"]])
+sd_meth_C <- rowSds(subset_meth_C)
+cv_meth_C <- sd_meth_C/mean_meth_C
+
+# Coefficient of Variation among treatments
+meanAmongTrt_meth <- cbind(mean_meth_E,mean_meth_C)
+sd_meanAmongTrt_meth <- rowSds(meanAmongTrt_meth)
+mean_meanAmongTrt_meth <- rowMeans(meanAmongTrt_meth)
+cv_mean_AmongTrt_meth <- sd_meanAmongTrt_meth/mean_meanAmongTrt_meth
+
+# Difference in gene methylation between treatments
+diff_Trt_meth <- mean_meth_E-mean_meth_C
+
+# Creat matrix of all CpG summary stats
+meth_summary <- cbind(mean_meth,mean_meth_E,mean_meth_C,cv_meth_E,cv_meth_C,cv_mean_AmongTrt_meth,
+                      diff_Trt) # bind all data frames with summary stats
+meth_summary[is.na(meth_summary)]<-0 #filter for all methylation data over 0
+meth_summary <- data.frame(gene_id = rownames(meth_summary),meth_summary) #change gene ID column name
+meth_annot <- left_join(cpg10xgene, meth_summary) #join Cpg and meth summary
+meth_annot$label <- paste0(meth_annot$chr,"_",meth_annot$start,"_",meth_annot$stop)
+meth_reduce <- data.frame(label=meth_annot$label,meth_annot[,1:9])
+
+
+#### Summarize the gene expression data ####
+
+expression <- dge_gene$counts
+subset_expression <- expression[, colnames(expression)%in%list_E] 
+subset_expression <- subset_expression[rowSums(subset_expression[])>0,]
+expression <- expression[rownames(expression) %in% rownames(subset_expression),]
+expression_cpm_log <- log2(cpm(expression)+ 1) # log2 cpm transformation
+expression <- expression_cpm_log
+
+# Mean gene expression all samples
+mean_express <- rowMeans(expression)
+
+# mean gene expression enriched 
+subset_express_E <- expression[, colnames(expression)%in%list_E] #subset data from main m matrix for just enriched data
+
+mean_express_E <- rowMeans(subset_express_E)
+
+# Mean gene expression control
+subset_C <- expression[, colnames(expression)%in%list_C] #subset data from main m matrix for just control data
+
+mean_C <- rowMeans(subset_C)
+
+# Coefficient of Variation for enriched gene expression
+sd_E <- rowSds(subset_E)
+cv_E <- sd_E/mean_E
+
+# Coefficient of Variation for control gene expression
+sd_C <- rowSds(subset_C)
 cv_C <- sd_C/mean_C
 
 # Coefficient of Variation among treatments
 meanAmongTrt <- cbind(mean_E,mean_C)
-sd_meanAmongTrt <- rowSds(meanAmongTrt)
-mean_meanAmongTrt <- rowMeans(meanAmongTrt)
-cv_mean_AmongTrt <- sd_meanAmongTrt/mean_meanAmongTrt
-# Difference in gene methylation between treatments
-diff_Trt <- mean_E-mean_C
-# Creat matrix of all CpG summary stats
-meth_summary <- cbind(mean,mean_E,mean_C,cv_E,cv_C,cv_mean_AmongTrt,
-                      diff_Trt)
-meth_summary[is.na(meth_summary)]<-0
-meth_summary <- data.frame(gene_id = rownames(meth_summary),meth_summary)
-meth_annot <- left_join(cpg10xgene, meth_summary)
-meth_annot$label <- paste0(meth_annot$chr,"_",meth_annot$start,"_",meth_annot$stop)
-meth_reduce <- data.frame(label=meth_annot$label,meth_annot[,1:9])
-e <- dge_gene$counts
-S_e <- e[, meta.data$Sample_ID[meta.data$site == "LP15"]]
-S_e <- S_e[rowSums(S_e[])>0,]
-e <- e[rownames(e) %in% rownames(S_e),]
-e_cpm_log <- log2(cpm(e)+ 1) # log2 cpm transformation
-e <- e_cpm_log
-#### Summarize the gene expression data ####
-## Create a summary of methylation for each CpG ##
-# Mean gene expression all sample3s
-mean <- rowMeans(e)
-# Mean gene expression shallow
-mean_S <- rowMeans(e[,meta.data$Sample_ID[meta.data$site == "LP15"]])
-# Mean gene expression deep
-mean_D <- rowMeans(e[, meta.data$Sample_ID[meta.data$site == "LP40"]])
-# Coefficient of Variation for shallow
-sd_S <- rowSds(e[,meta.data$Sample_ID[meta.data$site == "LP15"]])
-cv_S <- sd_S/mean_S
-# Coefficient of Variation for deep
-sd_D <- rowSds(e[,meta.data$Sample_ID[meta.data$site == "LP40"]])
-cv_D <- sd_D/mean_D
-# Coefficient of Variation among treatments
-meanAmongTrt <- cbind(mean_S,mean_D)
 sd_meanAmongTrt <- rowSds(meanAmongTrt)
 mean_meanAmongTrt <- rowMeans(meanAmongTrt)
 cv_mean_AmongTrt <- sd_meanAmongTrt/mean_meanAmongTrt
