@@ -242,6 +242,7 @@ saveRDS(gSum_red,"RAnalysis/Data/GE_meth_compare/Multi_geneSummaryReduced.RData"
 
 ```{r}
 mat <- readRDS("RAnalysis/Data/GE_meth_compare/Multi_geneSummaryReduced.RData")
+
 ## Mean Methylation vs Gene Expression
 df <- mat
 df$density <- get_density(df$gene_mean_express_E, df$mean_meth_E*100, n = 100)
@@ -252,28 +253,32 @@ mean_GbMvsGE_enriched <- ggplot(df,aes(x=gene_mean_express_E,y=mean_meth_E*100))
     labs(x="Gene Expression (log2-cpm)",y="DNA Methylation (%)") +
     theme_cowplot()
 
-df$density <- get_density(df$gene_mean_D, df$mean_D*100, n = 100)
-mean_GbMvsGE_deep <- ggplot(df,aes(x=gene_mean_D,y=mean_D*100)) + 
+df$density <- get_density(df$gene_mean_express_C, df$mean_meth_C*100, n = 100)
+mean_GbMvsGE_control <- ggplot(df,aes(x=gene_mean_express_C, y=mean_meth_C*100)) + 
     geom_point(aes(color = density)) + ylim(0,100) + 
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="Gene Expression (log2-cpm)",y="DNA Methylation (%)") +
     theme_cowplot()
+
 ## Mean Methylation vs Gene Expression CV (log)
-df$density <- get_density(log(df$gene_cv_S), df$mean_S*100, n = 100)
-meanGbMvsGEcv_shallow <- ggplot(df,aes(log(x=gene_cv_S),y=mean_S*100)) + 
+df$density <- get_density(log(df$gene_cv_express_E), df$mean_meth_E*100, n = 100)
+meanGbMvsGEcv_enriched <- ggplot(df,aes(log(x=gene_cv_express_E),y=mean_meth_E*100)) + 
     geom_point(aes(color = density)) + ylim(0,100) + scale_color_viridis() +
     geom_smooth(method=lm,colour="orange",size=2) +
     labs(x=bquote("Gene Expression"~CV[Ind]~"(log)"),y="DNA Methylation (%)") +
     theme_cowplot()
-df$density <- get_density(log(df$gene_cv_D+0.01), df$mean_D*100, n = 100)
-meanGbMvsGEcv_deep <- ggplot(df,aes(log(x=gene_cv_D+0.01),y=mean_D*100)) + 
+
+df$density <- get_density(log(df$gene_cv_express_C+0.01), df$mean_meth_C*100, n = 100)
+meanGbMvsGEcv_control <- ggplot(df,aes(log(x=gene_cv_express_C+0.01),y=mean_meth_C*100)) + 
     geom_point(aes(color = density)) + ylim(0,100) + scale_color_viridis() +
     geom_smooth(method=lm,colour="orange",size=2) +
     labs(x=bquote("Gene Expression"~CV[Ind]~"(log)"),y="DNA Methylation (%)") +
     theme_cowplot()
-shallow_plots <- plot_grid(mean_GbMvsGE_shallow, meanGbMvsGEcv_shallow, labels=c("A", "B"),ncol=1)
-deep_plots <- plot_grid(mean_GbMvsGE_deep, meanGbMvsGEcv_deep, labels=c("C", "D"),ncol=1)
+
+enriched_plots <- plot_grid(mean_GbMvsGE_enriched, meanGbMvsGEcv_enriched, labels=c("A", "B"),ncol=1)
+control_plots <- plot_grid(mean_GbMvsGE_control, meanGbMvsGEcv_control, labels=c("C", "D"),ncol=1)
+
 ### Figure 5 ###
 fig <- plot_grid(shallow_plots, deep_plots)
 #ggsave(fig5,filename="results/figures/Figure5/Figure5.pdf")
@@ -294,15 +299,18 @@ Differential methylation/gene expression correlation
 ```{r}
 # prepare DMGs to filter DM/GE data
 DMG <- read.delim("../WGBS/output/Table_S1_DMG_annot.tsv", sep = "\t")
+
 #keep only gene_id, scaffold, start and end
 DMG<- DMG[, c(1,7:9)]
 colnames(DMG) <- c("gene_id","scaffold","start","stop")
 DMG$label <- paste0(DMG$scaffold,"_",DMG$start,"_",DMG$stop)
+
 #Subset DM/GE dataset
 mat_red <- subset(mat,select=c("gene_id","diff_Trt","gene_diff_Trt","gene_cv_S","gene_cv_D"))
 mat_red[,2] <- mat_red[,2]*100 
 DMG_join <- left_join(DMG,mat_red,by="gene_id")
 DMG_join <- DMG_join[complete.cases(DMG_join),] #eliminate genes for which no GE data is available
+
 #Create a diff_cv variable for all contrasts 
 DMG_join$diff.cv <- c(DMG_join$gene_cv_S-DMG_join$gene_cv_D)
 DMG_join$methylDirection <- ifelse(DMG_join$diff_Trt < 0,
@@ -336,6 +344,7 @@ ggsave(fig,filename="output/DMG_GE_correlation.png", height = 4, width = 9)
 ## Statistical Model ##
 # DMG Methylation diff vs. Mean diff Gene Expression
 (dmg_ge <- summary(lm(DMG_join$gene_diff_Trt~DMG_join$diff_Trt)))
+
 # DMG Methylation diff vs. CV diff Gene Expression
 (dmg_cv <- summary(lm(DMG_join$diff.cv~DMG_join$diff_Trt)))
 plot(lm(DMG_join$gene_diff_Trt~DMG_join$diff_Trt))
