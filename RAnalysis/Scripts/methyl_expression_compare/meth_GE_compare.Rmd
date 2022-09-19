@@ -91,6 +91,7 @@ saveRDS(dge_gene, "RAnalysis/Data/GE_meth_compare/RNA_gene_preNormalization_DGEL
 # Read in gene methylation data
 gene_dnam <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
 
+
 #rename sample.ID to include corresponding E and C in front for enriched and control for later analysis
 gene_dnam <- gene_dnam %>%
     mutate(Sample.ID = recode(Sample.ID, '1' = 'E1', '3' = 'E3', '4' = 'E4', '5' = 'E5', '6' = 'E6', '7' = 'E7', '8' = 'E8', '9' = 'E9','10' = 'E10', '11' = 'E11', '12' = 'E12','13' = 'E13', '14' = 'E14', '15' = 'E15', '16' = 'E16', '17' = 'C17', '18' = 'C18', '20' = 'C20', '21' = 'C21', '22' = 'C22', '23' = 'C23', '24' = 'C24', '25' = 'C25', '26' = 'C26', '27' = 'C27', '28' = 'C28', '29' = 'C29', '30' = 'C30', '31' = 'C31', '32' = 'C32'))
@@ -112,7 +113,8 @@ rownames(meth) <- meth$gene
 meth <- meth[,-1]
 meth <- as.matrix(meth)
 meth <- meth/100
-saveRDS(m, "RAnalysis/Data/GE_meth_compare/meth_dataset.RData")
+saveRDS(meth, "RAnalysis/Data/GE_meth_compare/meth_dataset.RData")
+
 ## Create a summary of methylation for each gene ##
 mean_meth <- rowMeans(meth)
 
@@ -154,12 +156,12 @@ diff_Trt_meth <- mean_meth_E-mean_meth_C
 
 # Creat matrix of all CpG summary stats
 meth_summary <- cbind(mean_meth,mean_meth_E,mean_meth_C,cv_meth_E,cv_meth_C,cv_mean_AmongTrt_meth,
-                      diff_Trt) # bind all data frames with summary stats
+                      diff_Trt_meth) # bind all data frames with summary stats
 meth_summary[is.na(meth_summary)]<-0 #filter for all methylation data over 0
 meth_summary <- data.frame(gene_id = rownames(meth_summary),meth_summary) #change gene ID column name
 meth_annot <- left_join(cpg10xgene, meth_summary) #join Cpg and meth summary
-meth_annot$label <- paste0(meth_annot$chr,"_",meth_annot$start,"_",meth_annot$stop)
-meth_reduce <- data.frame(label=meth_annot$label,meth_annot[,1:9])
+#meth_annot$label <- paste0(meth_annot$chr,"_",meth_annot$start,"_",meth_annot$stop)
+#meth_reduce <- data.frame(label=meth_annot$label,meth_annot[,1:9])
 
 
 #### Summarize the gene expression data ####
@@ -177,63 +179,79 @@ mean_express <- rowMeans(expression)
 # mean gene expression enriched 
 subset_express_E <- expression[, colnames(expression)%in%list_E] #subset data from main m matrix for just enriched data
 
-mean_express_E <- rowMeans(subset_express_E)
+mean_express_E <- rowMeans(subset_express_E) #take mean per gene ID
 
 # Mean gene expression control
-subset_C <- expression[, colnames(expression)%in%list_C] #subset data from main m matrix for just control data
+subset_express_C <- expression[, colnames(expression)%in%list_C] #subset data from main m matrix for just control data
 
-mean_C <- rowMeans(subset_C)
+mean_express_C <- rowMeans(subset_express_C) #take mean per gene ID
 
 # Coefficient of Variation for enriched gene expression
-sd_E <- rowSds(subset_E)
-cv_E <- sd_E/mean_E
+sd_express_E <- rowSds(subset_express_E)
+cv_express_E <- sd_express_E/mean_express_E
 
 # Coefficient of Variation for control gene expression
-sd_C <- rowSds(subset_C)
-cv_C <- sd_C/mean_C
+sd_express_C <- rowSds(subset_express_C)
+cv_express_C <- sd_express_C/mean_express_C
 
 # Coefficient of Variation among treatments
-meanAmongTrt <- cbind(mean_E,mean_C)
-sd_meanAmongTrt <- rowSds(meanAmongTrt)
-mean_meanAmongTrt <- rowMeans(meanAmongTrt)
-cv_mean_AmongTrt <- sd_meanAmongTrt/mean_meanAmongTrt
+meanAmongTrt_express <- cbind(mean_express_E,mean_express_C)
+sd_meanAmongTrt_express <- rowSds(meanAmongTrt_express)
+mean_meanAmongTrt_express <- rowMeans(meanAmongTrt_express)
+cv_mean_AmongTrt_express <- sd_meanAmongTrt_express/mean_meanAmongTrt_express
+
 # Difference in gene expression between Trt
-diff_Trt <- mean_S-mean_D
-# Create matrix of all CpG summary stats
-gene_summary <- cbind(mean,mean_S,mean_D,cv_S,cv_D,cv_mean_AmongTrt,
-                      diff_Trt)
+diff_Trt_express <- mean_express_E-mean_express_C
+
+# Create matrix of all gene expression summary stats
+gene_summary <- cbind(mean_express,mean_express_E,mean_express_C,cv_express_E,cv_express_C,cv_mean_AmongTrt_express,
+                      diff_Trt_express)
 gene_summary[is.na(gene_summary)]<-0
 colnames(gene_summary) <- paste0("gene_",colnames(gene_summary))
-gene_summary <- data.frame(iso = rownames(gene_summary),gene_summary)
-# transcriptomic data is based on iso and I need seq ids
-iso2seq <- read.table("../TagSeq/data/ACER_Transcriptome(Libro_etal_2013)/a.cervicornis_Libro etal 2013_annot_Matz/acer_seq2iso.tab", header = F, sep = "\t")
-colnames(iso2seq) <- c("gene_id", "iso")
-gene_annot <- left_join(gene_summary,iso2seq)
-gene_annot <- left_join(gene_annot, ref)
-gene_annot$label <- paste0(gene_annot$chr,"_",gene_annot$start,"_",gene_annot$stop)
-gene_reduce <- data.frame(label=gene_annot$label,gene_annot[,c(9,2:8)])
+gene_summary <- data.frame(gene_id = rownames(gene_summary),gene_summary)
+
+# transcriptomic data
+transcriptomic <- read.csv("RAnalysis/Genome/GFF3.csv") #load annotation GFF3 file
+
+#remove first three columns in data frame
+transcriptomic <- transcriptomic[,-(1:3),drop=FALSE]
+transcriptomic <- transcriptomic[,-(4:6),drop=FALSE]
+
+#add gene between Pver_g to match gene_summary
+transcriptomic$gene_id <-  gsub("Pver_g","Pver_gene_g", transcriptomic$gene_id)
+
+gene_annot <- left_join(gene_summary, transcriptomic)
+#gene_annot <- left_join(gene_annot, ref)
+#gene_annot$label <- paste0(gene_annot$chr,"_",gene_annot$start,"_",gene_annot$stop)
+#gene_reduce <- data.frame(label=gene_annot$label,gene_annot[,c(9,2:8)])
+gene_annot <- gene_annot[,-(9:13),drop=FALSE]
+
 # Combine gene expression, exon count and CpG (DNA mehtylation data)
-gSum <- left_join(meth_reduce, gene_reduce)
+gSum <- left_join(meth_annot, gene_annot)
+
 # Reducing the data.frame to include places were we have all the data.
 gSum_red<-gSum[!is.na(gSum$cov5_count),]
-gSum_red<-gSum_red[!is.na(gSum_red$gene_mean),]
+gSum_red<-gSum_red[!is.na(gSum_red$gene_mean_express),]
+
 # Saving reduced data.frame
-saveRDS(gSum,"data/Multi_geneSummaryComplete.RData")
+saveRDS(gSum,"RAnalysis/Data/GE_meth_compare/Multi_geneSummaryComplete.RData")
+
 # Saving the reduced data.frame
-saveRDS(gSum_red,"data/Multi_geneSummaryReduced.RData")
+saveRDS(gSum_red,"RAnalysis/Data/GE_meth_compare/Multi_geneSummaryReduced.RData")
 ```
 
 ```{r}
-mat <- readRDS("data/Multi_geneSummaryReduced.RData")
+mat <- readRDS("RAnalysis/Data/GE_meth_compare/Multi_geneSummaryReduced.RData")
 ## Mean Methylation vs Gene Expression
 df <- mat
-df$density <- get_density(df$gene_mean_S, df$mean_S*100, n = 100)
-mean_GbMvsGE_shallow <- ggplot(df,aes(x=gene_mean_S,y=mean_S*100)) + 
+df$density <- get_density(df$gene_mean_express_E, df$mean_meth_E*100, n = 100)
+mean_GbMvsGE_enriched <- ggplot(df,aes(x=gene_mean_express_E,y=mean_meth_E*100)) + 
     geom_point(aes(color = density)) + ylim(0,100) + 
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="Gene Expression (log2-cpm)",y="DNA Methylation (%)") +
     theme_cowplot()
+
 df$density <- get_density(df$gene_mean_D, df$mean_D*100, n = 100)
 mean_GbMvsGE_deep <- ggplot(df,aes(x=gene_mean_D,y=mean_D*100)) + 
     geom_point(aes(color = density)) + ylim(0,100) + 
