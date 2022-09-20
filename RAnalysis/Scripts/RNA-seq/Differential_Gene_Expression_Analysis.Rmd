@@ -126,7 +126,7 @@ gvst <- vst(gdds, blind=FALSE) #apply a variance stabilizing transformation to m
 #### Heatmap of sample to sample distances
 ```{r}
 # Using vst object, plot heat-map of sample-to-sample distances
-sampleDists <- dist(t(assay(vst))) # calculate distance matrix
+sampleDists <- dist(t(assay(gvst))) # calculate distance matrix
 sampleDistMatrix <- as.matrix(sampleDists) # create distance matrix
 rownames(sampleDistMatrix) <- colnames(vst) # assign row names
 colnames(sampleDistMatrix) <- NULL # assign col names 
@@ -279,10 +279,10 @@ write.csv(counts(DEGSeq2_list), file="RAnalysis/Output/RNA-seq/DEG/DEGSeq2_list_
 ## Run to calculate the DEGs, and upregulated vs. downregulated genes
 ```{r}
 length(unique(DEGSeq2.sig.results$gene_id)) # 213 unique DEGs
-poc_down <- DEGSeq2.sig.results %>% filter(log2FoldChange < 0) 
-length(unique(poc_down$gene_id)) # 147 unique DEGs downregulated
-poc_up <- DEGSeq2.sig.results %>% filter(log2FoldChange > 0)
-length(unique(poc_up$gene_id)) # 66 unique DEGs upregulated
+down <- DEGSeq2.sig.results %>% filter(log2FoldChange < 0) 
+length(unique(down$gene_id)) # 147 unique DEGs downregulated
+up <- DEGSeq2.sig.results %>% filter(log2FoldChange > 0)
+length(unique(up$gene_id)) # 66 unique DEGs upregulated
 ```
 
 

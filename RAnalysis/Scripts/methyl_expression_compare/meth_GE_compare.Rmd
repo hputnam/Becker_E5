@@ -89,7 +89,7 @@ saveRDS(dge_gene, "RAnalysis/Data/GE_meth_compare/RNA_gene_preNormalization_DGEL
 
 #SAMPLES E2, E16, AND C19 WERE EXCLUDED DUE TO DEDUPLICATION AND LOW COUNTS
 # Read in gene methylation data
-gene_dnam <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
+gene_dnam <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_5x.Rdata") #read in info
 
 
 #rename sample.ID to include corresponding E and C in front for enriched and control for later analysis
@@ -105,10 +105,11 @@ meth <- data.frame (gene_dnam %>%
                    group_by(Sample.ID, gene) %>%
                    summarise(mean = mean(per.meth), n = n()) %>%
                    spread(., key = Sample.ID, value = mean))
+
 #filter for a min 3 Cpg per gene
 meth <- meth[which(meth$n > 2),]
 cpg10xgene <- meth[,1:2]  
-colnames(cpg10xgene) <- c("gene_id", "cov5_count")
+colnames(cpg10xgene) <- c("gene_id", "cov10_count")
 rownames(meth) <- meth$gene
 meth <- meth[,-1]
 meth <- as.matrix(meth)
@@ -230,7 +231,7 @@ gene_annot <- gene_annot[,-(9:13),drop=FALSE]
 gSum <- left_join(meth_annot, gene_annot)
 
 # Reducing the data.frame to include places were we have all the data.
-gSum_red<-gSum[!is.na(gSum$cov5_count),]
+gSum_red<-gSum[!is.na(gSum$cov10_count),]
 gSum_red<-gSum_red[!is.na(gSum_red$gene_mean_express),]
 
 # Saving reduced data.frame
@@ -250,8 +251,10 @@ df <- mat
 df$log_gene_C <- log(df$gene_mean_express_C+1)
 df$per_meth_C <- df$mean_meth_C * 100
 
+df$density <- get_density(df$gene_mean_express_C, df$mean_meth_C*100, n = 100)
+
 ggplot(df,aes(x=per_meth_C,y=log_gene_C)) + 
-    geom_point() + ylim(0,2) + 
+    geom_point(aes(colour = density)) + ylim(0,2) + 
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +

@@ -91,24 +91,44 @@ DEG.res$gene_id <-  gsub("_gene","",DEG.res$gene_id) #remove extra characters
 colnames(DEG.res)[7] <-"gene_id" # make colnames a true column called gene_id
 head(DEG.res)
 
+#make upreg and downreg data frames
+DOWNREG  <- DEG.res %>% filter(log2FoldChange < 0) 
+UPREG  <- DEG.res %>% filter(log2FoldChange > 0) 
+
 ```
 
 # Set ID and gene length vectors, and make a binary matrix indicating which genes are differentially expressed. These are used as input to nullp, which for calculates a Probability Weighting Function for each set of DEGs.
 #Build GOSEQ vector 
 #GOseq requires a vector of all genes, all differentially expressed genes, and gene lengths
 ```{r}
-#Make ID and length vectors
+#Make ID and length vectors for all genes, UPREG and DOWNREG
 
+#all genes
 DEG <- GFF3[GFF3$gene_id %in% DEG.res$gene_id, ]
 dim(DEG) # 213 x 10
 DEG_names <- as.vector(DEG$gene_id)
 gene_vector <- as.integer(GFF3$gene_id%in%DEG_names)
 names(gene_vector) <- GFF3$gene_id
 
+#UPREG
+DEG.up <- GFF3[GFF3$gene_id %in% UPREG$gene_id, ]
+dim(DEG.up) # 66 x 10
+DEG_names.up <- as.vector(DEG.up$gene_id)
+gene_vector.up <- as.integer(GFF3$gene_id%in%DEG_names.up)
+names(gene_vector.up) <- GFF3$gene_id
+
+
+#DOWNREG
+DEG.down <- GFF3[GFF3$gene_id %in% DOWNREG$gene_id, ]
+dim(DEG.down) # 147 x 10
+DEG_names.down <- as.vector(DEG.down$gene_id)
+gene_vector.down <- as.integer(GFF3$gene_id%in%DEG_names.down)
+names(gene_vector.down) <- GFF3$gene_id
+
 # Make ID vector 
 IDvector <- GFF3$gene_id
 
-# Make length vector
+# Make length vector 
 lengthVector <- GFF3$length
 
 ```
@@ -116,6 +136,8 @@ lengthVector <- GFF3$length
 #Calculate Probability Weighting Function
 ```{r}
 pwf<-nullp(gene_vector, ID.vector, bias.data=lengthVector) #weight vector by length of gene
+pwf.up<-nullp(gene_vector.up, ID.vector, bias.data=lengthVector) #weight vector by length of gene for upreg
+pwf.down<-nullp(gene_vector.down, ID.vector, bias.data=lengthVector) #weight vector by length of gene for downreg
 ```
 
 
@@ -145,25 +167,25 @@ head(annot_GO)
 
 ## Find enriched GO terms, "selection-unbiased testing for category enrichment amongst differentially expressed (DE) genes for RNA-seq data"
 ```{r}
-### Perform GOseq
+### Perform GOseq for all, upreg and down reg
 ## Perform GOseq
 # Find enriched GO terms, "selection-unbiased testing for category enrichment amongst differentially expressed (DE) genes for RNA-seq data"
-# should I include this: test.cats=c("GO:CC", "GO:BP", "GO:MF") ?
+
 GO.wall<-goseq(pwf, ID_vector, gene2cat=annot_GO, method="Wallenius", use_genes_without_cat=TRUE)
+GO.wall.up<-goseq(pwf.up, ID_vector, gene2cat=annot_GO, method="Wallenius", use_genes_without_cat=TRUE)
+GO.wall.down<-goseq(pwf.down, ID_vector, gene2cat=annot_GO, method="Wallenius", use_genes_without_cat=TRUE)
+
 # Using manually entered categories.
 # Calculating the p-values...
 # 'select()' returned 1:1 mapping between keys and columns
 write.csv(GO.wall, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_GO_ALL.csv")
+write.csv(GO.wall.up, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_GO_UPREG.csv")
+write.csv(GO.wall.down, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_GO_DOWNREG.csv")
 
-# Check GO.wall df
-class(GO.wall)
-head(GO.wall)
-tail(GO.wall)
-nrow(GO.wall)
 
-# Find significantly enriched GO terms 
-enriched.GO.05.a<-GO.wall$category[GO.wall$over_represented_pvalue<.05]
-enriched.GO.05<-data.frame(enriched.GO.05.a)
+# Find significantly enriched GO terms in all genes
+enriched.GO.05 <-GO.wall$category[GO.wall$over_represented_pvalue<.05]
+enriched.GO.05 <-data.frame(enriched.GO.05.a)
 colnames(enriched.GO.05) <- c("category")
 enriched.GO.05 <- merge(enriched.GO.05, GO.wall, by="category")
 enriched.GO.05 <- enriched.GO.05[order(-enriched.GO.05$numDEInCat),]
@@ -224,6 +246,8 @@ MFplot <- MF %>% mutate(term = fct_reorder(term, numDEInCat)) %>%
         axis.line = element_line(colour = "black"), #Set axes color
         plot.background=element_blank())#Set the plot background
 MFplot
+
+
 CCplot <- CC %>% mutate(term = fct_reorder(term, numDEInCat)) %>%
   ggplot( aes(x=term, y=numDEInCat) ) +
   geom_segment( aes(x=term ,xend=term, y=0, yend=numDEInCat), color="grey") +
@@ -247,6 +271,7 @@ CCplot <- CC %>% mutate(term = fct_reorder(term, numDEInCat)) %>%
         axis.line = element_line(colour = "black"), #Set axes color
         plot.background=element_blank())#Set the plot background
 CCplot 
+
 BPplot <- BP %>% mutate(term = fct_reorder(term, numDEInCat)) %>%
   ggplot( aes(x=term, y=numDEInCat) ) +
   geom_segment( aes(x=term ,xend=term, y=0, yend=numDEInCat), color="grey") +
@@ -269,8 +294,10 @@ BPplot <- BP %>% mutate(term = fct_reorder(term, numDEInCat)) %>%
         axis.line = element_line(colour = "black"), #Set axes color
         plot.background=element_blank())#Set the plot background
 BPplot # lots of BP, hard to see. Could subset df and plot by BP dfs
+
 # Save MF, CC, and BP plot in grid layout
 GOplot <- grid.arrange(MFplot, BPplot, ncol=3, clip="off")
+
 ggsave("RAnalysis/Output/Final_Figures/pver_GOplot_05_FullAnnot.pdf", GOplot, width = 21, height = 21, units = c("in"))
 ```
 
@@ -298,7 +325,9 @@ GOplot2 <- enriched.GO.05 %>% drop_na(ontology) %>% mutate(term = fct_reorder(te
         axis.line = element_line(colour = "black"), #Set axes color
         plot.background=element_blank()) #Set the plot background #set title attributes
 GOplot2
+
 ggsave("RAnalysis/Output/Final_Figures/pver_GOplot2_05.pdf", GOplot2, width = 28, height = 28, units = c("in"))
+
 # Combining into one plot and order by pvalue 
 GOplot_pvalue <- enriched.GO.05 %>% drop_na(ontology) %>% mutate(term = fct_reorder(term, over_represented_pvalue)) %>%
   mutate(term = fct_reorder(term, ontology)) %>%
@@ -322,6 +351,7 @@ GOplot_pvalue <- enriched.GO.05 %>% drop_na(ontology) %>% mutate(term = fct_reor
         axis.line = element_line(colour = "black"), #Set axes color
         plot.background=element_blank()) #Set the plot background #set title attributes
 GOplot_pvalue
+
 ggsave("RAnalysis/Output/Final_Figures/pver_GOplot_pvalue_05_FullAnnot.pdf", GOplot_pvalue, width = 28, height = 28, units = c("in"))
 ```
 
@@ -444,6 +474,7 @@ MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %
       axis.text = element_text(size = 14), legend.title = element_text(size = 20), legend.text =     
       element_text(size = 20))
 fig5 <- BPplot + MFplot
+
 ggsave("RAnalysis/Output/Final_Figures/GO_enrichment_DEG_heatmap.pdf", fig5, width = 30, height = 30, units = c("in"))
 ```
 
@@ -494,13 +525,18 @@ length(unique(MF_slim$slim_term)) #12
 CC_slim <- GO.enrichment.summary %>%
   filter(ontology=="CC")
 view(CC_slim)
-#number of BP go slim terms
+
+#number of CC go slim terms
 length(unique(CC_slim$slim_term)) #4
 
 
 ```
 
+# Make plots of upregulated and downregulated DEGs
+```{r}
 
+
+```
 
 
 
