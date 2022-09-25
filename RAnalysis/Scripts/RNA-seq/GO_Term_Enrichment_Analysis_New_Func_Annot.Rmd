@@ -1,9 +1,11 @@
 ---
 title: "GO_Term_Enrichment_Analysis"
 author: "daniellembecker"
-edited by: "daniellembecker"
 date: "9/20/2021"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
+edited by: daniellembecker
 ---
 
 # Molecular Underpinnings Chronic Nutrient Enrichment Project
@@ -185,7 +187,7 @@ write.csv(GO.wall.down, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_GO_DOWNREG.c
 
 # Find significantly enriched GO terms in all genes
 enriched.GO.05 <-GO.wall$category[GO.wall$over_represented_pvalue<.05]
-enriched.GO.05 <-data.frame(enriched.GO.05.a)
+enriched.GO.05 <-data.frame(enriched.GO.05)
 colnames(enriched.GO.05) <- c("category")
 enriched.GO.05 <- merge(enriched.GO.05, GO.wall, by="category")
 enriched.GO.05 <- enriched.GO.05[order(-enriched.GO.05$numDEInCat),]
@@ -475,7 +477,7 @@ MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %
       element_text(size = 20))
 fig5 <- BPplot + MFplot
 
-ggsave("RAnalysis/Output/Final_Figures/GO_enrichment_DEG_heatmap.pdf", fig5, width = 30, height = 30, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/GO_enrichment_DEG_heatmap.pdf", fig5, width = 30, height = 40, units = c("in"))
 ```
 
 ## Make supplemental table summarizing GO enrichment
@@ -532,8 +534,88 @@ length(unique(CC_slim$slim_term)) #4
 
 ```
 
-# Make plots of upregulated and downregulated DEGs
+# Make terms by p value -log10 plots
 ```{r}
+MF_plot_GO <- GO.MF  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>%
+                  #mutate(term = fct_reorder(term, Day)) %>%
+                  ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
+                  geom_segment( aes(x=term ,xend=term, y=1, yend=-log10(over_represented_pvalue)), color="grey95", size = 3) +
+                  geom_point(size=3, shape = 15, colour = "grey70") +
+                  coord_flip() +
+                  theme(
+                    panel.grid.minor.y = element_blank(),
+                    panel.grid.major.y = element_blank(),
+                    legend.position="bottom"
+                  ) +
+                  xlab("") +
+                  ylab("-Log10 (pvalue)") +
+                  ggtitle("Molecular Function") +
+                  theme_bw() + #Set background color 
+  #facet_wrap(~slim_term) +
+  theme(axis.text.y = element_text(hjust = 1))   +
+                  theme(panel.border = element_blank(), # Set border
+                        panel.grid.major = element_blank(), #Set major gridlines
+                        panel.grid.minor = element_blank(), #Set minor gridlines
+                        axis.line = element_line(colour = "black"), #Set axes color
+                        plot.background=element_blank())  #Set the plot background #set title attributes
+
+MF_plot_GO
+
+ggsave("RAnalysis/Output/Final_Figures/GO.plot.MF.terms.pdf", MF_plot_GO , width = 10, height = 10, units = c("in"))
+
+BP_plot_GO <- GO.BP  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>%
+                  #mutate(term = fct_reorder(term, Day)) %>%
+                  ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
+                  geom_segment( aes(x=term ,xend=term, y=1, yend=-log10(over_represented_pvalue)), color="grey95", size = 3) +
+                  geom_point(size=3, shape = 15, colour = "grey70") +
+                  coord_flip() +
+                  theme(
+                    panel.grid.minor.y = element_blank(),
+                    panel.grid.major.y = element_blank(),
+                    legend.position="bottom"
+                  ) +
+                  xlab("") +
+                  ylab("-Log10 (pvalue)") +
+                  ggtitle("Biological Processes") +
+                  theme_bw() + #Set background color 
+  #facet_wrap(~slim_term) +
+  theme(axis.text.y = element_text(hjust = 1))   +
+                  theme(panel.border = element_blank(), # Set border
+                        panel.grid.major = element_blank(), #Set major gridlines
+                        panel.grid.minor = element_blank(), #Set minor gridlines
+                        axis.line = element_line(colour = "black"), #Set axes color
+                        plot.background=element_blank())  #Set the plot background #set title attributes
+
+BP_plot_GO
+
+ggsave("RAnalysis/Output/Final_Figures/GO.plot.BP.terms.pdf", BP_plot_GO , width = 10, height = 30, units = c("in"))
+
+CC_plot_GO <- GO.CC  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>%
+                  #mutate(term = fct_reorder(term, Day)) %>%
+                  ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
+                  geom_segment( aes(x=term ,xend=term, y=1, yend=-log10(over_represented_pvalue)), color="grey95", size = 3) +
+                  geom_point(size=3, shape = 15, colour = "grey70") +
+                  coord_flip() +
+                  theme(
+                    panel.grid.minor.y = element_blank(),
+                    panel.grid.major.y = element_blank(),
+                    legend.position="bottom"
+                  ) +
+                  xlab("") +
+                  ylab("-Log10 (pvalue)") +
+                  ggtitle("Cellular Components") +
+                  theme_bw() + #Set background color 
+  #facet_wrap(~slim_term) +
+  theme(axis.text.y = element_text(hjust = 1))   +
+                  theme(panel.border = element_blank(), # Set border
+                        panel.grid.major = element_blank(), #Set major gridlines
+                        panel.grid.minor = element_blank(), #Set minor gridlines
+                        axis.line = element_line(colour = "black"), #Set axes color
+                        plot.background=element_blank())  #Set the plot background #set title attributes
+
+CC_plot_GO
+
+ggsave("RAnalysis/Output/Final_Figures/GO.plot.CC.terms.pdf", CC_plot_GO , width = 10, height = 10, units = c("in"))
 
 
 ```
