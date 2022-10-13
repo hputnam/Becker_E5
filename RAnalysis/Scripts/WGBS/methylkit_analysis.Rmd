@@ -1,0 +1,76 @@
+---
+title: "methylkit_analysis"
+author: "daniellembecker"
+date: "2022-10-05"
+output: html_document
+---
+
+## Followed the nfcore/methylseq workflow found here (https://github.com/hputnam/Becker_E5/blob/master/Bioinformatics/Workflows/Becker_WGBS_Workflow.md) to get bismark cytosine reports per sample that can be used for methylkit.
+
+## I used the bismark guide to find out what the cytosine reports contain (https://www.bioinformatics.babraham.ac.uk/projects/bismark/Bismark_User_Guide.pdf). They show chromosome-position-strand-count meth-count unmeth-C context-trinucleotide context. These output files can be found in the CovtoCyto folder in your Andromeda output.
+
+## Using the output from Bismark aligner with methylation information per base to put into methylkit following (https://groups.google.com/g/methylkit_discussion/c/89gjErcOmmU). With pipeline='bismarkCytosineReport', the function expects cytosine report files from Bismark, which have chr,start, strand, number of cytosines (methylated bases) , number of thymines (unmethylated bases),context and trinucletide context format.
+
+## I followed the methylkit vignette below (https://www.bioconductor.org/packages/devel/bioc/vignettes/methylKit/inst/doc/methylKit.html)
+
+## Load libraries
+```{r}
+library(methylKit)
+```
+
+# Reading in the methylation call data from bisulfite sequencing with methRead function. Reading in the data this way will return a methylRawList object which stores methylation information per sample for each covered base. 
+```{r}
+
+file.list=list("RAnalysis/Data/WGBS/methylkit/1.CpG_report.txt", 
+               "RAnalysis/Data/WGBS/methylkit/2.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/3.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/4.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/5.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/6.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/7.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/8.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/9.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/10.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/11.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/12.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/13.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/14.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/15.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/16.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/17.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/18.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/19.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/20.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/21.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/22.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/23.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/24.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/25.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/26.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/27.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/28.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/29.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/30.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/31.CpG_report.txt",
+               "RAnalysis/Data/WGBS/methylkit/32.CpG_report.txt")
+
+
+#treatment, 1-16 enriched, 17-32 control
+#create a methylRawListDB object, which stores the same content as myobj from above
+# For sake of subsequent analysis, file.list, sample.id and treatment option should have the same order. In the following example, files for enriched nutrients have enriched1-16 for treatment vector and as determined by treatment vector they belong to the same group. The control files have sample ids control17-32 and they belong to the same group as indicated by the treatment vector.
+# assembly = a string that defines the genome assembly such as hg18, mm9. this is just a string for book keeping. It can be any string. Although, when using multiple files from the same assembly, this string should be consistent in each object.
+# treatment a vector contatining 0 and 1 denoting which samples are control which samples are test
+#pipeline = name of the alignment pipeline, it can be either "amp", "bismark","bismarkCoverage", "bismarkCytosineReport" or a list (default:'amp'). The methylation text files generated from other pipelines can be read as generic methylation text files by supplying a named list argument as "pipeline" argument. The named list should containt column numbers which denotes which column of the text file corresponds to values and genomic location of the methylation events. See Details for more on possible values for this argument.
+
+myobj = methRead(file.list,
+            sample.id=list("enriched1", "enriched2", "enriched3", "enriched4", "enriched5", "enriched6", "enriched7", "enriched8", "enriched9", "enriched10", "enriched11", "enriched12", "enriched13", "enriched14", "enriched15", "enriched16", "control17", "control18", "control19", "control20", "control21", "control22", "control23", "control24", "control25", "control26", "control27", "control28", "control29", "control30", "control31", "control32"),
+            assembly="hg18",treatment=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), pipeline='bismarkCytosineReport')
+
+
+
+```
+
+
+
+
+
