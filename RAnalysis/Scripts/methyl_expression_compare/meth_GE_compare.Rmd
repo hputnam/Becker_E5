@@ -26,6 +26,7 @@ library(matrixStats)
 library(grid)
 library(gridExtra)
 library(RColorBrewer)
+library(patchwork)
 library(stringr)
 library(tidyverse)
 pal <- brewer.pal(n = 3, name = "PRGn")
@@ -253,24 +254,36 @@ df$per_meth_C <- df$mean_meth_C * 100
 
 df$density <- get_density(df$gene_mean_express_C, df$mean_meth_C*100, n = 100)
 
-ggplot(df,aes(x=per_meth_C,y=log_gene_C)) + 
-    geom_point(aes(colour = density)) + ylim(0,2) + 
+control <- ggplot(df,aes(x=per_meth_C,y=log_gene_C)) + 
+    geom_point() + ylim(0,2) + 
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-    theme_cowplot()
+    theme_cowplot();control
 
 #enriched log gene expression x % methylation
 df$log_gene_E <- log(df$gene_mean_express_E+1)
 df$per_meth_E <- df$mean_meth_E * 100
 
-ggplot(df,aes(x=per_meth_E,y=log_gene_E)) + 
+enriched <- ggplot(df,aes(x=per_meth_E,y=log_gene_E)) + 
     geom_point() + ylim(0,2) + 
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-    theme_cowplot()
+    theme_cowplot();enriched
 
+### Figure Mean Methylation vs Gene Expression###
+
+meth_meanexpress <- control + labs(title = "", subtitle = "Control") + enriched + labs(title = "", subtitle = "Enriched")
+
+meth_meanexpress
+
+ggsave(meth_meanexpress, filename="RAnalysis/Output/Final_Figures/ME_meth_correlation.png", height = 7, width = 15)
+
+
+```
+
+```{r}
 ## Mean Methylation vs Gene Expression following Javi et al
 
 df$density <- get_density(df$gene_mean_express_E, df$mean_meth_E*100, n = 100)
@@ -279,7 +292,7 @@ mean_GbMvsGE_enriched <- ggplot(df,aes(x=gene_mean_express_E,y=mean_meth_E*100))
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="Gene Expression (log2-cpm)",y="DNA Methylation (%)") +
-    theme_cowplot()
+    theme_cowplot();mean_GbMvsGE_enriched
 
 df$density <- get_density(df$gene_mean_express_C, df$mean_meth_C*100, n = 100)
 mean_GbMvsGE_control <- ggplot(df,aes(x=gene_mean_express_C, y=mean_meth_C*100)) + 
@@ -287,7 +300,7 @@ mean_GbMvsGE_control <- ggplot(df,aes(x=gene_mean_express_C, y=mean_meth_C*100))
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="Gene Expression (log2-cpm)",y="DNA Methylation (%)") +
-    theme_cowplot()
+    theme_cowplot();mean_GbMvsGE_control
 
 ## Mean Methylation vs Gene Expression CV (log)
 df$density <- get_density(log(df$gene_cv_express_E), df$mean_meth_E*100, n = 100)
@@ -295,22 +308,22 @@ meanGbMvsGEcv_enriched <- ggplot(df,aes(log(x=gene_cv_express_E),y=mean_meth_E*1
     geom_point(aes(color = density)) + ylim(0,100) + scale_color_viridis() +
     geom_smooth(method=lm,colour="orange",size=2) +
     labs(x=bquote("Gene Expression"~CV[Ind]~"(log)"),y="DNA Methylation (%)") +
-    theme_cowplot()
+    theme_cowplot();meanGbMvsGEcv_enriched
 
 df$density <- get_density(log(df$gene_cv_express_C+1), df$mean_meth_C*100, n = 100)
 meanGbMvsGEcv_control <- ggplot(df,aes(log(x=gene_cv_express_C+1),y=mean_meth_C*100)) + 
     geom_point(aes(color = density)) + ylim(0,100) + scale_color_viridis() +
     geom_smooth(method=lm,colour="orange",size=2) +
     labs(x=bquote("Gene Expression"~CV[Ind]~"(log)"),y="DNA Methylation (%)") +
-    theme_cowplot()
+    theme_cowplot();meanGbMvsGEcv_control
 
 enriched_plots <- plot_grid(mean_GbMvsGE_enriched, meanGbMvsGEcv_enriched, labels=c("A", "B"),ncol=1)
 control_plots <- plot_grid(mean_GbMvsGE_control, meanGbMvsGEcv_control, labels=c("C", "D"),ncol=1)
 
-### Figure 5 ###
-fig <- plot_grid(shallow_plots, deep_plots)
-#ggsave(fig5,filename="results/figures/Figure5/Figure5.pdf")
-ggsave(fig,filename="output/GbM_GE_correlation.png", height = 7, width = 9)
+### Figure Mean Methylation vs Gene Expression###
+fig_GE_meth <- plot_grid(enriched_plots, control_plots)
+ggsave(fig_GE_meth, filename="RAnalysis/Output/Final_Figures/GbM_GE_correlation.png", height = 7, width = 9)
+
 ### Statistics ###
 # Linear model with Mean gene DNA methylation as predictor 
 # and Mean gene expression or CV as response  
@@ -321,6 +334,7 @@ ggsave(fig,filename="output/GbM_GE_correlation.png", height = 7, width = 9)
 # Number of genes included
 length(mat$mean_S)
 ```
+
 
 Differential methylation/gene expression correlation
 
