@@ -29,6 +29,7 @@ library(RColorBrewer)
 library(patchwork)
 library(stringr)
 library(tidyverse)
+library(ggpubr)
 pal <- brewer.pal(n = 3, name = "PRGn")
 ```
 
@@ -254,6 +255,11 @@ df$per_meth_C <- df$mean_meth_C * 100
 
 df$density <- get_density(df$gene_mean_express_C, df$mean_meth_C*100, n = 100)
 
+#correlation for control
+cor.C <- cor.test(df$per_meth_C, df$gene_mean_express_C, 
+                    method = "pearson")
+cor.C
+
 control <- ggplot(df,aes(x=per_meth_C,y=log_gene_C)) + 
     geom_point() + ylim(0,2) + 
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
@@ -261,16 +267,23 @@ control <- ggplot(df,aes(x=per_meth_C,y=log_gene_C)) +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
     theme_cowplot();control
 
+
 #enriched log gene expression x % methylation
 df$log_gene_E <- log(df$gene_mean_express_E+1)
 df$per_meth_E <- df$mean_meth_E * 100
 
-enriched <- ggplot(df,aes(x=per_meth_E,y=log_gene_E)) + 
+#correlation for control
+cor.E <- cor.test(df$per_meth_E, df$gene_mean_express_E, 
+                    method = "pearson")
+cor.E
+
+enriched <- ggplot(df,aes(x=per_meth_E,y=log_gene_E,)) + 
     geom_point() + ylim(0,2) + 
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
     theme_cowplot();enriched
+
 
 ### Figure Mean Methylation vs Gene Expression###
 
