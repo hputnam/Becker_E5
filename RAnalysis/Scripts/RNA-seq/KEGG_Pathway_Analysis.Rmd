@@ -1,0 +1,227 @@
+---
+title: "KEGG_Pathway_Analysis"
+author: "HM Putnam"
+date: "9/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## KEGG enrichment analysis
+## Obtained KEGG ontology terms by using KofamScan in command-line; see step 3 in E. Chille [lab notebook](https://github.com/echille/E.-Chille-Open-Lab-Notebook/blob/master/_posts/2020-10-08-M-capitata-functional-annotation-pipeline.md) for instructions. 
+## If run into issues with downloading KofamScan software, etc.; see https://github.com/Putnam-Lab/Lab_Management/issues/21
+
+# INFORMATION FOR KEGG ENRICHMENT ANALYSIS FOR R FOUND HERE:
+# https://bioinformatics-core-shared-training.github.io/cruk-summer-school-2018/RNASeq2018/html/06_Gene_set_testing.nb.html 
+#http://yulab-smu.top/clusterProfiler-book/chapter6.html#kegg-over-representation-test
+
+
+```{r}
+# LOAD PACKAGES
+
+#need to download clusterProfiler package from devtools because it wasn't compatible with new rstudio version
+#devtools::install_github(c("GuangchuangYu/DOSE", "GuangchuangYu/clusterProfiler"))
+library(clusterProfiler)
+library(KEGGprofile) # BiocManager::install("KEGGprofile")
+library(KEGGREST)
+library(tidyr)
+library(stringr)
+library(forcats)
+library(ggplot2)
+library(scales)
+library(ape)
+library(data.table)
+library(tidyverse)
+library(fBasics)
+```
+
+```{r}
+
+# LOAD DATA
+
+# Pdam_genome_dataframe - what is this? after KEGG enrichment analysis this script with unlist genes within enriched pathways and merge IDs to obtain the gene names 
+#to search KEGG organism list, go to: https://www.genome.jp/kegg/catalog/org_list.html
+#Hollie, I choose Pocillopora damicornis from the Cnidarians section on the genome list, think it is closest we will get
+#Pocillopora damicornis is the closest Cnidarian reference in the kegg enrichment database
+
+Pdam_genome <- keggList("pdam") # call the P. damicornis genome! - notice the pdam terms are rownames!
+Pdam_genome_dataframe <- as.data.frame(Pdam_genome) %>%  rownames_to_column() # with will allow us to merge 
+colnames(Pdam_genome_dataframe) <- c('gene_id') # rename the columns
+
+# load the Pver annotation file to use downstream in KEGG pathway analysis, bringing from output folder because we had to edit all naming information for gene_ID in the GO enrichment script
+#remove first column (x)
+Pver_annot <- read_csv("Functional_Annotation/Final_Annotations/pver_annot_full.csv")[-1]
+Pver_annot$gene_id <-  gsub("\\..*","", Pver_annot$gene_id) #remove extra characters after the first .
+#remove model after novel for novel genes to match gff3
+Pver_annot$gene_id <-  gsub("Pver_novel_model_","Pver_novel_", Pver_annot$gene_id)
+Pver_annot$gene_id <-  gsub("-.*","", Pver_annot$gene_id) #remove the extra g number after the dash
+Pver_annot$gene_id <-  gsub("_gene_g","_g", Pver_annot$gene_id) #sub gene_g with _g
+Pver_annot$gene_id <-  gsub("_gene_","_", Pver_annot$gene_id) #remove extra _
+
+#load GFF3 and edit all naming information for gene_ID to match between data frames
+#remove first column (x)
+GFF3 <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0.gene.gff3", header = FALSE, sep="", skip = 1)
+length(unique(GFF3$V9)) # 27439
+colnames(GFF3) <- c("prot", "Predict", "id", "start","stop", "pos1", "pos2","pos3", "gene_id") #name columns
+GFF3$length <- GFF3$stop - GFF3$start #calculate gene length 
+GFF3$gene_id <-  gsub(";.*","",GFF3$gene_id) #remove extra characters after the first ;
+#There also appears to be the presence of the characters ID= in each row
+GFF3$gene_id <- gsub("ID=","",GFF3$gene_id) #remove ID=
+#There is also an extra "-g#" that can be removed
+GFF3$gene_id <-  gsub("-.*","",GFF3$gene_id) #remove the extra g number after the dash
+#remove the extra "gene" to match the "Pver_gene_g#" format
+GFF3$gene_id <-  gsub("Pver_gene_novel_gene_","Pver_novel_gene_",GFF3$gene_id)
+GFF3$gene_id <-  gsub("Pver_gene_split_gene_g","Pver_split_gene_g",GFF3$gene_id)
+GFF3$gene_id <-  gsub("_gene_g","_g",GFF3$gene_id) #sub gene_g with _g
+GFF3$gene_id <-  gsub("_gene_","_",GFF3$gene_id) #remove extra _
+
+
+#check unmatched gene_id names
+unmatched <- anti_join(GFF3, Pver_annot, by=c("gene_id"))
+
+#remove last _g string after the first _g string
+
+
+#test to make sure gene_id nomenclature still matches between both files
+test <- full_join(GFF3, Pver_annot)
+
+
+
+```
+
+# Load KO -- gene mapping info
+```{r}
+
+#Load in KO term functional annotation and edit to match GFF3 and annotation file
+KFS.KO.orig <- read_tsv("RAnalysis/Genome/KEGG-ontology/Pver_KO_annot.tsv.gz", col_names = TRUE)
+KFS.KO <- KFS.KO.orig[-1,-1] #remove the first row and column because they  contain no data
+KFS.KO <- KFS.KO[, c(1,2,5)] #subset the gene ID, KO term, and evalue
+colnames(KFS.KO) <- c("gene_id", "ko", "eval") #name columns
+Kegg.name <- as.data.frame(unique(KFS.KO$gene_id)) #identify all of the unique gene names
+colnames(Kegg.name) <- c("gene_id") #set column name for consistency across files
+
+#need to apply the same changes from Pver_annot file to the KFS.KO for gene_id
+KFS.KO$gene_id <-  gsub(".t[1-67890900]","", KFS.KO$gene_id) #remove everything after g#
+
+#talk to Hollie about the fact that the gene names in KFS.KO seem to resemble to names for the query ids instead 
+#test KO annotation file with Pver functional annotation file
+test.GFF.KO <- full_join(Pver_annot, KFS.KO, by = "gene_id")
+nrow(test.GFF.KO)
+#still >27439, 1434878
+#gene_id naming now matches in both files
+#there are still only 27,439 unique gene_ids in the dataframe but more than one KEGG term is currently assigned to each gene_id and that is why they are not matching up
+Kegg.name <- as.data.frame(unique(KFS.KO$gene_id)) #identify all of the unique gene names
+colnames(Kegg.name) <- c("gene_id") #set column name for consistency across files
+
+#NEED TO DECIDE KO TERM CUTOFF AND WHY OR WHY NOT TO KEEP MORE THAN ONE PER GENE
+#FILTER FOR EVALUE AS NEEDED
+
+KFS.KO$gene_id <- gsub("Pver_split_", "Pver_", KFS.KO$gene_id)
+KFS.KO$gene_id <- gsub("Pver_", "Pver_gene_", KFS.KO$gene_id)
+KFS.KO$gene_id <-  gsub("_gene_g","_g", KFS.KO$gene_id) #sub gene_g with _g
+KFS.KO$gene_id <-  gsub("_gene_","_", KFS.KO$gene_id) #remove extra _
+head(KFS.KO)
+tail(KFS.KO)
+```
+
+```{r}
+#need list of FDR and log fold change for genes here, that is in the DESeq2 DEG results list
+#loading data for enrichment here
+#DEG significant results
+DEG.sig <- read.csv("RAnalysis/Output/RNA-seq/DEG/DEGSeq2.sig.results.csv")[,-1]
+#how many significant DEGs
+nrow(DEG.sig)
+#add _gene_ to the gene_id name to match other nomenclature
+DEG.sig$gene_id <-  gsub("_g","_gene_g",DEG.sig$gene_id) #add gene to gene_id to match nomenclature 
+```
+
+```{r}
+# DESEq2 results - assign up and downregualted genes!
+#ask Hollie if I want to load all DEGs here or just significant ones
+
+#make new column and dataframe with upregualted or downregulated genes
+DEG.sig$DE_dir[DEG.sig$log2FoldChange > 1] <- "up"
+DEG.sig$DE_dir[DEG.sig$log2FoldChange < 1]<- "down"
+
+```
+
+
+
+
+
+```{r}
+
+#clusterProfiler (Yu et al. 2012). clusterprofiler supports direct online access of the current KEGG database, rather than relying on R annotation packages, it also provides some nice visualisation options.
+
+search_kegg_organism('pdam', by='kegg_code')
+
+#need list of FDR and log fold change for genes here, that is in the DESeq2 DEG results list
+#loading data for enrichment here
+#DEG significant results
+DEG.sig <- read.csv("RAnalysis/Output/RNA-seq/DEG/DEGSeq2.sig.results.csv")[,-1]
+#how many significant DEGs
+nrow(DEG.sig)
+#add _gene_ to the gene_id name to match other nomenclature
+DEG.sig$gene_id <-  gsub("_g","_gene_g",DEG.sig$gene_id) #remove extra characters
+
+#rename columns for FDR and logFC
+#colnames(DEG.sig)[2] <- c("logFC") #rename columns
+#colnames(DEG.sig)[6] <- c("FDR") #rename columns
+#head(DEG.sig)
+
+# #filter significant DEGs for FDR and logFC cutoffs
+# sigGenes <- DEG.sig$gene_id[ DEG.sig$FDR < 0.01 & 
+#                               !is.na(DEG.sig$FDR) &
+#                               abs(DEG.sig$logFC) > 1 ]
+# sigGenes <- na.exclude(sigGenes)
+# kk <- enrichKEGG(gene = sigGenes, organism = 'pdam')
+# head(kk, n=10)
+
+KEGG_vectore_Pver <- as.vector(DEG.sig)
+KEGG_pver <- enrichKEGG(gene = DEG.sig, 
+                            organism  = 'pdam', # 'pdam' is Pocillopora damicornis
+                            pvalueCutoff = 0.05) 
+```
+
+
+# Perform KEGG enrichment with GOSeq package
+```{r}
+#Perform goseq
+KOwall <- goseq(pwf, GOref$gene_id, gene2cat=GOKO.terms, test.cats=c("KEGG"), method="Wallenius", use_genes_without_cat=TRUE)
+
+```
+
+# Replace NAs with "KEGG" and extract KO terms from results
+```{r}
+#Cluster1
+KO.05<-KOwall$category[KOwall$over_represented_pvalue<.05]
+KO.05<-data.frame(KO.05)
+colnames(KO.05) <- c("category")
+KO.05 <- merge(KO.05, KOwall.C1, by="category")
+KO.05$ontology <- replace_na(KO.05$ontology, "KEGG")
+KO.05 <- filter(KO.05, ontology=="KEGG")
+KO.05 <- KO.05[order(KO.05$ontology, KO.05$over_represented_pvalue, -KO.05$numDEInCat),]
+KO.05$term <- as.factor(KO.05$term)
+nrow(KO.05)
+
+```
+
+# Add KO definitions
+```{r}
+#Prep definition data
+KFS.KO.def <- subset(KFS.KO.orig, select=c("#","KO", "KO definition"))
+colnames(KFS.KO.def) <- c("sig","category", "term")
+KFS.KO.def <- filter(KFS.KO.def, sig=="*")
+KFS.KO.def <- KFS.KO.def[,c(2:3)]
+#Merge with KEGG outp
+KO.05 <- unique(left_join(C1.KO.05[,-6], KFS.KO.def, by=c("category")))
+
+```
+
+# Write output KEGG enrichment files
+```{r}
+write.csv(C1.KO.05, file = "RAnalysis/Output/RNA-seq/GOSeq/KO.05.csv")
+
+```

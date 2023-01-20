@@ -1,0 +1,485 @@
+---
+title: "WGBS Markdown"
+author: "daniellembecker"
+date: "3/17/2021"
+output: html_document
+---
+
+# Molecular Underpinnings Chronic Nutrient Enrichment Project
+
+## WGBS Gene Ontology (GO) Enrichment Analysis
+## Previous steps for DNA methylation include WGBS workflow in Bioinformatics>WGBS>WGBS workflow 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Libraries
+
+```{r message = FALSE, warning = FALSE}
+library(plotrix) 
+library(ggplot2)
+library(gridExtra)
+library(seacarb) 
+library(dplyr)
+library(pheatmap)
+library(tidyverse)
+library(genefilter)
+library(cowplot)
+library(lsmeans)
+library(ontologyIndex)
+library(ontologySimilarity)
+library(data.table)
+library(RColorBrewer)
+library(colorRamps)
+library(GSEABase)
+library(here)
+library(lme4)
+library(goseq)
+library(patchwork)
+
+```
+
+#Downloaded all final .bed files for 5x and 10x from bluewaves to desktop: scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*_enrichment.bed /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/WGBS
+
+###Samples 19, 16, and 2 have low data coverage (see WGBS workflow in Bioinformatics>WGBS>WGBS workflow for further information), not moving forward with these samples in statistical steps
+
+Methylation Analysis
+## Loading genomic and annotation
+
+```{r}
+#load sample information
+sample.info <- read.csv("RAnalysis/Data/WGBS/metadata.WGBS.csv", header=T, sep=",", na.string="NA", stringsAsFactors = F) #read in info
+#samp <- sample.info$Sample.ID # set sample info
+#samp <- gsub("[_]", "-", samp) #remove extra characters
+
+#load genes gff 
+Genes <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0.gene.gff3", head = TRUE, sep= " ") #read in data fill
+Genes <- Genes[,c(9,1,4,5)] #select desired columns only
+colnames(Genes) <- c("gene","scaffold", "start", "stop" ) #rename columns
+Genes$gene <- gsub(";.*","",Genes$gene) #remove extra characters
+Genes$gene <- gsub("ID=","",Genes$gene) #remove extra characters
+Genes$length <- Genes$stop-Genes$start # calculated lengths from start and stop
+
+#Load annotation file
+Annot <- read.csv("Functional_Annotation/Final_Annotations/pver_annot_full.csv", row.names = 1)
+colnames(Annot)[1] <- "gene"
+
+#edit gene ID to match GFF3
+Annot$gene <-  gsub("\\..*","",Annot$gene) #remove the all after . "t#" number after the dash
+Annot$gene <-  gsub("_","_gene_",Annot$gene) #add _gene_g#
+
+
+#load all gene GO IDs organized and split
+
+Gene.GO.IDs <- read.csv("Functional_Annotation/Final_Annotations/pver_GOterms_interprot_swissprot_blast_trembl_20211203.csv", row.names = 1)
+colnames(Gene.GO.IDs) <- c("gene", "GO.IDs", "database") #rename columns
+
+#edit gene ID to match GFF3
+Gene.GO.IDs$gene <-  gsub("\\..*","",Gene.GO.IDs$gene) #remove the all after . "t#" number after the dash
+Gene.GO.IDs$gene <-  gsub("_","_gene_",Gene.GO.IDs$gene) #add _gene_g#
+Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
+GO.IDs <-unique(Gene.GO.IDs$GO.IDs) #removes duplicates from columns, compiles both lists to get all GO terms without duplicates
+```
+
+
+#Load filtered methylation counts 5x (see RAnalysis>Data>WGBS for all files)
+```{r}
+# Converge final enrichment .bed files, separate by 5x and 10x coverage
+
+#Merge final .bed files at 5x coverage 
+meth.data.5x <- list.files(path = "RAnalysis/Data/WGBS/5x_coverage/", pattern = ".bed$", full.names=TRUE) %>%
+  set_names(.) %>% 
+  map_dfr(read.csv,.id="Sample.ID", header=FALSE, sep="\t", na.string="NA", stringsAsFactors = FALSE) %>% 
+  dplyr::select(-c(V3,V7:V14)) %>%
+  group_by(Sample.ID)
+colnames(meth.data.5x) <- c("Sample.ID", "scaffold", "position","per.meth","meth","unmeth","gene")
+meth.data.5x$gene <- gsub(";.*","",meth.data.5x$gene) #remove extra characters
+meth.data.5x$gene <- gsub("ID=","",meth.data.5x$gene) #remove extra characters
+meth.data.5x$Sample.ID <- gsub("RAnalysis/Data/WGBS/5x_coverage//","",meth.data.5x$Sample.ID) #remove extra characters
+meth.data.5x$Sample.ID <- gsub("_.*","",meth.data.5x$Sample.ID) #remove extra characters 
+#meth.data.5x$Sample.ID <- gsub("-","_",meth.data.5x$Sample.ID) #remove extra characters
+#meth.data.5x$Sample.ID <- gsub("/","",meth.data.5x$Sample.ID) #remove extra characters (backslash from sample.ID name)
+MD.5x <- merge(meth.data.5x, sample.info, by="Sample.ID") #combine sample info and 5x coverage megafile
+
+#save sample info and percent methylation
+write.csv(MD.5x, "RAnalysis/Output/WGBS/sample_all_methylated_data_5x.csv")
+```
+
+#Load filtered methylation counts 10x 
+```{r}
+#Nyssa-stringr package, nice and clean so you can pipe and not have to rename, etc., use expression that does it all in one line regex 
+#Merge final .bed files at 10x coverage
+meth.data.10x <- list.files(path = "RAnalysis/Data/WGBS/10x_coverage/", pattern = ".bed$", full.names=TRUE) %>%
+  set_names(.) %>% 
+  map_dfr(read.csv,.id="Sample.ID", header=FALSE, sep="\t", na.string="NA", stringsAsFactors = FALSE) %>% 
+  dplyr::select(-c(V3,V7:V14)) %>%
+  group_by(Sample.ID)
+colnames(meth.data.10x) <- c("Sample.ID", "scaffold", "position","per.meth","meth","unmeth","gene")
+meth.data.10x$gene <- gsub(";.*","",meth.data.10x$gene) #remove extra characters
+meth.data.10x$gene <- gsub("ID=","",meth.data.10x$gene) #remove extra characters
+meth.data.10x$Sample.ID <- gsub("RAnalysis/Data/WGBS/10x_coverage//","",meth.data.10x$Sample.ID) #remove extra characters
+meth.data.10x$Sample.ID <- gsub("_.*","",meth.data.10x$Sample.ID) #remove extra characters 
+#meth.data.10x$Sample.ID <- gsub("-","_",meth.data.10x$Sample.ID) #remove extra characters
+#meth.data.10x$Sample.ID <- gsub("/","",meth.data.10x$Sample.ID) #remove extra characters (backslash from sample.ID name)
+MD.10x <- merge(meth.data.10x,sample.info, by="Sample.ID") #combine sample info and 10x coverage megafile
+
+#save sample info and percent methylation
+write.csv(MD.10x, "RAnalysis/Output/WGBS/sample_all_methylated_data_10x.csv")
+```
+
+# Testing for Differentially Methylated Genes at 5X coverage
+```{r}
+# Comparison of enriched vs control nutrient treatments
+# At 5x coverage
+# Binomial GLM to test for differentially methylated genes
+sub_meth_table.5x  <- MD.5x
+sub_meth_table.5x$group <- paste0(sub_meth_table.5x$Sample.ID, sub_meth_table.5x$gene)
+
+#filter for genes with >5 methylated positions
+min.filt.5x <- count(sub_meth_table.5x, vars = c( group))
+newdata.5x <- min.filt.5x[ which(min.filt.5x$n > 4), ]
+sub_meth_table.5x <- sub_meth_table.5x[sub_meth_table.5x$group %in% newdata.5x$vars,]
+
+# create data frame to stored results
+results.5x <- data.frame()
+gs.5x <- unique(sub_meth_table.5x$gene)
+
+
+#first subset the unique dataframes and second run the GLMs
+#purr package function called map, much cleaner for for loops (how to loop over a model in the tidyverse, can have a tidy output for your anova) computational time is faster with purr and it is cleaner
+for(i in 1:length(sub_meth_table.5x$gene)){
+  
+  #subset the dataframe gene by gene
+  sub_meth_table.5x1 <- subset(sub_meth_table.5x, gene ==gs.5x[i])
+  
+  # fit glm position model
+  #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table. 
+  fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment, 
+             data=sub_meth_table.5x1, family=binomial)
+  a <- anova(fit, test="Chisq")
+  
+  # capture summary stats to data frame
+  df <- data.frame(gene = sub_meth_table.5x1[1,7],
+                   pval.treatment = a$`Pr(>Chi)`[2],
+                   #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
+                   #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
+                   stringsAsFactors = F)
+  
+  # bind rows of temporary data frame to the results data frame
+  results.5x <- rbind(results.5x, df)
+  
+}
+
+
+write.csv(results.5x, "RAnalysis/Output/WGBS/meth.results.5x.csv")
+
+ # An error will be generated here for contrasts. 
+#This potential for contrasts (interactions) is included in the case one wants to examine the role of position of CpG within a gene
+#Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
+#Continuing the analysis from results line will generate the results in the absence of the contrast (interaction).
+
+results.5x <- read.csv("RAnalysis/Output/WGBS/meth.results.5x.csv", row.names = 1)
+
+results.5x[is.na(results.5x)] <- 0
+results.5x$adj.pval.treatment <- p.adjust(results.5x$pval.treatment, method='BH') #BH is a less conservative Benjamini & Hochberg (1995) correction in which p-values are multiplied by the number of comparisons
+
+#results$adj.pval.position <- p.adjust(results$pval.position, method='BH') #uncomment if you want to include position of CpG within a gene
+#result $adj.pval.treatment_x_position <- p.adjust(results$pval.treatment_x_position, method='BH') #uncomment if you want to include position of CpG within a gene interaction with treatment
+
+# Identifying DMG with significant main effect 
+DMG.sig.5x <-results.5x
+DMG.sig.5x <- DMG.sig.5x[order(DMG.sig.5x$adj.pval.treatment),]
+DMG.sig.5x <- DMG.sig.5x[which(DMG.sig.5x$adj.pval.treatment<0.05), ]
+sum(DMG.sig.5x$adj.pval.treatment < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
+
+#1019
+
+# Annotation of DMG under between treatments 
+DMG.sig.annot.5x <- left_join(DMG.sig.5x , Annot)
+write.table(DMG.sig.annot.5x, 'RAnalysis/Output/WGBS/Treatment_sig_annot.5x.tsv', sep='\t', row.names=FALSE)
+
+#Sanity check plotting of DMGs by treatment
+subdf <- MD.5x %>%	
+  filter(gene== DMG.sig.annot.5x$gene[1])
+means <- aggregate(per.meth ~ treatment, data=subdf, FUN=mean)
+ses <- aggregate(per.meth ~ treatment, data=subdf, FUN=std.error)
+means$ses <- ses$per.meth
+means$per.meth <- means$per.meth * 100
+ggplot(means, aes(x=treatment, y=per.meth)) +
+  geom_bar(stat="identity", color="black",
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin=per.meth-ses, ymax=per.meth+ses), width=.2,
+                  position=position_dodge(.9)) +
+    xlab("Treatment") + #plot x axis label
+    ylab("Percent Methylation") + #plot y axis label
+    #ylim(0,100)+ #set y limits to 0 and 100%
+    theme_bw()
+
+ggsave("RAnalysis/Output/WGBS/per.meth.5x.pdf")
+
+```
+
+# Testing for Differentially Methylated Genes at 10X coverage
+```{r}
+# Comparison of enriched vs control nutrient treatments
+# At 10x coverage
+# Binomial GLM to test for differentially methylated genes
+sub_meth_table.10x  <- MD.10x
+sub_meth_table.10x$group <- paste0(sub_meth_table.10x$Sample.ID, sub_meth_table.10x$gene)
+
+#filter for genes with >5 methylated positions
+min.filt.10x <- count(sub_meth_table.10x, vars = c( group))
+newdata.10x <- min.filt.10x[ which(min.filt.10x$n > 4), ]
+sub_meth_table.10x <- sub_meth_table.10x[sub_meth_table.10x$group %in% newdata.10x$vars,]
+
+# create data frame to stored results
+results.10x <- data.frame()
+gs.10x <- unique(sub_meth_table.10x$gene)
+
+
+#first subset the unique dataframes and second run the GLMs
+#purr package function called map, much cleaner for for loops (how to loop over a model in the tidyverse, can have a tidy output for your anova) computational time is faster with purr and it is cleaner
+for(i in 1:length(sub_meth_table.10x$gene)){
+  
+  #subset the dataframe gene by gene
+  sub_meth_table.10x1 <- subset(sub_meth_table.10x, gene ==gs.10x[i])
+  
+  # fit glm position model
+  #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table. 
+  fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment, 
+             data=sub_meth_table.10x1, family=binomial)
+  a <- anova(fit, test="Chisq")
+  
+  # capture summary stats to data frame
+  df <- data.frame(gene = sub_meth_table.10x1[1,7],
+                   pval.treatment = a$`Pr(>Chi)`[2],
+                   #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
+                   #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
+                   stringsAsFactors = F)
+  
+  # bind rows of temporary data frame to the results data frame
+  results.10x <- rbind(results.10x, df)
+  
+}
+
+write.csv(results.10x, "RAnalysis/Output/WGBS/meth.results.10x.csv")
+
+ # An error will be generated here for contrasts. 
+#This potential for contrasts (interactions) is included in the case one wants to examine the role of position of CpG within a gene
+#Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
+#Continuing the analysis from results line will generate the results in the absence of the contrast (interaction).
+
+results.10x <- read.csv("RAnalysis/Output/WGBS/meth.results.10x.csv", row.names = 1)
+
+results.10x[is.na(results.10x)] <- 0
+results.10x$adj.pval.treatment <- p.adjust(results.10x$pval.treatment, method='BH') #BH is a less conservative Benjamini & Hochberg (1995) correction in which p-values are multiplied by the number of comparisons
+
+#results$adj.pval.position <- p.adjust(results$pval.position, method='BH') #uncomment if you want to include position of CpG within a gene
+#result $adj.pval.treatment_x_position <- p.adjust(results$pval.treatment_x_position, method='BH') #uncomment if you want to include position of CpG within a gene interaction with treatment
+
+# Identifying DMG with significant main effect 
+DMG.sig.10x <-results.10x
+DMG.sig.10x <- DMG.sig.10x[order(DMG.sig.10x$adj.pval.treatment),]
+DMG.sig.10x <- DMG.sig.10x[which(DMG.sig.10x$adj.pval.treatment<0.05), ]
+sum(DMG.sig.10x$adj.pval.treatment < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
+
+#368
+
+# Annotation of DMG under between treatments 
+DMG.sig.annot.10x <- left_join(DMG.sig.10x , Annot, by="gene")
+#DMG.sig.annot <- DMG.sig.annot[!duplicated(DMG.sig.annot$gene),]
+write.table(DMG.sig.annot.10x, 'RAnalysis/Output/WGBS/Treatment_sig_annot.10x.tsv', sep='\t', row.names=FALSE)
+
+#Sanity check plotting of DMGs by treatment
+subdf <- MD.10x %>%	
+  filter(gene== DMG.sig.annot.10x$gene[2])
+means <- aggregate(per.meth ~ treatment, data=subdf, FUN=mean)
+ses <- aggregate(per.meth ~ treatment, data=subdf, FUN=std.error)
+means$ses <- ses$per.meth
+means$per.meth <- means$per.meth * 100
+ggplot(means, aes(x=treatment, y=per.meth)) +
+  geom_bar(stat="identity", color="black",
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin=per.meth-ses, ymax=per.meth+ses), width=.2,
+                  position=position_dodge(.9)) +
+    xlab("Treatment") + #plot x axis label
+    ylab("Percent Methylation") + #plot y axis label
+    #ylim(0,100)+ #set y limits to 0 and 100%
+    theme_bw()
+
+ggsave("RAnalysis/Output/WGBS/per.meth.10x.pdf")
+
+```
+
+## 10x GO enrichment
+```{r}
+# GO Enrichment Analysis of Treatment for 10x data
+##### GO enrichment of DMGs #####
+
+DMG.trt <- as.character(DMG.sig.10x$gene) #set the enrichment test list
+
+#change to vectors
+ALL.vector <-c(t(Genes$gene))
+DMG.vector <-c(t(DMG.trt))
+ID.vector <- Genes$gene
+LENGTH.vector <-Genes$length
+
+#DMG.trt.vector <-c(t(DMG.trt)) #change to vectors
+gene.vector=as.integer(ALL.vector%in%DMG.vector) #Construct new vector with 1 for DEG and 0 for others
+names(gene.vector)=ALL.vector #set names
+DMG.pwf<-nullp(gene.vector, ID.vector, bias.data=LENGTH.vector) #weight vector by length of gene
+
+#Find enriched GO terms, 
+GO.wall<-goseq(DMG.pwf, ID.vector, gene2cat=Gene.GO.IDs, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
+
+GO.sig.trt <- GO.wall %>%
+  filter(over_represented_pvalue <0.05) %>%
+  arrange(., ontology)
+write.csv(GO.sig.trt , file = "RAnalysis/Output/WGBS/GO.sig.trt.10x.csv")
+
+#GO.sig.trt$term <- as.factor(GO.sig.trt$term)
+GO.sig.trt[is.na(GO.sig.trt)] <- "UN"
+
+nrow(GO.sig.trt) #118
+nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms (75)
+nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms (37)
+nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms (6)
+
+#check any missing GO terms manually and add as needed
+which(GO.sig.trt$ontology=="UN")
+
+GO.sig.trt[117,6] <- "innate immune response-activating signal transduction"
+GO.sig.trt[117,7] <- "BP"
+
+GO.sig.trt[118,6] <- "cell-cell adherens junction"
+GO.sig.trt[118,7] <- "CC"
+
+```
+
+## Find GOslim terms
+## This is where you put GO terms to larger umbrella terms
+
+# Run GOslim to get broader categories
+```{r}
+#load in generic GO database, has all of the upperlevel categories for GO terms. Ex: regulation of cell division would be under cellular regulation
+slim <- getOBOCollection("http://current.geneontology.org/ontology/subsets/goslim_generic.obo") #get GO database
+
+## filtering all of BP (do MF and CC seperately)
+BP_GO <- GO.sig.trt %>%
+  filter(ontology=="BP")
+BPGO_collection <- GOCollection(BP_GO$category) #Make library of query terms
+slims_bp <- data.frame(goSlim(BPGO_collection, slim, "BP")) #Find common parent terms to slim down our list
+slims_bp$category <- row.names(slims_bp) #save rownames as category
+
+## filtering all of MF
+MF_GO <- GO.sig.trt %>%
+  filter(ontology=="MF")
+MFGO_collection <- GOCollection(MF_GO$category) #Make library of query terms
+slims_mf <- data.frame(goSlim(MFGO_collection, slim, "MF")) #Find common parent terms to slim down our list
+slims_mf$category <- row.names(slims_mf) #save rownames as category
+
+## filtering all of CC
+CC_GO <- GO.sig.trt %>%
+  filter(ontology=="CC")
+CCGO_collection <- GOCollection(CC_GO$category) #Make library of query terms
+slims_cc <- data.frame(goSlim(CCGO_collection, slim, "CC")) #Find common parent terms to slim down our list
+slims_cc$category <- row.names(slims_cc) #save rownames as category
+```
+
+# Get mapped terms, using functions from Sam White's Biostars [post](https://support.bioconductor.org/p/128407/#128409).
+```{r}
+#custom function from Sam White's, gets mapped ids for all of your query terms 
+#Write function mappedIds to get the query terms that mapped to the slim categories
+mappedIds <-
+  function(df, collection, OFFSPRING) #the command to run requires a dataframe of slim terms, like slims_MF above, your list of query terms, and the offspring from the GOCollection by goSlim
+  {
+    map <- as.list(OFFSPRING[rownames(df)]) # Subset GOcollection offspring by the rownames of your dataframe
+    mapped <- lapply(map, intersect, ids(collection)) #Find the terms that intersect between the subset made above of your query terms and the GOids from the GO collection
+    df[["go_terms"]] <- vapply(unname(mapped), paste, collapse = ";", character(1L)) #Add column "go_terms" with matching terms 
+    df #show resulting dataframe
+  }
+#Run function for MF and BP terms
+BPslim <- mappedIds(slims_bp, BPGO_collection, GOBPOFFSPRING)
+MFslim <- mappedIds(slims_mf, MFGO_collection, GOMFOFFSPRING)
+CCslim <- mappedIds(slims_cc, CCGO_collection, GOCCOFFSPRING)
+```
+
+# Remove duplicate matches, keeping the broader umbrella term
+```{r}
+#filtering out duplicates, keep the largest branch that has the most GO terms
+
+#BP
+BPslim <- filter(BPslim, Count>0 & Term!="biological_process") #filter out empty slims and term "biological process"
+BPsplitted <- strsplit(as.character(BPslim$go_terms), ";") #split into multiple GO ids
+BPslimX <- data.frame(Term = rep.int(BPslim$Term, sapply(BPsplitted, length)), go_term = unlist(BPsplitted)) #list all
+BPslimX <- merge(BPslimX, BPslim[,c(1,3:4)], by="Term") #Add back counts, term, and category info
+BPslimX <- unique(setDT(BPslimX)[order(go_term, -Count)], by = "go_term") #remove duplicate offspring terms, keeping only those that appear in the larger umbrella term (larger Count number)
+BPslim <- data.frame(slim_term=BPslimX$Term, slim_cat=BPslimX$category, category=BPslimX$go_term) #rename columns
+head(BPslim)
+
+#MF
+MFslim <- filter(MFslim, Count>0 & Term!="molecular_function") #filter out empty slims and term "molecular function"
+MFsplitted <- strsplit(as.character(MFslim$go_terms), ";") #split into multiple GO ids
+MFslimX <- data.frame(Term = rep.int(MFslim$Term, sapply(MFsplitted, length)), go_term = unlist(MFsplitted)) #list all
+MFslimX <- merge(MFslimX, MFslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
+MFslimX <- unique(setDT(MFslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
+MFslim <- data.frame(slim_term=MFslimX$Term, slim_cat=MFslimX$category, category=MFslimX$go_term) #rename columns
+head(MFslim)
+
+#CC
+CCslim <- filter(CCslim, Count>0 & Term!="cellular_component") #filter out empty slims and term "molecular function"
+CCsplitted <- strsplit(as.character(CCslim$go_terms), ";") #split into multiple GO ids
+CCslimX <- data.frame(Term = rep.int(CCslim$Term, sapply(CCsplitted, length)), go_term = unlist(CCsplitted)) #list all
+CCslimX <- merge(CCslimX, CCslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
+CCslimX <- unique(setDT(CCslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
+CCslim <- data.frame(slim_term=CCslimX$Term, slim_cat=CCslimX$category, category=CCslimX$go_term) #rename columns
+head(CCslim)
+
+```
+
+# Save slim info with GO enrichment info for heatmap dataframes.
+```{r}
+GO.BP <- right_join(BPslim, filter(GO.sig.trt, ontology=="BP"), by="category") #add back GO enrichment info for each offspring term
+GO.MF <- right_join(MFslim, filter(GO.sig.trt, ontology=="MF"), by="category") #add back GO enrichment info for each offspring term
+GO.CC <- right_join(CCslim, filter(GO.sig.trt, ontology=="CC"), by="category") #add back GO enrichment info for each offspring term
+```
+
+
+## Make heatmap
+```{r}
+BPplot <- GO.BP %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
+      strip.text.x = element_text(size = 12, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =     
+      element_text(size = 11))
+MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>% 
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
+      strip.text.x = element_text(size = 12, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =
+      element_text(size = 11))
+fig5 <- BPplot + MFplot
+ggsave("RAnalysis/Output/WGBS/DMG_heatmap_GO_terms.10x.pdf", fig5, width = 20, height = 20, units = c("in"))
+
+```
+
+## Make supplemental table summarizing GO enrichment
+```{r}
+GO.enrichment.summary.table <- bind_rows(GO.BP, GO.MF, GO.CC)
+head(GO.enrichment.summary.table)
+write.csv(GO.enrichment.summary.table, 'RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv') 
+```

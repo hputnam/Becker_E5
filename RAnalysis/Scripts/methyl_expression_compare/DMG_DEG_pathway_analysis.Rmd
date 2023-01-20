@@ -1,0 +1,74 @@
+---
+title: "DEG_DMG_pathway_analysis"
+author: "daniellembecker"
+date: "2023-01-20"
+output: html_document
+---
+
+
+# Molecular Underpinnings Chronic Nutrient Enrichment Project
+
+## Analysis of comparisons between gene ontology enrichment from differentially methylated genes and differentially expressed genes.
+## Previous steps for gene expression include RNAseq workflow in Bioinformatics>RNAseq>RNAseq workflow and Differential Gene Expression statistical analysis in RAnalysis>Scripts>RNAseq_Differential_Gene_Expression to make DEG statistical data sheet
+## Previous steps for DNA methylation include WGBS workflow in Bioinformatics>WGBS>WGBS workflow and Differential Methylated Genes statistical analysis in RAnalysis>Scripts>WGBS_WGBS.rmd to make DMG statistical dataframe
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load libraries
+library("DESeq2")
+library("tidyverse")
+library("dplyr")
+library("pheatmap")
+library("RColorBrewer")
+library("genefilter")
+library("ggplot2")
+library("gplots")
+library("limma")
+library("spdep") 
+library("patchwork")
+library("adegenet") 
+library("goseq")
+library("gridExtra")
+library("clusterProfiler")
+library("DataCombine")
+library("VennDiagram")
+library("GSEABase")
+library("data.table")
+```
+
+# Import the data files 
+
+```{r}
+#upload go enrichment summary for DEGs
+DEG <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.summary.table.DEG.csv", header = TRUE)
+
+#upload go enrichment summary for DMGs
+DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv", header = TRUE)
+
+#add ciolumn to specific type of measure
+DMG <- DMG %>% add_column(type = "DMG.GO.terms")
+
+```
+
+#make Venn Diagram of overlapping GOslim terms for DMG and DEG comparison
+
+```{r}
+venn.plot <- venn.diagram(
+  x = list(DEG = DEG$term, DMG = DMG$term),
+  filename = 'RAnalysis/Output/meth_express_compare/venn_diagram.png',
+  col = "black",
+	fill = c("dodgerblue", "goldenrod1"),
+	cat.col = c("dodgerblue", "goldenrod1"),
+)
+
+```
+
+
+
+
+
+
+
+
+
