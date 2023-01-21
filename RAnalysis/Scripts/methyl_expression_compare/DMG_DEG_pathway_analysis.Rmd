@@ -16,10 +16,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 # Load libraries
-library("DESeq2")
 library("tidyverse")
 library("dplyr")
-library("pheatmap")
 library("RColorBrewer")
 library("genefilter")
 library("ggplot2")
@@ -41,12 +39,12 @@ library("data.table")
 
 ```{r}
 #upload go enrichment summary for DEGs
-DEG <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.summary.table.DEG.csv", header = TRUE)
+DEG <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.summary.table.DEG.csv", header = TRUE, row.names = 1)
 
 #upload go enrichment summary for DMGs
-DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv", header = TRUE)
+DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.5x.csv", header = TRUE, row.names = 1)
 
-#add ciolumn to specific type of measure
+#add column to specific type of measure
 DMG <- DMG %>% add_column(type = "DMG.GO.terms")
 
 ```
@@ -57,11 +55,12 @@ DMG <- DMG %>% add_column(type = "DMG.GO.terms")
 venn.plot <- venn.diagram(
   x = list(DEG = DEG$term, DMG = DMG$term),
   filename = 'RAnalysis/Output/meth_express_compare/venn_diagram.png',
+  category.names = c('DEG GO terms', 'DMG GO terms'),
   col = "black",
+  alpha = c(0.5, 0.5), cex = 1,
 	fill = c("dodgerblue", "goldenrod1"),
 	cat.col = c("dodgerblue", "goldenrod1"),
 )
-
 ```
 
 

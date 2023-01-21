@@ -483,3 +483,181 @@ GO.enrichment.summary.table <- bind_rows(GO.BP, GO.MF, GO.CC)
 head(GO.enrichment.summary.table)
 write.csv(GO.enrichment.summary.table, 'RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv') 
 ```
+
+######
+
+## 5x GO enrichment
+```{r}
+# GO Enrichment Analysis of Treatment for 5x data
+##### GO enrichment of DMGs #####
+
+DMG.trt <- as.character(DMG.sig.5x$gene) #set the enrichment test list
+
+#change to vectors
+ALL.vector <-c(t(Genes$gene))
+DMG.vector <-c(t(DMG.trt))
+ID.vector <- Genes$gene
+LENGTH.vector <-Genes$length
+
+#DMG.trt.vector <-c(t(DMG.trt)) #change to vectors
+gene.vector=as.integer(ALL.vector%in%DMG.vector) #Construct new vector with 1 for DEG and 0 for others
+names(gene.vector)=ALL.vector #set names
+DMG.pwf<-nullp(gene.vector, ID.vector, bias.data=LENGTH.vector) #weight vector by length of gene
+
+#Find enriched GO terms, 
+GO.wall<-goseq(DMG.pwf, ID.vector, gene2cat=Gene.GO.IDs, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
+
+GO.sig.trt <- GO.wall %>%
+  filter(over_represented_pvalue <0.05) %>%
+  arrange(., ontology)
+write.csv(GO.sig.trt , file = "RAnalysis/Output/WGBS/GO.sig.trt.5x.csv")
+
+#GO.sig.trt$term <- as.factor(GO.sig.trt$term)
+GO.sig.trt[is.na(GO.sig.trt)] <- "UN"
+
+nrow(GO.sig.trt) #261
+nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms (164)
+nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms (67)
+nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms (28)
+
+#check any missing GO terms manually and add as needed
+which(GO.sig.trt$ontology=="UN")
+
+GO.sig.trt[260,6] <- "obsolete nucleotide phosphatase activity, acting on free nucleotides"
+GO.sig.trt[260,7] <- "MF"
+
+GO.sig.trt[261,6] <- "obsolete C-terminal protein-tyrosinylation"
+GO.sig.trt[261,7] <- "BP"
+
+```
+
+## Find GOslim terms
+## This is where you put GO terms to larger umbrella terms
+
+# Run GOslim to get broader categories
+```{r}
+#load in generic GO database, has all of the upperlevel categories for GO terms. Ex: regulation of cell division would be under cellular regulation
+slim <- getOBOCollection("http://current.geneontology.org/ontology/subsets/goslim_generic.obo") #get GO database
+
+## filtering all of BP (do MF and CC seperately)
+BP_GO <- GO.sig.trt %>%
+  filter(ontology=="BP")
+BPGO_collection <- GOCollection(BP_GO$category) #Make library of query terms
+slims_bp <- data.frame(goSlim(BPGO_collection, slim, "BP")) #Find common parent terms to slim down our list
+slims_bp$category <- row.names(slims_bp) #save rownames as category
+
+## filtering all of MF
+MF_GO <- GO.sig.trt %>%
+  filter(ontology=="MF")
+MFGO_collection <- GOCollection(MF_GO$category) #Make library of query terms
+slims_mf <- data.frame(goSlim(MFGO_collection, slim, "MF")) #Find common parent terms to slim down our list
+slims_mf$category <- row.names(slims_mf) #save rownames as category
+
+## filtering all of CC
+CC_GO <- GO.sig.trt %>%
+  filter(ontology=="CC")
+CCGO_collection <- GOCollection(CC_GO$category) #Make library of query terms
+slims_cc <- data.frame(goSlim(CCGO_collection, slim, "CC")) #Find common parent terms to slim down our list
+slims_cc$category <- row.names(slims_cc) #save rownames as category
+```
+
+# Get mapped terms, using functions from Sam White's Biostars [post](https://support.bioconductor.org/p/128407/#128409).
+```{r}
+#custom function from Sam White's, gets mapped ids for all of your query terms 
+#Write function mappedIds to get the query terms that mapped to the slim categories
+mappedIds <-
+  function(df, collection, OFFSPRING) #the command to run requires a dataframe of slim terms, like slims_MF above, your list of query terms, and the offspring from the GOCollection by goSlim
+  {
+    map <- as.list(OFFSPRING[rownames(df)]) # Subset GOcollection offspring by the rownames of your dataframe
+    mapped <- lapply(map, intersect, ids(collection)) #Find the terms that intersect between the subset made above of your query terms and the GOids from the GO collection
+    df[["go_terms"]] <- vapply(unname(mapped), paste, collapse = ";", character(1L)) #Add column "go_terms" with matching terms 
+    df #show resulting dataframe
+  }
+#Run function for MF and BP terms
+BPslim <- mappedIds(slims_bp, BPGO_collection, GOBPOFFSPRING)
+MFslim <- mappedIds(slims_mf, MFGO_collection, GOMFOFFSPRING)
+CCslim <- mappedIds(slims_cc, CCGO_collection, GOCCOFFSPRING)
+```
+
+# Remove duplicate matches, keeping the broader umbrella term
+```{r}
+#filtering out duplicates, keep the largest branch that has the most GO terms
+
+#BP
+BPslim <- filter(BPslim, Count>0 & Term!="biological_process") #filter out empty slims and term "biological process"
+BPsplitted <- strsplit(as.character(BPslim$go_terms), ";") #split into multiple GO ids
+BPslimX <- data.frame(Term = rep.int(BPslim$Term, sapply(BPsplitted, length)), go_term = unlist(BPsplitted)) #list all
+BPslimX <- merge(BPslimX, BPslim[,c(1,3:4)], by="Term") #Add back counts, term, and category info
+BPslimX <- unique(setDT(BPslimX)[order(go_term, -Count)], by = "go_term") #remove duplicate offspring terms, keeping only those that appear in the larger umbrella term (larger Count number)
+BPslim <- data.frame(slim_term=BPslimX$Term, slim_cat=BPslimX$category, category=BPslimX$go_term) #rename columns
+head(BPslim)
+
+#MF
+MFslim <- filter(MFslim, Count>0 & Term!="molecular_function") #filter out empty slims and term "molecular function"
+MFsplitted <- strsplit(as.character(MFslim$go_terms), ";") #split into multiple GO ids
+MFslimX <- data.frame(Term = rep.int(MFslim$Term, sapply(MFsplitted, length)), go_term = unlist(MFsplitted)) #list all
+MFslimX <- merge(MFslimX, MFslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
+MFslimX <- unique(setDT(MFslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
+MFslim <- data.frame(slim_term=MFslimX$Term, slim_cat=MFslimX$category, category=MFslimX$go_term) #rename columns
+head(MFslim)
+
+#CC
+CCslim <- filter(CCslim, Count>0 & Term!="cellular_component") #filter out empty slims and term "molecular function"
+CCsplitted <- strsplit(as.character(CCslim$go_terms), ";") #split into multiple GO ids
+CCslimX <- data.frame(Term = rep.int(CCslim$Term, sapply(CCsplitted, length)), go_term = unlist(CCsplitted)) #list all
+CCslimX <- merge(CCslimX, CCslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
+CCslimX <- unique(setDT(CCslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
+CCslim <- data.frame(slim_term=CCslimX$Term, slim_cat=CCslimX$category, category=CCslimX$go_term) #rename columns
+head(CCslim)
+
+```
+
+# Save slim info with GO enrichment info for heatmap dataframes.
+```{r}
+GO.BP <- right_join(BPslim, filter(GO.sig.trt, ontology=="BP"), by="category") #add back GO enrichment info for each offspring term
+GO.MF <- right_join(MFslim, filter(GO.sig.trt, ontology=="MF"), by="category") #add back GO enrichment info for each offspring term
+GO.CC <- right_join(CCslim, filter(GO.sig.trt, ontology=="CC"), by="category") #add back GO enrichment info for each offspring term
+```
+
+
+## Make heatmap
+```{r}
+BPplot <- GO.BP %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
+      strip.text.x = element_text(size = 12, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =     
+      element_text(size = 11))
+MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>% 
+    ggplot(aes(x = ontology, y = term)) + 
+    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
+      scale_y_discrete(position = "right") +
+      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
+      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
+      strip.text.x = element_text(size = 12, face = "bold"),
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =
+      element_text(size = 11))
+fig5 <- BPplot + MFplot
+ggsave("RAnalysis/Output/WGBS/DMG_heatmap_GO_terms.5x.pdf", fig5, width = 20, height = 20, units = c("in"))
+
+```
+
+## Make supplemental table summarizing GO enrichment
+```{r}
+GO.enrichment.summary.table <- bind_rows(GO.BP, GO.MF, GO.CC)
+head(GO.enrichment.summary.table)
+write.csv(GO.enrichment.summary.table, 'RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.5x.csv') 
+```
+
+
+
+
