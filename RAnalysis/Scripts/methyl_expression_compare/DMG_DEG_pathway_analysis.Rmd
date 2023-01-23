@@ -19,20 +19,12 @@ knitr::opts_chunk$set(echo = TRUE)
 library("tidyverse")
 library("dplyr")
 library("RColorBrewer")
-library("genefilter")
 library("ggplot2")
 library("gplots")
-library("limma")
 library("spdep") 
 library("patchwork")
-library("adegenet") 
-library("goseq")
-library("gridExtra")
-library("clusterProfiler")
-library("DataCombine")
 library("VennDiagram")
-library("GSEABase")
-library("data.table")
+library("arsenal")
 ```
 
 # Import the data files 
@@ -41,8 +33,10 @@ library("data.table")
 #upload go enrichment summary for DEGs
 DEG <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.summary.table.DEG.csv", header = TRUE, row.names = 1)
 
+#DEG <- read.csv("RAnalysis/Output/GOenrichmentsummary.csv", header = TRUE)
+
 #upload go enrichment summary for DMGs
-DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.5x.csv", header = TRUE, row.names = 1)
+DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv", header = TRUE, row.names = 1)
 
 #add column to specific type of measure
 DMG <- DMG %>% add_column(type = "DMG.GO.terms")
@@ -57,10 +51,38 @@ venn.plot <- venn.diagram(
   filename = 'RAnalysis/Output/meth_express_compare/venn_diagram.png',
   category.names = c('DEG GO terms', 'DMG GO terms'),
   col = "black",
-  alpha = c(0.5, 0.5), cex = 1,
 	fill = c("dodgerblue", "goldenrod1"),
 	cat.col = c("dodgerblue", "goldenrod1"),
 )
+```
+
+#subset data sets to see alike terms
+
+```{r}
+#compare these datasets, simply pass them to the comparedf() function
+comparedf(DMG, DEG)
+
+#Use summary() to get a more detailed summary
+
+summary(comparedf(DEG, DMG, by = "term"))
+
+#these examples show unshared characteristics but don't list the actual shared terms
+```
+
+```{r}
+#use dplyr inner_join instead
+
+common <- intersect(DMG$term, DEG$term) 
+
+common <- as.data.frame(common)
+
+#found three common terms for DMG and DEG
+
+#leukocyte migration involved in inflammatory response (parent term immune system response)
+
+#positive regulation of transcription from RNA polymerase II promoter in response to heat stress (DNA-templated transcription; response to stress)
+
+#fatty acid derivative biosynthetic process (lipid metabolic process)
 ```
 
 
