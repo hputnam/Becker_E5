@@ -181,9 +181,20 @@ write.csv(annot_GO, file = "RAnalysis/Output/RNA-seq/GOSeq/GO.terms.csv")
 # Find enriched GO terms, "selection-unbiased testing for category enrichment amongst differentially expressed (DE) genes for RNA-seq data"
 
 GO.wall<-goseq(pwf, IDvector, gene2cat=annot_GO, method="Wallenius", use_genes_without_cat=TRUE)
+
+#adjust p-values 
+    GO.wall$bh_adjust <-  p.adjust(GO.wall$over_represented_pvalue, method="BH") 
+    
 GO.wall.up<-goseq(pwf.up, IDvector, gene2cat=annot_GO, method="Wallenius", use_genes_without_cat=TRUE)
+
+#adjust p-values 
+    GO.wall.up$bh_adjust <-  p.adjust(GO.wall.up$over_represented_pvalue, method="BH") 
+    
 GO.wall.down<-goseq(pwf.down, IDvector, gene2cat=annot_GO, method="Wallenius", use_genes_without_cat=TRUE)
 
+#adjust p-values 
+    GO.wall.down$bh_adjust <-  p.adjust(GO.wall.down$over_represented_pvalue, method="BH") 
+    
 # Using manually entered categories.
 # Calculating the p-values...
 # 'select()' returned 1:1 mapping between keys and columns
@@ -500,7 +511,7 @@ GOgenes$gene_id <- as.character(GOgenes$gene_id) #make gene ID a character so we
 GO.enrichment.summary  <- left_join(GO.enrichment.dat, GOgenes, by="category" ) #join the DFs
 
 GO.enrichment.summary <- GO.enrichment.summary %>% #collapse and have gene IDs for a particular term in a single row as a comma-sep list. 
-  group_by(slim_term, slim_cat, category, over_represented_pvalue, under_represented_pvalue, numDEInCat, numInCat, term, ontology) %>%
+  group_by(slim_term, slim_cat, category, over_represented_pvalue, under_represented_pvalue, numDEInCat, numInCat, term, ontology, bh_adjust) %>%
   summarise(genes = toString(gene_id)) %>% #rename collapsed gene_ID column "gene"
   ungroup()
 
@@ -630,6 +641,38 @@ facet_grid(slim_term ~ ., scales = "free", space= "free", shrink=TRUE, labeller 
  ggsave("RAnalysis/Output/Final_Figures/GO.plot.CC.terms.pdf", CC_plot_GO , width = 10, height = 10, units = c("in"))
 
 ```
+
+#trying different approach to heatmaps using Ariana approach
+```{r}
+GO.plot.BP <-  ggplot(GO.BP, aes(x = ontology, y = term)) + 
+    geom_point(aes(size=numInCat, fill= -log10(over_represented_pvalue), colour=-log10(over_represented_pvalue))) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,500))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 6, multi_line = TRUE))+
+    xlab("Ontology")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.1),
+          axis.title.y = element_blank())
+
+ggsave(filename=paste0("RAnalysis/Output/RNA-seq/GOSeq/test.BP.plot.png"), plot=GO.plot.BP, dpi=300, width=13, height=18, units="in")
+
+```
+
+
+
+
 
 #######################################################################################
 

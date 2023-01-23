@@ -16,16 +16,22 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 # Load libraries
+
 library("tidyverse")
-library("dplyr")
 library("RColorBrewer")
-library("ggplot2")
-library("gplots")
-library("spdep") 
-library("patchwork")
-library("VennDiagram")
-library("arsenal")
+library("gridExtra")
+library("ComplexHeatmap")
+library("dplyr")
+library("clusterProfiler")
+library("pheatmap")
+library("magrittr")
+library("rtracklayer")
+library("GenomicRanges")
 library("GSEABase")
+library("GOSim")
+library("stats")
+library("GO.db")
+library("rrvgo")
 ```
 
 # Import the data files 
@@ -34,11 +40,20 @@ library("GSEABase")
 #upload go enrichment summary for DEGs
 DEG <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.summary.table.DEG.csv", header = TRUE, row.names = 1)
 
+#rename category to GOterm
+colnames(DEG)[3] ="GOterm" #rename columns
+
 #upload go enrichment summary for DMGs
 DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv", header = TRUE, row.names = 1)
 
+#rename category to GOterm
+colnames(DMG)[3] ="GOterm" #rename columns
+
 #add column to specific type of measure
 DMG <- DMG %>% add_column(type = "DMG.GO.terms")
+
+#adjust p-values 
+    DMG$bh_adjust <-  p.adjust(DMG$over_represented_pvalue, method="BH") 
 
 ```
 
@@ -56,14 +71,13 @@ venn.plot <- venn.diagram(
 ```
 
 #subset data sets to see alike terms
-
 ```{r}
 #compare these datasets, simply pass them to the comparedf() function
-comparedf(DMG, DEG)
+#comparedf(DMG, DEG)
 
 #Use summary() to get a more detailed summary
 
-summary(comparedf(DEG, DMG, by = "term"))
+#summary(comparedf(DEG, DMG, by = "term"))
 
 #these examples show unshared characteristics but don't list the actual shared terms
 ```
@@ -95,10 +109,79 @@ DMG.NA <- DMG %>%
 DEG.NA <- DEG %>%
   filter(is.na(slim_term))
 ```
-#use goslim to find slim terms for Go ids
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#use rrvgo to condense to parent go terms
+https://www.bioconductor.org/packages/devel/bioc/vignettes/rrvgo/inst/doc/rrvgo.html
 ```{r}
+#Process DMG go terms
+#need to load organismal database you wish to use, search databases here: http://bioconductor.org/packages/release/BiocViews.html#___OrgDb
+#code: if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager") BiocManager::install("org.Ce.eg.db")
 
 
+    DMG<-DMG%>%
+      filter(ontology==ontology)%>%
+      filter(bh_adjust != "NA") %>%
+      arrange(., bh_adjust)
+    
+    #Reduce/collapse GO term set with the rrvgo package 
+      simMatrix <- calculateSimMatrix(DMG$GOterm,
+                                orgdb="org.Ce.eg.db", #c. elegans database
+                                ont=category,
+                                method="Rel")
+    #claculate similarity 
+    scores <- setNames(-log(DMG$bh_adjust), DMG$GOterm)
+    reducedTerms <- reduceSimMatrix(simMatrix,
+                                scores,
+                                threshold=0.7,
+                                orgdb="org.Ce.eg.db")
+    
+    
+    #keep only the goterms from the reduced list
+    DMG<-DMG%>%
+      filter(GOterm %in% reducedTerms$go)
+    
+    #add in parent terms to list of go terms 
+    DMG$ParentTerm<-reducedTerms$parentTerm[match(DMG$GOterm, reducedTerms$go)]
+    #DMG<-DMG%>%
+      #filter(grepl(paste(keywords, collapse="|"), ParentTerm))
+
+      
+    #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  GO.plot <-  ggplot(DMG, aes(x = ontology, y = term)) + 
+    geom_point(aes(size=bh_adjust)) + 
+    facet_wrap(~ pattern) +
+    scale_size(name="Over rep. p-value", trans="reverse")+
+    facet_grid(ParentTerm ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 8, multi_line = TRUE))+
+    theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+    strip.text.y = element_text(angle=0, size = 10),
+    strip.text.x = element_text(size = 20),
+    axis.text = element_text(size = 8),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank())
+
+ggsave("RAnalysis/Output/Final_Figures/DMG.reduced.parent.plot.png", GO.plot , width = 10, height = 30, units = c("in"))
 
 ```
 
