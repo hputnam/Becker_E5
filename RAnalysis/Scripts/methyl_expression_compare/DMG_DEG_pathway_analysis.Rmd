@@ -25,6 +25,7 @@ library("spdep")
 library("patchwork")
 library("VennDiagram")
 library("arsenal")
+library("GSEABase")
 ```
 
 # Import the data files 
@@ -32,8 +33,6 @@ library("arsenal")
 ```{r}
 #upload go enrichment summary for DEGs
 DEG <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.summary.table.DEG.csv", header = TRUE, row.names = 1)
-
-#DEG <- read.csv("RAnalysis/Output/GOenrichmentsummary.csv", header = TRUE)
 
 #upload go enrichment summary for DMGs
 DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv", header = TRUE, row.names = 1)
@@ -83,7 +82,28 @@ common <- as.data.frame(common)
 #positive regulation of transcription from RNA polymerase II promoter in response to heat stress (DNA-templated transcription; response to stress)
 
 #fatty acid derivative biosynthetic process (lipid metabolic process)
+
+#main question is why 10x terms have three overlapping but 5x does not
 ```
+
+#next steps, fill in remaining parent terms for the NAs in these data sets and see the overlap there
+#filter datas sets with NAs for their slim terms
+```{r}
+DMG.NA <- DMG %>%
+  filter(is.na(slim_term))
+
+DEG.NA <- DEG %>%
+  filter(is.na(slim_term))
+```
+#use goslim to find slim terms for Go ids
+```{r}
+
+
+
+```
+
+
+
 
 
 
