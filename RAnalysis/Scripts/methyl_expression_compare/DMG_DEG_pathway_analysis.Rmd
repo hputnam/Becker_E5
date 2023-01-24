@@ -29,6 +29,7 @@ library("rtracklayer")
 library("GenomicRanges")
 library("GSEABase")
 library("GOSim")
+library("VennDiagram")
 library("stats")
 library("GO.db")
 library("rrvgo")
@@ -64,9 +65,13 @@ venn.plot <- venn.diagram(
   x = list(DEG = DEG$term, DMG = DMG$term),
   filename = 'RAnalysis/Output/meth_express_compare/venn_diagram.png',
   category.names = c('DEG GO terms', 'DMG GO terms'),
+  output = TRUE,
   col = "black",
 	fill = c("dodgerblue", "goldenrod1"),
-	cat.col = c("dodgerblue", "goldenrod1"),
+  cat.default.pos = "outer",
+  cat.fontface = "bold",
+  cat.pos = c(-18, 18),
+          cat.dist = c(0.055, 0.055)
 )
 ```
 
@@ -112,25 +117,6 @@ DEG.NA <- DEG %>%
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #use rrvgo to condense to parent go terms
 https://www.bioconductor.org/packages/devel/bioc/vignettes/rrvgo/inst/doc/rrvgo.html
 ```{r}
@@ -138,19 +124,21 @@ https://www.bioconductor.org/packages/devel/bioc/vignettes/rrvgo/inst/doc/rrvgo.
 #need to load organismal database you wish to use, search databases here: http://bioconductor.org/packages/release/BiocViews.html#___OrgDb
 #code: if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager") BiocManager::install("org.Ce.eg.db")
 
-
-    DMG<-DMG%>%
-      filter(ontology==ontology)%>%
+#filter for bh_adjust values
+    DMG.parent.terms <- DMG %>%
+      filter(ontology==category)%>%
       filter(bh_adjust != "NA") %>%
       arrange(., bh_adjust)
     
-    #Reduce/collapse GO term set with the rrvgo package 
-      simMatrix <- calculateSimMatrix(DMG$GOterm,
+    
+#Reduce/collapse GO term set with the rrvgo package 
+      simMatrix <- calculateSimMatrix(DMG.parent.terms$GOterm,
                                 orgdb="org.Ce.eg.db", #c. elegans database
                                 ont=category,
                                 method="Rel")
-    #claculate similarity 
-    scores <- setNames(-log(DMG$bh_adjust), DMG$GOterm)
+      
+#calculate similarity 
+    scores <- setNames(-log(DMG.parent.terms$bh_adjust), DMG.parent.terms$GOterm)
     reducedTerms <- reduceSimMatrix(simMatrix,
                                 scores,
                                 threshold=0.7,
@@ -158,17 +146,17 @@ https://www.bioconductor.org/packages/devel/bioc/vignettes/rrvgo/inst/doc/rrvgo.
     
     
     #keep only the goterms from the reduced list
-    DMG<-DMG%>%
+    DMG.parent.terms<-DMG.parent.terms%>%
       filter(GOterm %in% reducedTerms$go)
     
     #add in parent terms to list of go terms 
-    DMG$ParentTerm<-reducedTerms$parentTerm[match(DMG$GOterm, reducedTerms$go)]
+    DMG.parent.terms$ParentTerm<-reducedTerms$parentTerm[match(DMG.parent.terms$GOterm, reducedTerms$go)]
     #DMG<-DMG%>%
       #filter(grepl(paste(keywords, collapse="|"), ParentTerm))
 
       
     #plot significantly enriched GO terms by Slim Category faceted by slim term 
-  GO.plot <-  ggplot(DMG, aes(x = ontology, y = term)) + 
+  GO.plot <-  ggplot(DMG.parent.terms, aes(x = ontology, y = term)) + 
     geom_point(aes(size=bh_adjust)) + 
     facet_wrap(~ pattern) +
     scale_size(name="Over rep. p-value", trans="reverse")+

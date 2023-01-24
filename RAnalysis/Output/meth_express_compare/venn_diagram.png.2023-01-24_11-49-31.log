@@ -1,0 +1,33 @@
+INFO [2023-01-24 11:49:31] $x
+INFO [2023-01-24 11:49:31] list(DEG = DEG$term, DMG = DMG$term)
+INFO [2023-01-24 11:49:31] 
+INFO [2023-01-24 11:49:31] $filename
+INFO [2023-01-24 11:49:31] [1] "RAnalysis/Output/meth_express_compare/venn_diagram.png"
+INFO [2023-01-24 11:49:31] 
+INFO [2023-01-24 11:49:31] $category.names
+INFO [2023-01-24 11:49:31] c("DEG GO terms", "DMG GO terms")
+INFO [2023-01-24 11:49:31] 
+INFO [2023-01-24 11:49:31] $output
+INFO [2023-01-24 11:49:31] [1] TRUE
+INFO [2023-01-24 11:49:31] 
+INFO [2023-01-24 11:49:31] $col
+INFO [2023-01-24 11:49:31] [1] "black"
+INFO [2023-01-24 11:49:31] 
+INFO [2023-01-24 11:49:31] $fill
+INFO [2023-01-24 11:49:31] c("dodgerblue", "goldenrod1")
+INFO [2023-01-24 11:49:31] 
+INFO [2023-01-24 11:49:31] $cat.col
+INFO [2023-01-24 11:49:31] c("dodgerblue", "goldenrod1")
+INFO [2023-01-24 11:49:31] 
+INFO [2023-01-24 11:49:31] $cat.default.pos
+INFO [2023-01-24 11:49:31] [1] "outer"
+INFO [2023-01-24 11:49:31] 
+INFO [2023-01-24 11:49:31] $cat.fontface
+INFO [2023-01-24 11:49:31] [1] "bold"
+INFO [2023-01-24 11:49:31] 
+INFO [2023-01-24 11:49:31] $cat.pos
+INFO [2023-01-24 11:49:31] c(-18, 18)
+INFO [2023-01-24 11:49:31] 
+INFO [2023-01-24 11:49:31] $cat.dist
+INFO [2023-01-24 11:49:31] c(0.055, 0.055)
+INFO [2023-01-24 11:49:31] 
