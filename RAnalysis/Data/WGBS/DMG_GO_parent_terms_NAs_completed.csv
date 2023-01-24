@@ -1,0 +1,119 @@
+slim_term,slim_cat,category,over_represented_pvalue,under_represented_pvalue,numDEInCat,numInCat,term,ontology,type
+nucleic acid metabolic process,GO:0090304,GO:0015074,2.55E-43,1,86,855,DNA integration,BP,DMG.GO.terms
+nucleic acid metabolic process,GO:0090304,GO:0006259,5.39E-21,1,34,282,DNA metabolic process,BP,DMG.GO.terms
+nucleic acid metabolic process,GO:0090304,GO:0090304,2.21E-16,1,27,226,nucleic acid metabolic process,BP,DMG.GO.terms
+DNA biosynthetic process,GO:0071897,GO:0006278,8.13E-10,1,24,329,RNA-dependent DNA biosynthetic process,BP,DMG.GO.terms
+DNA metabolic process,GO:0006259,GO:0006310,2.00E-04,0.9999479,13,266,DNA recombination,BP,DMG.GO.terms
+nucleic acid metabolic process,GO:0090304,GO:0090305,2.08E-04,0.9999572,10,164,nucleic acid phosphodiester bond hydrolysis,BP,DMG.GO.terms
+viral process,GO:0016032,GO:0016032,3.85E-04,0.999978,4,21,viral process,BP,DMG.GO.terms
+transport,GO:0006810,GO:0046713,1.04E-02,1,1,1,borate transport,BP,DMG.GO.terms
+cellular metabolic process,GO:0044248,GO:0042182,1.04E-02,1,1,1,ketone catabolic process,BP,DMG.GO.terms
+transposition; RNA mediated,GO:0032197,GO:0032199,1.18E-02,0.9994575,2,11,reverse transcription involved in RNA-mediated transposition,BP,DMG.GO.terms
+response to nutrient levels,GO:0031667,GO:1903833,1.21E-02,1,1,1,positive regulation of cellular response to amino acid starvation,BP,DMG.GO.terms
+regulation of gene expression,GO:0010468,GO:1904803,1.21E-02,1,1,1,regulation of translation involved in cellular response to UV,BP,DMG.GO.terms
+response to stress,GO:0006950,GO:1990451,1.21E-02,1,1,1,cellular stress response to acidic pH,BP,DMG.GO.terms
+biological process involved in intraspecies interaction between organisms,GO:0051703,GO:0051703,2.08E-02,0.9998915,1,2,biological process involved in intraspecies interaction between organisms,BP,DMG.GO.terms
+behavior,GO:0007610,GO:0030536,2.08E-02,0.9998915,1,2,larval feeding behavior,BP,DMG.GO.terms
+cellular component organization,GO:0016043,GO:0080119,2.08E-02,0.9998915,1,2,endoplasmic reticulum body organization,BP,DMG.GO.terms
+cellular component organization,GO:0016043,GO:0070889,2.08E-02,0.9998915,1,2,platelet alpha granule organization,BP,DMG.GO.terms
+transport,GO:0006810,GO:0042044,2.08E-02,0.9998915,1,2,fluid transport,BP,DMG.GO.terms
+lipid metabolic process,GO:0006629,GO:1901570,2.08E-02,0.9998915,1,2,fatty acid derivative biosynthetic process,BP,DMG.GO.terms
+positive regulation of translation,GO:0045727,GO:0045905,2.08E-02,0.9998915,1,2,positive regulation of translational termination,BP,DMG.GO.terms
+regulation of catalytic activity,GO:0050790,GO:0051348,2.13E-02,0.9998862,1,2,negative regulation of transferase activity,BP,DMG.GO.terms
+response to nitrogen compound,GO:1901698,GO:0071232,2.25E-02,0.9998729,1,2,cellular response to histidine,BP,DMG.GO.terms
+regulation of phospholipase activity,GO:0010517,GO:0010863,2.28E-02,0.9983987,2,22,positive regulation of phospholipase C activity,BP,DMG.GO.terms
+positive regulation of translation,GO:0008284,GO:1905564,2.30E-02,0.9983759,2,22,positive regulation of vascular endothelial cell proliferation,BP,DMG.GO.terms
+response to nitrogen compound,GO:1901699,GO:0072755,2.36E-02,0.9998597,1,2,cellular response to benomyl,BP,DMG.GO.terms
+positive regulation of translation,GO:0045727,GO:0045901,2.46E-02,0.9998475,1,2,positive regulation of translational elongation,BP,DMG.GO.terms
+cellular nitrogen compound,GO:0034641,GO:0043604,3.10E-02,0.9996767,1,3,amide biosynthetic process,BP,DMG.GO.terms
+positive regulation of cellular pH,GO:0032849,GO:1905528,3.10E-02,0.9996767,1,3,positive regulation of Golgi lumen acidification,BP,DMG.GO.terms
+response to virus,GO:0009615,GO:0009597,3.10E-02,0.9996767,1,3,detection of virus,BP,DMG.GO.terms
+carboxylic acid metabolic process,GO:0046296,GO:0046296,3.21E-02,0.9996526,1,3,glycolate catabolic process,BP,DMG.GO.terms
+cell cycle process,GO:0070314,GO:0070314,3.27E-02,0.9996395,1,3,G1 to G0 transition,BP,DMG.GO.terms
+homeostatic process,GO:0042592,GO:0030003,3.50E-02,0.9995871,1,3,cellular cation homeostasis,BP,DMG.GO.terms
+positive regulation of translation,GO:0045727,GO:0045903,4.72E-02,0.9991488,1,4,positive regulation of translational fidelity,BP,DMG.GO.terms
+immune response,GO:0006955,GO:0002758,4.39E-02,0.9921249,3,60,innate immune response-activating signal transduction,BP,DMG.GO.terms
+binding,GO:0005488,GO:0003676,2.65E-48,1,119,1712,nucleic acid binding,MF,DMG.GO.terms
+binding,GO:0005488,GO:0008270,6.37E-18,1,66,1486,zinc ion binding,MF,DMG.GO.terms
+catalytic activity,GO:0003824,GO:0016787,1.37E-13,1,47,986,hydrolase activity,MF,DMG.GO.terms
+binding,GO:0005488,GO:1901363,5.71E-12,1,24,312,heterocyclic compound binding,MF,DMG.GO.terms
+binding,GO:0005488,GO:0097159,1.07E-11,1,24,323,organic cyclic compound binding,MF,DMG.GO.terms
+catalytic activity,GO:0003824,GO:0016740,1.78E-11,1,41,876,transferase activity,MF,DMG.GO.terms
+catalytic activity,GO:0003824,GO:0003824,4.67E-08,1,41,1193,catalytic activity,MF,DMG.GO.terms
+binding,GO:0005488,GO:0005488,2.11E-03,0.9988526,37,1767,binding,MF,DMG.GO.terms
+nucleic acid binding,GO:0003676,GO:0003677,2.64E-03,0.9986537,29,1193,DNA binding,MF,DMG.GO.terms
+signaling receptor binding,GO:0005102,GO:0090722,1.76E-02,0.9989348,2,19,receptor-receptor interaction,MF,DMG.GO.terms
+cation binding,GO:0043169,GO:0046872,2.09E-02,0.9871159,33,1700,metal ion binding,MF,DMG.GO.terms
+host cellular component,GO:0018995,GO:0033643,5.74E-03,0.9995443,3,23,host cell part,CC,DMG.GO.terms
+host cellular component,GO:0018995,GO:0042025,4.21E-02,0.9959347,2,19,host cell nucleus,CC,DMG.GO.terms
+catalytic activity,GO:0003824,GO:0140640,4.32E-12,1,15,87,"catalytic activity, acting on a nucleic acid",MF,DMG.GO.terms
+cytoplasmic translation,GO:0002181,GO:0002192,0.03271556,0.99963893,1,3,IRES-dependent translational initiation of linear mRNA,BP,
+cell motility,GO:0048870,GO:0002523,0.03097092,0.99967667,1,3,leukocyte migration involved in inflammatory response,BP,
+signaling,GO:0023052,GO:0002758,0.02075506,0.99989147,1,2,innate immune response-activating signal transduction,BP,
+DNA replication,GO:0006260,GO:0006268,0.03440064,0.99698512,2,23,DNA unwinding involved in DNA replication,BP,
+cell adhesion,GO:0007155,GO:0007156,0.01469442,0.99745921,4,81,homophilic cell adhesion via plasma membrane adhesion molecules,BP,
+reproductive process,GO:0022414,GO:0007534,0.02908586,0.99978595,1,2,gene conversion at mating-type locus,BP,
+carbohydrate derivative metabolic process,GO:1901135,GO:0009263,0.03602012,0.99678449,2,21,deoxyribonucleotide biosynthetic process,BP,
+photosynthesis,GO:0015979,GO:0010109,0.01043179,1,1,1,regulation of photosynthesis,BP,
+reproductive process,GO:0022414,GO:0010520,0.02908586,0.99978595,1,2,regulation of reciprocal meiotic recombination,BP,
+reproductive process,GO:0022414,GO:0010947,0.02908586,0.99978595,1,2,negative regulation of meiotic joint molecule formation,BP,
+signaling,GO:0023052,GO:0014068,0.03052326,0.99338699,4,102,positive regulation of phosphatidylinositol 3-kinase signaling,BP,
+protein modification process,GO:0036211,GO:0017185,0.03097092,0.99967667,1,3,peptidyl-lysine hydroxylation,BP,
+protein modification process,GO:0036211,GO:0018108,0.03741005,0.98949098,5,148,peptidyl-tyrosine phosphorylation,BP,
+protein maturation,GO:0051604,GO:0030070,0.03097092,0.99967667,1,3,insulin processing,BP,
+signaling,GO:0023052,GO:0030072,0.032353,0.99964694,1,3,peptide hormone secretion,BP,
+carbohydrate derivative metabolic process,GO:1901135,GO:0030212,0.04370703,0.99927223,1,4,hyaluronan metabolic process,BP,
+DNA replication,GO:0006260,GO:0032876,0.04836179,0.99910717,1,4,negative regulation of DNA endoreduplication,BP,
+reproductive process,GO:0022414,GO:0035037,0.03097092,0.99967667,1,3,sperm entry,BP,
+cell motility,GO:0048870,GO:0043536,0.04698444,0.99502989,2,32,positive regulation of blood vessel endothelial cell migration,BP,
+generation of precursor metabolites,GO:0006091,GO:0046952,0.04968099,0.99905726,1,4,ketone body catabolic process,BP,
+anatomical structure development,GO:0048856,GO:0050775,0.03430967,0.99698118,2,25,positive regulation of dendrite morphogenesis,BP,
+anatomical structure development,GO:0048856,GO:0051149,0.04404515,0.99926082,1,4,positive regulation of muscle cell differentiation,BP,
+reproductive process,GO:0022414,GO:0060180,0.03950438,0.99947188,1,3,female mating behavior,BP,
+reproductive process,GO:0022414,GO:0060736,0.04108049,0.9993578,1,4,prostate gland growth,BP,
+"regulation of transcription, DNA-templated transcription",GO:0006355,GO:0061400,6.52E-05,0.99999607,5,33,positive regulation of transcription from RNA polymerase II promoter in response to calcium ion,BP,
+response to stress,GO:0006950,GO:0061408,0.04152939,0.99941581,1,3,positive regulation of transcription from RNA polymerase II promoter in response to heat stress,BP,
+muscle system process,GO:0003012,GO:0090257,0.04108061,0.9993578,1,4,regulation of muscle system process,BP,
+cell adhesion,GO:0007155,GO:0090330,0.03097092,0.99967667,1,3,regulation of platelet aggregation,BP,
+membrane organization,GO:0061024,GO:0097749,0.0490115,0.99918354,1,3,membrane tubulation,BP,
+transmembrane transport,GO:0055085,GO:0098661,0.03097092,0.99967667,1,3,inorganic anion transmembrane transport,BP,
+cell adhesion,GO:0007155,GO:0099560,0.00676212,0.99976815,2,11,synaptic membrane adhesion,BP,
+protein modification process,GO:0036211,GO:0100002,0.01214824,1,1,1,negative regulation of protein kinase activity by protein phosphorylation,BP,
+lipid metabolic process,GO:0006629,GO:1900054,0.04159894,0.99934134,1,4,positive regulation of retinoic acid biosynthetic process,BP,
+DNA replication,GO:0006260,GO:1902969,0.0309963,0.99967613,1,3,mitotic DNA replication,BP,
+mitotic cell cycle,GO:0000278,GO:1903047,0.01461842,0.99921233,2,16,mitotic cell cycle process,BP,
+signaling,GO:0023052,GO:1903892,0.02076154,0.9998914,1,2,negative regulation of ATF6-mediated unfolded protein response,BP,
+anatomical structure development,GO:0048856,GO:1905910,0.02075506,0.99989147,1,2,negative regulation of dauer entry,BP,
+cytoplasmic translation,GO:0002181,GO:1990625,0.01214824,1,1,1,negative regulation of cytoplasmic translational initiation in response to stress,BP,
+cell motility,GO:0048870,GO:2000546,0.01762422,0.99893481,2,19,positive regulation of endothelial cell chemotaxis to fibroblast growth factor,BP,
+cell differentiation,GO:0030154,GO:2000739,0.04108049,0.9993578,1,4,regulation of mesenchymal stem cell differentiation,BP,
+intracellular protein transport,GO:0006886,GO:2001159,0.02115828,1,1,1,regulation of protein localization by the Cvt pathway,BP,
+RNA binding,GO:0003723,GO:0003746,0.03283973,0.99719317,2,23,translation elongation factor activity,MF,
+hydrolase activity,GO:0016787,GO:0003860,0.02124136,0.9998863,1,2,3-hydroxyisobutyryl-CoA hydrolase activity,MF,
+transferase activity,GO:0016740,GO:0003887,0.02381052,0.99525107,4,77,DNA-directed DNA polymerase activity,MF,
+transferase activity,GO:0016740,GO:0003964,2.10E-10,1,25,337,RNA-directed DNA polymerase activity,MF,
+hydrolase activity,GO:0016787,GO:0004099,0.03595086,0.99967183,1,2,chitin deacetylase activity,MF,
+hydrolase activity,GO:0016787,GO:0004190,0.0004545,0.99992962,7,94,aspartic-type endopeptidase activity,MF,
+hydrolase activity,GO:0016787,GO:0004386,0.01080601,0.99700523,7,184,helicase activity,MF,
+hydrolase activity,GO:0016787,GO:0004518,4.63E-13,1,23,223,nuclease activity,MF,
+cargo receptor activity,GO:0038024,GO:0005044,0.01050766,0.99787238,5,114,scavenger receptor activity,MF,
+transporter activity,GO:0005215,GO:0005217,0.01043179,1,1,1,intracellular ligand-gated ion channel activity,MF,
+transporter activity,GO:0005215,GO:0005272,0.01303732,0.99854263,3,43,sodium channel activity,MF,
+transporter activity,GO:0005215,GO:0005372,0.02075506,0.99989147,1,2,water transmembrane transporter activity,MF,
+transferase activity,GO:0016740,GO:0008260,0.01043179,1,1,1,3-oxoacid CoA-transferase activity,MF,
+transferase activity,GO:0016740,GO:0008410,0.01043179,1,1,1,CoA-transferase activity,MF,
+ligase activity,GO:0016874,GO:0008716,0.01843838,0.99891659,2,12,D-alanine-D-alanine ligase activity,MF,
+hydrolase activity,GO:0016787,GO:0009036,0.03271692,0.99727659,2,17,type II site-specific deoxyribonuclease activity,MF,
+transporter activity,GO:0005215,GO:0015106,0.02075506,0.99989147,1,2,bicarbonate transmembrane transporter activity,MF,
+transporter activity,GO:0005215,GO:0015252,0.02075506,0.99989147,1,2,proton channel activity,MF,
+transferase activity,GO:0016740,GO:0016779,0.00247874,0.99934575,9,195,nucleotidyltransferase activity,MF,
+hydrolase activity,GO:0016787,GO:0034594,0.01043179,1,1,1,phosphatidylinositol trisphosphate phosphatase activity,MF,
+hydrolase activity,GO:0016787,GO:0034595,0.03097092,0.99967667,1,3,phosphatidylinositol phosphate 5-phosphatase activity,MF,
+hydrolase activity,GO:0016787,GO:0035312,0.03191165,0.99965658,1,3,5'-3' exodeoxyribonuclease activity,MF,
+hydrolase activity,GO:0016787,GO:0046030,0.01043179,1,1,1,inositol trisphosphate phosphatase activity,MF,
+transporter activity,GO:0005215,GO:0046715,0.02075506,0.99989147,1,2,active borate transmembrane transporter activity,MF,
+transporter activity,GO:0005215,GO:0072345,0.03097092,0.99967667,1,3,NAADP-sensitive calcium-release channel activity,MF,
+hydrolase activity,GO:0016787,GO:1990518,0.04108049,0.9993578,1,4,single-stranded 3'-5' DNA helicase activity,MF,
+intracellular,GO:0005622,GO:0005634,0.00641932,0.99617413,40,2120,nucleus,CC,
+intracellular,GO:0005622,GO:0033698,0.04736776,0.99923796,1,3,Rpd3L complex,CC,
+intracellular,GO:0005622,GO:0099522,0.02075506,0.99989147,1,2,region of cytosol,CC,

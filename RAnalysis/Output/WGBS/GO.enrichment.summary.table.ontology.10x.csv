@@ -5,7 +5,7 @@
 4,DNA replication,GO:0006260,GO:0006268,0.034400642,0.996985116,2,23,DNA unwinding involved in DNA replication,BP
 5,cell adhesion,GO:0007155,GO:0007156,0.014694422,0.997459213,4,81,homophilic cell adhesion via plasma membrane adhesion molecules,BP
 6,reproductive process,GO:0022414,GO:0007534,0.02908586,0.999785953,1,2,gene conversion at mating-type locus,BP
-7,carbohydrate derivative metabolic p...,GO:1901135,GO:0009263,0.036020117,0.996784487,2,21,deoxyribonucleotide biosynthetic process,BP
+7,carbohydrate derivative metabolic process,GO:1901135,GO:0009263,0.036020117,0.996784487,2,21,deoxyribonucleotide biosynthetic process,BP
 8,photosynthesis,GO:0015979,GO:0010109,0.010431793,1,1,1,regulation of photosynthesis,BP
 9,reproductive process,GO:0022414,GO:0010520,0.02908586,0.999785953,1,2,regulation of reciprocal meiotic recombination,BP
 10,reproductive process,GO:0022414,GO:0010947,0.02908586,0.999785953,1,2,negative regulation of meiotic joint molecule formation,BP
@@ -14,17 +14,17 @@
 13,protein modification process,GO:0036211,GO:0018108,0.037410054,0.989490984,5,148,peptidyl-tyrosine phosphorylation,BP
 14,protein maturation,GO:0051604,GO:0030070,0.030970919,0.999676666,1,3,insulin processing,BP
 15,signaling,GO:0023052,GO:0030072,0.032353,0.999646942,1,3,peptide hormone secretion,BP
-16,carbohydrate derivative metabolic p...,GO:1901135,GO:0030212,0.043707031,0.999272233,1,4,hyaluronan metabolic process,BP
+16,carbohydrate derivative metabolic process,GO:1901135,GO:0030212,0.043707031,0.999272233,1,4,hyaluronan metabolic process,BP
 17,DNA replication,GO:0006260,GO:0032876,0.048361792,0.999107172,1,4,negative regulation of DNA endoreduplication,BP
 18,reproductive process,GO:0022414,GO:0035037,0.030970919,0.999676666,1,3,sperm entry,BP
 19,cell motility,GO:0048870,GO:0043536,0.046984438,0.995029894,2,32,positive regulation of blood vessel endothelial cell migration,BP
-20,generation of precursor metabolites...,GO:0006091,GO:0046952,0.04968099,0.99905726,1,4,ketone body catabolic process,BP
+20,generation of precursor metabolites,GO:0006091,GO:0046952,0.04968099,0.99905726,1,4,ketone body catabolic process,BP
 21,anatomical structure development,GO:0048856,GO:0050775,0.034309669,0.996981179,2,25,positive regulation of dendrite morphogenesis,BP
 22,anatomical structure development,GO:0048856,GO:0051149,0.04404515,0.999260821,1,4,positive regulation of muscle cell differentiation,BP
 23,reproductive process,GO:0022414,GO:0060180,0.039504378,0.999471884,1,3,female mating behavior,BP
 24,reproductive process,GO:0022414,GO:0060736,0.041080493,0.999357801,1,4,prostate gland growth,BP
-25,"regulation of transcription, DNA-te...",GO:0006355,GO:0061400,6.52E-05,0.999996065,5,33,positive regulation of transcription from RNA polymerase II promoter in response to calcium ion,BP
-26,"regulation of transcription, DNA-te...",GO:0006355,GO:0061408,0.041529394,0.999415811,1,3,positive regulation of transcription from RNA polymerase II promoter in response to heat stress,BP
+25,"regulation of transcription, DNA-templated transcription",GO:0006355,GO:0061400,6.52E-05,0.999996065,5,33,positive regulation of transcription from RNA polymerase II promoter in response to calcium ion,BP
+26,"regulation of transcription, DNA-templated transcription",GO:0006355,GO:0061408,0.041529394,0.999415811,1,3,positive regulation of transcription from RNA polymerase II promoter in response to heat stress,BP
 27,muscle system process,GO:0003012,GO:0090257,0.041080613,0.999357797,1,4,regulation of muscle system process,BP
 28,cell adhesion,GO:0007155,GO:0090330,0.030970919,0.999676666,1,3,regulation of platelet aggregation,BP
 29,membrane organization,GO:0061024,GO:0097749,0.049011498,0.999183539,1,3,membrane tubulation,BP

@@ -33,6 +33,8 @@ library("VennDiagram")
 library("stats")
 library("GO.db")
 library("rrvgo")
+library("GOSemSim")
+library("AnnotationDbi")
 ```
 
 # Import the data files 
@@ -54,7 +56,10 @@ colnames(DMG)[3] ="GOterm" #rename columns
 DMG <- DMG %>% add_column(type = "DMG.GO.terms")
 
 #adjust p-values 
-    DMG$bh_adjust <-  p.adjust(DMG$over_represented_pvalue, method="BH") 
+DMG$bh_adjust <-  p.adjust(DMG$over_represented_pvalue, method="BH") 
+
+#write csv with bh_adjust
+write.csv(DMG, file = "RAnalysis/Output/WGBS/GO.terms.parent.terms.csv")
 
 ```
 
@@ -123,53 +128,72 @@ https://www.bioconductor.org/packages/devel/bioc/vignettes/rrvgo/inst/doc/rrvgo.
 #Process DMG go terms
 #need to load organismal database you wish to use, search databases here: http://bioconductor.org/packages/release/BiocViews.html#___OrgDb
 #code: if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager") BiocManager::install("org.Ce.eg.db")
+#Run a loop to plot enrichment for each module at each level of ontology. 
 
-#filter for bh_adjust values
-    DMG.parent.terms <- DMG %>%
+#make vector for ontology terms
+ontologies<-c("BP", "MF", "CC")
+
+
+for (category in ontologies) {
+  
+    #Read relevant file of results from goseq analysis  
+    go_results<-read_csv(file = paste0("RAnalysis/Output/WGBS/GO.terms.parent.terms.csv"))
+    
+    go_results<-go_results%>%
       filter(ontology==category)%>%
       filter(bh_adjust != "NA") %>%
+      filter(numInCat>0)%>%
       arrange(., bh_adjust)
     
-    
-#Reduce/collapse GO term set with the rrvgo package 
-      simMatrix <- calculateSimMatrix(DMG.parent.terms$GOterm,
+      #Reduce/collapse GO term set with the rrvgo package 
+      simMatrix <- calculateSimMatrix(go_results$GOterm,
                                 orgdb="org.Ce.eg.db", #c. elegans database
                                 ont=category,
                                 method="Rel")
-      
-#calculate similarity 
-    scores <- setNames(-log(DMG.parent.terms$bh_adjust), DMG.parent.terms$GOterm)
+    #calculate similarity 
+    scores <- setNames(-log(go_results$bh_adjust), go_results$GOterm)
     reducedTerms <- reduceSimMatrix(simMatrix,
                                 scores,
                                 threshold=0.7,
                                 orgdb="org.Ce.eg.db")
     
-    
     #keep only the goterms from the reduced list
-    DMG.parent.terms<-DMG.parent.terms%>%
+    go_results<-go_results%>%
       filter(GOterm %in% reducedTerms$go)
     
     #add in parent terms to list of go terms 
-    DMG.parent.terms$ParentTerm<-reducedTerms$parentTerm[match(DMG.parent.terms$GOterm, reducedTerms$go)]
-    #DMG<-DMG%>%
+    go_results$ParentTerm<-reducedTerms$parentTerm[match(go_results$GOterm, reducedTerms$go)]
+    #go_results<-go_results%>%
       #filter(grepl(paste(keywords, collapse="|"), ParentTerm))
-
-      
+    
     #plot significantly enriched GO terms by Slim Category faceted by slim term 
-  GO.plot <-  ggplot(DMG.parent.terms, aes(x = ontology, y = term)) + 
-    geom_point(aes(size=bh_adjust)) + 
-    facet_wrap(~ pattern) +
-    scale_size(name="Over rep. p-value", trans="reverse")+
-    facet_grid(ParentTerm ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 8, multi_line = TRUE))+
-    theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-    strip.text.y = element_text(angle=0, size = 10),
-    strip.text.x = element_text(size = 20),
-    axis.text = element_text(size = 8),
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank())
+  GO.plot <-  ggplot(go_results, aes(x = ontology, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,550))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("Ontogenetic Pattern")+
+    facet_grid(ParentTerm ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 7, multi_line = TRUE))+
+    ggtitle("Communication \nand Transport")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0),
+          axis.title.y = element_blank())
+  
+ggsave(filename=paste0("RAnalysis/Output/meth_express_compare/DMG_plot", "_", category, ".png"), plot=GO.plot, dpi=100, width=12, height=22, units="in", limitsize=FALSE)
+    
+  }
 
-ggsave("RAnalysis/Output/Final_Figures/DMG.reduced.parent.plot.png", GO.plot , width = 10, height = 30, units = c("in"))
 
 ```
 
