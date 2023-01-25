@@ -1,0 +1,228 @@
+---
+title: "rrvgo test script"
+author: "daniellembecker"
+date: "2023-01-20"
+output: html_document
+---
+
+
+# Molecular Underpinnings Chronic Nutrient Enrichment Project
+
+## Analysis of comparisons between gene ontology enrichment from differentially methylated genes and differentially expressed genes.
+## Previous steps for gene expression include RNAseq workflow in Bioinformatics>RNAseq>RNAseq workflow and Differential Gene Expression statistical analysis in RAnalysis>Scripts>RNAseq_Differential_Gene_Expression to make DEG statistical data sheet
+## Previous steps for DNA methylation include WGBS workflow in Bioinformatics>WGBS>WGBS workflow and Differential Methylated Genes statistical analysis in RAnalysis>Scripts>WGBS_WGBS.rmd to make DMG statistical dataframe
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load libraries
+
+library("tidyverse")
+library("RColorBrewer")
+library("gridExtra")
+library("ComplexHeatmap")
+library("dplyr")
+library("clusterProfiler")
+library("pheatmap")
+library("magrittr")
+library("rtracklayer")
+library("GenomicRanges")
+library("GSEABase")
+library("GOSim")
+library("VennDiagram")
+library("stats")
+library("GO.db")
+library("rrvgo")
+library("GOSemSim")
+library("AnnotationDbi")
+```
+
+# Import the data files 
+```{r}
+#upload go enrichment summary for DEGs
+DEG <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.summary.table.DEG.csv", header = TRUE, row.names = 1)
+
+#rename category to GOterm
+colnames(DEG)[3] ="GOterm" #rename columns
+
+#write csv with bh_adjust
+write.csv(DEG, file = "RAnalysis/Output/RNA-seq/GOSeq/GO.DEG.parent.terms.csv")
+
+#upload go enrichment summary for DMGs
+DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv", header = TRUE, row.names = 1)
+
+#rename category to GOterm
+colnames(DMG)[3] ="GOterm" #rename columns
+
+#add column to specific type of measure
+DMG <- DMG %>% add_column(type = "DMG.GO.terms")
+
+#adjust p-values 
+DMG$bh_adjust <-  p.adjust(DMG$over_represented_pvalue, method="BH") 
+
+#write csv with bh_adjust
+write.csv(DMG, file = "RAnalysis/Output/WGBS/GO.DMG.parent.terms.csv")
+
+```
+
+#use rrvgo to condense to DMG parent go terms
+https://www.bioconductor.org/packages/devel/bioc/vignettes/rrvgo/inst/doc/rrvgo.html
+```{r}
+#Process DMG go terms
+#need to load organismal database you wish to use, search databases here: http://bioconductor.org/packages/release/BiocViews.html#___OrgDb
+#code: if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager") BiocManager::install("org.Ce.eg.db")
+#Run a loop to plot enrichment for each module at each level of ontology. 
+
+#make vector for ontology terms
+ontologies<-c("BP", "MF", "CC")
+
+
+for (category in ontologies) {
+  
+    #Read relevant file of results from goseq analysis  
+    go_results_DMG<-read_csv(file = paste0("RAnalysis/Output/WGBS/GO.DMG.parent.terms.csv"))
+    
+    go_results_DMG<-go_results_DMG%>%
+      filter(ontology==category)%>%
+      filter(bh_adjust != "NA") %>%
+      filter(numInCat>0)%>%
+      arrange(., bh_adjust)
+    
+      #Reduce/collapse GO term set with the rrvgo package 
+      simMatrix <- calculateSimMatrix(go_results_DMG$GOterm,
+                                orgdb="org.Ce.eg.db", #c. elegans database
+                                ont=category,
+                                method="Rel")
+    #calculate similarity 
+    scores <- setNames(-log(go_results_DMG$bh_adjust), go_results_DMG$GOterm)
+    reducedTerms <- reduceSimMatrix(simMatrix,
+                                scores,
+                                threshold=0.8,
+                                orgdb="org.Ce.eg.db")
+    
+    #keep only the goterms from the reduced list
+    go_results_DMG<-go_results_DMG%>%
+      filter(GOterm %in% reducedTerms$go)
+    
+    #add in parent terms to list of go terms 
+    go_results_DMG$ParentTerm<-reducedTerms$parentTerm[match(go_results_DMG$GOterm, reducedTerms$go)]
+    #go_results_DMG<-go_results_DMG%>%
+      #filter(grepl(paste(keywords, collapse="|"), ParentTerm))
+    
+    #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  GO.plot.DMG <-  ggplot(go_results_DMG, aes(x = ontology, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,550))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("Ontology Category")+
+    facet_grid(ParentTerm ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 7, multi_line = TRUE))+
+    ggtitle("")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0),
+          axis.title.y = element_blank())
+  
+ggsave(filename=paste0("RAnalysis/Output/meth_express_compare/DMG_plot", "_", category, ".png"), plot=GO.plot.DMG, dpi=100, width=20, height=30, units="in", limitsize=FALSE)
+    
+  }
+
+
+```
+
+
+#use rrvgo to condense to DEG parent go terms
+https://www.bioconductor.org/packages/devel/bioc/vignettes/rrvgo/inst/doc/rrvgo.html
+```{r}
+#Process DEG go terms
+#need to load organismal database you wish to use, search databases here: http://bioconductor.org/packages/release/BiocViews.html#___OrgDb
+#code: if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager") BiocManager::install("org.Ce.eg.db")
+#Run a loop to plot enrichment for each module at each level of ontology. 
+
+#make vector for ontology terms
+ontologies<-c("BP", "MF", "CC")
+
+
+for (category in ontologies) {
+  
+    #Read relevant file of results from goseq analysis  
+    go_results_DEG<-read_csv(file = paste0("RAnalysis/Output/RNA-seq/GOSeq/GO.DEG.parent.terms.csv"))
+    
+    go_results_DEG<-go_results_DEG%>%
+      filter(ontology==category)%>%
+      filter(bh_adjust != "NA") %>%
+      filter(numInCat>0)%>%
+      arrange(., bh_adjust)
+    
+      #Reduce/collapse GO term set with the rrvgo package 
+      simMatrix <- calculateSimMatrix(go_results_DEG$GOterm,
+                                orgdb="org.Ce.eg.db", #c. elegans database
+                                ont=category,
+                                method="Rel")
+    #calculate similarity 
+    scores <- setNames(-log(go_results_DEG$bh_adjust), go_results_DEG$GOterm)
+    reducedTerms <- reduceSimMatrix(simMatrix,
+                                scores,
+                                threshold=0.9,
+                                orgdb="org.Ce.eg.db")
+    
+    #keep only the goterms from the reduced list
+    go_results_DEG<-go_results_DEG%>%
+      filter(GOterm %in% reducedTerms$go)
+    
+    #add in parent terms to list of go terms 
+    go_results_DEG$ParentTerm<-reducedTerms$parentTerm[match(go_results_DEG$GOterm, reducedTerms$go)]
+
+    
+    #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  GO.plot.DEG <-  ggplot(go_results_DEG, aes(x = ontology, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,550))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("Ontology Category")+
+    facet_grid(ParentTerm ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 7, multi_line = TRUE))+
+    ggtitle("")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0),
+          axis.title.y = element_blank())
+  
+ggsave(filename=paste0("RAnalysis/Output/meth_express_compare/DEG_plot", "_", category, ".png"), plot=GO.plot.DEG, dpi=100, width=20, height=22, units="in", limitsize=FALSE)
+    
+  }
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
