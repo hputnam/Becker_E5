@@ -103,9 +103,9 @@ common <- as.data.frame(common)
 
 #found three common terms for DMG and DEG
 
-#leukocyte migration involved in inflammatory response (parent term immune system response)
+#leukocyte migration involved in inflammatory response (parent term cell motility, immune system response, response to stress)
 
-#positive regulation of transcription from RNA polymerase II promoter in response to heat stress (DNA-templated transcription; response to stress)
+#positive regulation of transcription from RNA polymerase II promoter in response to heat stress (DNA-templated transcription; response to stress; nitrogen compound metabolic process)
 
 #fatty acid derivative biosynthetic process (lipid metabolic process)
 
@@ -163,34 +163,44 @@ ggsave("RAnalysis/Output/Final_Figures/DMG.complete.slimterms.pdf", GO.plot.DMG.
 
 ```
 
+#DEG go plot
+```{r}
+#upload complete parent term dataframe DMGs and make figures
+
+#upload complete go enrichment summary for DMGs
+DEG.complete <- read.csv("RAnalysis/Data/RNA-seq/DEG_GO_parent_terms_NAs.csv", header = TRUE)
+
+#adjust p-values 
+DEG.complete$bh_adjust <-  p.adjust(DEG.complete$over_represented_pvalue, method="BH") 
+
+GO.plot.DEG.complete <-  ggplot(DEG.complete, aes(x = ontology, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,550))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("Ontology Category")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE))+
+    ggtitle("")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0),
+          axis.title.y = element_blank())
+
+ 
+ggsave("RAnalysis/Output/Final_Figures/DEG.complete.slimterms.pdf", GO.plot.DEG.complete , width = 25, height = 49, units = c("in"))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 
 
