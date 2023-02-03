@@ -35,6 +35,25 @@ library("GO.db")
 library("rrvgo")
 library("GOSemSim")
 library("AnnotationDbi")
+library("janitor")
+library(rtracklayer) # on bioconducter
+library(dplyr)
+library(edgeR)
+library(factoextra)
+library(cowplot)
+library(wesanderson)
+library(viridis)
+library(adegenet)
+library(ggplot2)
+library(matrixStats)
+library(grid)
+library(gridExtra)
+library(RColorBrewer)
+library(patchwork)
+library(stringr)
+library(tidyverse)
+library(ggpubr)
+pal <- brewer.pal(n = 3, name = "PRGn")
 ```
 
 # Import the data files 
@@ -130,7 +149,7 @@ DEG.NA <- DEG %>%
 #upload complete parent term dataframe DMGs and make figures
 
 #upload complete go enrichment summary for DMGs
-DMG.complete <- read.csv("RAnalysis/Data/WGBS/DMG_GO_parent_terms_NAs_completed.csv", header = TRUE)
+DMG.complete <- read.csv("RAnalysis/Data/WGBS/DMG_GO_parent_terms_NAs_completed.10x.csv", header = TRUE)
 
 #adjust p-values 
 DMG.complete$bh_adjust <-  p.adjust(DMG.complete$over_represented_pvalue, method="BH") 
@@ -206,7 +225,6 @@ ggsave("RAnalysis/Output/Final_Figures/DEG.complete.slimterms.pdf", GO.plot.DEG.
 
 #Filter dataframes for gene ontology groups that are involved in nitrogen pathways, stress pathways to see if expression and methylation are correlated
 ```{r}
-
 phenotype.pathways.DEG <- filter(DEG.complete, slim_term %in%  c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound"))
 
 
@@ -227,6 +245,9 @@ long.pathway.DEG <- long.pathway.DEG %>%
 #remove type column from data frame to match DMG 
 long.pathway.DEG = subset(long.pathway.DEG, select = -c(type) )
 
+#remove extra first space in gene_id names in column 
+long.pathway.DEG$gene_id <- gsub(' Pver', 'Pver', long.pathway.DEG$gene_id)
+
 #change data frames from wide to long so each gene has a row
 long.pathway.DMG <- phenotype.pathways.DMG %>% 
     mutate(genes = strsplit(as.character(genes), ",")) %>% 
@@ -238,6 +259,9 @@ long.pathway.DMG$genes <-  gsub("_gene_","_", long.pathway.DMG$genes)
 #rename column from genes to gene
 long.pathway.DMG <- long.pathway.DMG %>% 
        rename("gene_id" = "genes")
+
+#remove extra first space in gene_id names in column 
+long.pathway.DMG$gene_id <- gsub(' Pver', 'Pver', long.pathway.DMG$gene_id)
 
 ```
 
@@ -263,6 +287,9 @@ express.annot <- readRDS("RAnalysis/Data/GE_meth_compare/gene_annot_full.RData")
 #remove _gene_ in gene id to match other data frames
 express.annot$gene_id <-  gsub("_gene_","_", express.annot$gene_id)
 
+#remove gene_ from column 2 to 8
+colnames(express.annot)[2:8] <-  sub(".*gene_", "", colnames(express.annot)[2:8])
+
 ```
 
 
@@ -275,10 +302,70 @@ DMG.DEG.dat <- rbind(long.pathway.DEG, long.pathway.DMG)
 
 ```{r}
 #combine all meth express data frame with DMG.DEG data frame
-#all rows should stay, stats should be merged with gene id
-#447 total rows
-
+#this will merge only genes found in both DMG and DEG
 meth.exp.filt <- merge(meth.express, DMG.DEG.dat, by = 'gene_id')
+
+#this will merge to list all DEG and DMG express and meth statistics
+#all DMG rows should stay = 12, only 9
+meth.merge <- merge(methyl.annot, long.pathway.DMG)
+
+#all DEG rows should stay = 435, only 410
+express.merge <- merge(express.annot, long.pathway.DEG, by = 'gene_id')
+
+#combine express and meth data
+
+
+```
+
+```{r}
+## Mean Methylation vs Gene Expression following Liew et al
+df <- meth.exp.filt
+
+df %>% drop_na()
+
+#control log gene expression x % methylation
+df$log_gene_C <- log(df$gene_mean_express_C+1)
+df$per_meth_C <- df$mean_meth_C * 100
+
+#df$density <- get_density(df$gene_mean_express_C, df$mean_meth_C*100, n = 308)
+
+#correlation for control
+cor.C <- cor.test(df$per_meth_C, df$gene_mean_express_C, 
+                    method = "pearson")
+cor.C
+
+control <- ggscatter(df, x=per_meth_C, y=log_gene_C, cor.coef = TRUE, cor.method = "pearson") + 
+    #geom_point() + ylim(0,2) + 
+    #geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+    theme_cowplot();control
+
+
+#enriched log gene expression x % methylation
+df$log_gene_E <- log(df$gene_mean_express_E+1)
+df$per_meth_E <- df$mean_meth_E * 100
+
+#correlation for control
+cor.E <- cor.test(df$per_meth_E, df$gene_mean_express_E, 
+                    method = "pearson")
+cor.E
+
+enriched <- ggplot(df,aes(x=per_meth_E,y=log_gene_E, cor.coef = TRUE, cor.method = "pearson")) + 
+    geom_point() + ylim(0,2) + 
+    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+    theme_cowplot();enriched
+
+
+### Figure Mean Methylation vs Gene Expression###
+
+meth_meanexpress <- control + labs(title = "", subtitle = "Control") + enriched + labs(title = "", subtitle = "Enriched")
+
+meth_meanexpress
+
+ggsave(meth_meanexpress, filename="RAnalysis/Output/meth_express_compare/pathway.specific.express.meth.png", height = 7, width = 15)
 ```
 
 

@@ -91,7 +91,7 @@ saveRDS(dge_gene, "RAnalysis/Data/GE_meth_compare/RNA_gene_preNormalization_DGEL
 
 #SAMPLES E2, E16, AND C19 WERE EXCLUDED DUE TO DEDUPLICATION AND LOW COUNTS
 # Read in gene methylation data
-gene_dnam <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
+gene_dnam <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_5x.Rdata") #read in info
 
 
 #rename sample.ID to include corresponding E and C in front for enriched and control for later analysis
@@ -117,6 +117,8 @@ meth <- meth[,-1]
 meth <- as.matrix(meth)
 meth <- meth/100
 saveRDS(meth, "RAnalysis/Data/GE_meth_compare/meth_dataset.RData")
+
+meth.test <- data_frame(meth)
 
 ## Create a summary of methylation for each gene ##
 mean_meth <- rowMeans(meth)
@@ -163,6 +165,10 @@ meth_summary <- cbind(mean_meth,mean_meth_E,mean_meth_C,cv_meth_E,cv_meth_C,cv_m
 meth_summary[is.na(meth_summary)]<-0 #filter for all methylation data over 0
 meth_summary <- data.frame(gene_id = rownames(meth_summary),meth_summary) #change gene ID column name
 meth_annot <- left_join(cpg10xgene, meth_summary) #join Cpg and meth summary
+
+# Saving full meth_annot data.frame
+saveRDS(meth_annot,"RAnalysis/Data/GE_meth_compare/meth_annot_full.RData")
+
 #meth_annot$label <- paste0(meth_annot$chr,"_",meth_annot$start,"_",meth_annot$stop)
 #meth_reduce <- data.frame(label=meth_annot$label,meth_annot[,1:9])
 
@@ -224,10 +230,11 @@ transcriptomic <- transcriptomic[,-(4:6),drop=FALSE]
 transcriptomic$gene_id <-  gsub("Pver_g","Pver_gene_g", transcriptomic$gene_id)
 
 gene_annot <- left_join(gene_summary, transcriptomic)
-#gene_annot <- left_join(gene_annot, ref)
-#gene_annot$label <- paste0(gene_annot$chr,"_",gene_annot$start,"_",gene_annot$stop)
-#gene_reduce <- data.frame(label=gene_annot$label,gene_annot[,c(9,2:8)])
+
 gene_annot <- gene_annot[,-(9:13),drop=FALSE]
+
+# Saving full gene_annot data.frame
+saveRDS(gene_annot,"RAnalysis/Data/GE_meth_compare/gene_annot_full.RData")
 
 # Combine gene expression, exon count and CpG (DNA mehtylation data)
 gSum <- left_join(meth_annot, gene_annot)
@@ -282,6 +289,7 @@ enriched <- ggplot(df,aes(x=per_meth_E,y=log_gene_E,)) +
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+  stat_cor(method = "pearson", label.x = 65, label.y = 0.5) +
     theme_cowplot();enriched
 
 
