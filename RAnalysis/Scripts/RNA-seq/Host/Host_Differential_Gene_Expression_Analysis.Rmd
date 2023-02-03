@@ -1,8 +1,8 @@
 ---
-title: "RNA_seq_DESeq2"
+title: "Host RNA_seq_DESeq2"
 author: "echille"
 edited by: "daniellembecker"
-date: "4/12/2021"
+date: "20230126"
 output: html_document
 ---
 
@@ -44,7 +44,7 @@ str(treatmentinfo)
 head(treatmentinfo)
 
 #gene count matrix
-gcount <- as.data.frame(read.csv("RAnalysis/Data/RNA-seq/Poc_gene_count_matrix.csv"))
+gcount <- as.data.frame(read.csv("RAnalysis/Data/RNA-seq/Host/Poc_gene_count_matrix.csv"))
 gcount$gene_id <-  gsub("_gene_","_",gcount$gene_id)
 gcount$gene_id <-  gsub("_split_","_",gcount$gene_id)
 gcount$gene_id <-  gsub("-.*","",gcount$gene_id) #remove the extra g number after the dash
@@ -136,7 +136,7 @@ heatmap <- pheatmap(sampleDistMatrix, # plot distance matrix
          clustering_distance_cols = sampleDists, # cluster cols
          col=colors) # set colors
 heatmap
-pdf(file = "RAnalysis/Output/RNA-seq/DEG/SAMPLETOSAMPLE_HEATMAP.pdf")
+pdf(file = "RAnalysis/Output/RNA-seq/DEG/Host/sampletosample_heatmap_host.pdf")
 heatmap
 dev.off()
 
@@ -160,7 +160,7 @@ ggplot(gPCAdata, aes(PC1, PC2, color=treatment)) +
         axis.line = element_line(colour = "black"), #Set axes color
         plot.background=element_blank()) #Set the plot background
 
-ggsave(path = "RAnalysis/Output/Final_Figures/", filename = "DEGSeq2_general_PCA_plot.pdf")
+ggsave(path = "RAnalysis/Output/Final_Figures/Host/", filename = "DEGSeq2_general_PCA_plot_host.pdf")
 
 ```
 
@@ -179,7 +179,7 @@ DEGSeq2_wald <- DESeq(gdds) # run differential expression test by treatment (?) 
 
 #Explore significant p-values for treatment
 ```{r, message = FALSE}
-DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","control","enriched")) # 
+DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","control","enriched")) #run wald model
 head(DEGSeq2.results)
 sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
 
@@ -188,7 +188,7 @@ sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were le
 #### DESeq2, the function plotMA shows the log2 fold changes attributable to a given variable over the mean of normalized counts for all the samples in the DESeqDataSet.
 
 MA_PLOT <- plotMA(DEGSeq2.results, ylim=c(-2,2))
-pdf(file = "RAnalysis/Output/RNA-seq/DEG/MA_PLOT.pdf")
+pdf(file = "RAnalysis/Output/RNA-seq/DEG/Host/ma_plot_host.pdf")
 MA_PLOT
 dev.off()
 
@@ -198,14 +198,14 @@ dev.off()
 DEGSeq2.sig.results <- subset(DEGSeq2.results, padj < 0.05)
 DEGSeq2.sig.results <- as.data.frame(DEGSeq2.sig.results)
 DEGSeq2.sig.results$gene_id <-rownames(DEGSeq2.sig.results)
-write.csv(DEGSeq2.sig.results, 'RAnalysis/Output/RNA-seq/DEG/DEGSeq2.sig.results.csv')  
+write.csv(DEGSeq2.sig.results, 'RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.results.host.csv')  
 
 ```
 ## Identify unique genes from DEGs from treatments 
 ```{r}
 dim(DEGSeq2.sig.results) # 213 x 7
 length(unique(DEGSeq2.sig.results$gene_id)) # 213 unique genes between all treatments 
-write.csv(DEGSeq2.sig.results, file = "RAnalysis/Output/RNA-seq/DEG/DEGs.all_treatment_20220616.csv")
+write.csv(DEGSeq2.sig.results, file = "RAnalysis/Output/RNA-seq/DEG/Host/DEGs.all_treatment_20230126_host.csv")
 ```
 
 ## Visualize differentially expressed genes from DESeq2
@@ -242,7 +242,7 @@ DEGSeq2_heatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TR
                             cluster_cols = TRUE)
 
 
-pdf(file = "RAnalysis/Output/Final_Figures/DEGSeq2_DEG_heatmap.pdf")
+pdf(file = "RAnalysis/Output/Final_Figures/Host/DEGSeq2_DEG_heatmap_host.pdf")
 DEGSeq2_heatmap
 dev.off()
 
@@ -265,13 +265,13 @@ DEGSeq2_PCA_plot <- ggplot(DEGSeq2_PCAdata, aes(PC1, PC2, color=treatment)) +
 
 DEGSeq2_PCA_plot
 
-ggsave(path = "RAnalysis/Output/Final_Figures/", filename = "DEGSeq2_DEG_PCA_plot.pdf")
+ggsave(path = "RAnalysis/Output/Final_Figures/Host/", filename = "DEGSeq2_DEG_PCA_plot_host.pdf")
 
 # PCA plot is of deferentially expressed genes only
 
 # Save results
 
-write.csv(counts(DEGSeq2_list), file="RAnalysis/Output/RNA-seq/DEG/DEGSeq2_list_unique.csv")
+write.csv(counts(DEGSeq2_list), file="RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2_list_unique_host.csv")
 
 ```
 

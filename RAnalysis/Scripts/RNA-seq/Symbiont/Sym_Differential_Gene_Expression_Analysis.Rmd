@@ -1,5 +1,5 @@
 ---
-title: "RNA_seq_DESeq2_symbiont"
+title: "Symbiont RNA_seq_DESeq2"
 author: "echille"
 edited by: "daniellembecker"
 date: "20230126"
@@ -9,7 +9,7 @@ output: html_document
 # Molecular Underpinnings Chronic Nutrient Enrichment Project
 
 ## RNAseq Differential Expression Analysis 
-## Follow RNAseq workflow in Bioinformatics>Becker_RNASeq_Workflow_C1.md before statistical analysis to make gene counts and transcript counts matrices
+## Follow RNAseq workflow in Bioinformatics>RNAseq workflow_C1 for symbionts before statistical analysis to make gene counts and transcript counts matrices
 
 ### Set up workspace
 
@@ -68,11 +68,14 @@ all(rownames(treatmentinfo) %in% colnames(gcount)) # must come out TRUE
 
 
 ##### Pre-filter gene counts
-## Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests. We will filter out low coverage samples. Here, we will keep P=87.5% percent of the samples have counts over A=5, allowing only 1 of 8 samples to have a value less than 5 per gene.
+## Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests. We will filter out low coverage samples.  
+
+Filter in the package "genefilter". Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests.   
+
 
 ```{r}
-#Erin Set filter values for PoverA, P=87.5% percent of the samples have counts over A=5. They chose their value allowing only 1 of 8 samples to have a value less than 5 per gene. 
-filt <- filterfun(pOverA(0.90,10))
+#Set filter due to testing of number of genes and accuracy, also followed published literature and DESeq2 package recommendations 
+filt <- filterfun(pOverA(0.9,5))
 
 #create filter for the counts data
 gfilt <- genefilter(gcount, filt)
@@ -136,7 +139,7 @@ heatmap <- pheatmap(sampleDistMatrix, # plot distance matrix
          clustering_distance_cols = sampleDists, # cluster cols
          col=colors) # set colors
 heatmap
-pdf(file = "RAnalysis/Output/RNA-seq/DEG/Symbiont/DESeq2_sample_heatmap_sym.pdf")
+pdf(file = "RAnalysis/Output/RNA-seq/DEG/Symbiont/sampletosample_heatmap_sym.pdf")
 heatmap
 dev.off()
 
@@ -179,41 +182,44 @@ DEGSeq2_wald <- DESeq(gdds) # run differential expression test by treatment (?) 
 
 #Explore significant p-values for treatment
 ```{r, message = FALSE}
-DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","control","enriched")) # 
+DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","control","enriched"), pAdjustMethod="fdr")#run wald model
+
+DEGSeq2.results$padj <- p.adjust(DEGSeq2.results$pvalue, method="BH")
+
 head(DEGSeq2.results)
 sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
 
-#286
+#
 
 #### DESeq2, the function plotMA shows the log2 fold changes attributable to a given variable over the mean of normalized counts for all the samples in the DESeqDataSet.
 
-DESeq2_ma_plot_sym <- plotMA(DEGSeq2.results, ylim=c())
-pdf(file = "RAnalysis/Output/RNA-seq/DEG/Symbiont/DESeq2_ma_plot_sym.pdf")
-DESeq2_ma_plot_sym
+MA_PLOT <- plotMA(DEGSeq2.results, ylim=c(-2,2))
+pdf(file = "RAnalysis/Output/RNA-seq/DEG/Symbiont/ma_plot_sym.pdf")
+MA_PLOT
 dev.off()
 
 
 #create data frame with only DESeq2 DEG's with < 0.05 significance 
 
-DEGSeq2.sig.results.sym <- subset(DEGSeq2.results, padj < 0.05)
-DEGSeq2.sig.results.sym <- as.data.frame(DEGSeq2.sig.results.sym)
-DEGSeq2.sig.results.sym$gene_id <-rownames(DEGSeq2.sig.results.sym)
-write.csv(DEGSeq2.sig.results.sym, 'RAnalysis/Output/RNA-seq/DEG/Symbiont/DEGSeq2.sig.results.sym.csv')  
+DEGSeq2.sig.results <- subset(DEGSeq2.results, padj < 0.05)
+DEGSeq2.sig.results <- as.data.frame(DEGSeq2.sig.results)
+DEGSeq2.sig.results$gene_id <-rownames(DEGSeq2.sig.results)
+write.csv(DEGSeq2.sig.results, 'RAnalysis/Output/RNA-seq/DEG/Symbiont/DEGSeq2.sig.results.sym.csv')  
 
 ```
 ## Identify unique genes from DEGs from treatments 
 ```{r}
-dim(DEGSeq2.sig.results.sym) # 213 x 7
-length(unique(DEGSeq2.sig.results.sym$gene_id)) # 213 unique genes between all treatments 
-write.csv(DEGSeq2.sig.results.sym, file = "RAnalysis/Output/RNA-seq/DEG/Symbiont/DEGs.all_treatment_20230126_sym.csv")
+dim(DEGSeq2.sig.results) # 213 x 7
+length(unique(DEGSeq2.sig.results$gene_id)) # 213 unique genes between all treatments 
+write.csv(DEGSeq2.sig.results, file = "RAnalysis/Output/RNA-seq/DEG/Symbiont/DEGs.all_treatment_20230126_sym.csv")
 ```
 
 ## Visualize differentially expressed genes from DESeq2
 ```{r}
 # Subset list of genes by those which padj>0.
-DEGSeq2.output <- as.data.frame(DEGSeq2.sig.results.sym)
+DEGSeq2.output <- as.data.frame(DEGSeq2.sig.results)
 dim(DEGSeq2.output)
-DEGSeq2.results.all <- DEGSeq2.sig.results.sym
+DEGSeq2.results.all <- DEGSeq2.sig.results
 DEGSeq2 <- rownames(DEGSeq2.results.all) # list all gene names 
 DEGSeq2 <- unique(DEGSeq2) # select only unique gene names 
 DEGSeq2_list <- gdds[which(rownames(gdds) %in% DEGSeq2)] # filter gdds DESeq2 object by unique gene names
@@ -278,10 +284,10 @@ write.csv(counts(DEGSeq2_list), file="RAnalysis/Output/RNA-seq/DEG/Symbiont/DEGS
 ## DEG summary info 
 ## Run to calculate the DEGs, and upregulated vs. downregulated genes
 ```{r}
-length(unique(DEGSeq2.sig.results.sym$gene_id)) # 213 unique DEGs
-down <- DEGSeq2.sig.results.sym %>% filter(log2FoldChange < 0) 
+length(unique(DEGSeq2.sig.results$gene_id)) # 213 unique DEGs
+down <- DEGSeq2.sig.results %>% filter(log2FoldChange < 0) 
 length(unique(down$gene_id)) # 147 unique DEGs downregulated
-up <- DEGSeq2.sig.results.sym %>% filter(log2FoldChange > 0)
+up <- DEGSeq2.sig.results %>% filter(log2FoldChange > 0)
 length(unique(up$gene_id)) # 66 unique DEGs upregulated
 ```
 

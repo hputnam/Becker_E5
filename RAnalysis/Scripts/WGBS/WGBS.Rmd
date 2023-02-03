@@ -216,6 +216,7 @@ ggplot(means, aes(x=treatment, y=per.meth)) +
     #ylim(0,100)+ #set y limits to 0 and 100%
     theme_bw()
 
+
 ggsave("RAnalysis/Output/WGBS/per.meth.5x.pdf")
 
 ```

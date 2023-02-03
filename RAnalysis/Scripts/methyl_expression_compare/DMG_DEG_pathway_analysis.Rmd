@@ -40,13 +40,13 @@ library("AnnotationDbi")
 # Import the data files 
 ```{r}
 #upload go enrichment summary for DEGs
-DEG <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.summary.table.DEG.csv", header = TRUE, row.names = 1)
+DEG <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/GO.enrichment.summary.table.DEG.host.csv", header = TRUE, row.names = 1)
 
 #rename category to GOterm
 colnames(DEG)[3] ="GOterm" #rename columns
 
 #write csv with bh_adjust
-write.csv(DEG, file = "RAnalysis/Output/RNA-seq/GOSeq/GO.DEG.parent.terms.csv")
+write.csv(DEG, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/GO.DEG.parent.terms.host.csv")
 
 #upload go enrichment summary for DMGs
 DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv", header = TRUE, row.names = 1)
@@ -123,6 +123,7 @@ DEG.NA <- DEG %>%
 ```
 
 
+#Filled in all NAs with parent terms for completed data frames below
 #Used QuickGO to search and fill in the remaining NA parent terms https://www.ebi.ac.uk/QuickGO/term/GO:1901363
 #DMG go plot
 ```{r}
@@ -168,7 +169,7 @@ ggsave("RAnalysis/Output/Final_Figures/DMG.complete.slimterms.pdf", GO.plot.DMG.
 #upload complete parent term dataframe DMGs and make figures
 
 #upload complete go enrichment summary for DMGs
-DEG.complete <- read.csv("RAnalysis/Data/RNA-seq/DEG_GO_parent_terms_NAs.csv", header = TRUE)
+DEG.complete <- read.csv("RAnalysis/Data/RNA-seq/Host/DEG_GO_parent_terms_NAs.csv", header = TRUE)
 
 #adjust p-values 
 DEG.complete$bh_adjust <-  p.adjust(DEG.complete$over_represented_pvalue, method="BH") 
@@ -201,6 +202,9 @@ ggsave("RAnalysis/Output/Final_Figures/DEG.complete.slimterms.pdf", GO.plot.DEG.
 
 
 ```
+
+
+#Filter dataframes for gene ontology groups that are shared to see if expression and methylation are correlated
 
 
 

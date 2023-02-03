@@ -84,7 +84,7 @@ str(treatmentinfo)
 head(treatmentinfo)
 
 #DEG significant results
-DEG.res <- read.csv("RAnalysis/Output/RNA-seq/DEG/DEGSeq2.sig.results.csv")[,-1]
+DEG.res <- read.csv("RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.results.host.csv")[,-1]
 nrow(DEG.res)
 DEG.res$gene_id <-  gsub("_gene","",DEG.res$gene_id) #remove extra characters
 
@@ -167,7 +167,7 @@ dim(annot_GO) # 282963 x 2
 length(unique(annot_GO$GO.ID)) # 17023 unique GO.IDs
 head(annot_GO)
 
-write.csv(annot_GO, file = "RAnalysis/Output/RNA-seq/GOSeq/GO.terms.csv")
+write.csv(annot_GO, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/GO.terms.host.csv")
 
 
 ```
@@ -198,9 +198,9 @@ GO.wall.down<-goseq(pwf.down, IDvector, gene2cat=annot_GO, method="Wallenius", u
 # Using manually entered categories.
 # Calculating the p-values...
 # 'select()' returned 1:1 mapping between keys and columns
-write.csv(GO.wall, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_GO_ALL.csv")
-write.csv(GO.wall.up, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_GO_UPREG.csv")
-write.csv(GO.wall.down, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_GO_DOWNREG.csv")
+write.csv(GO.wall, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_GO_ALL_host.csv")
+write.csv(GO.wall.up, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_GO_UPREG_host.csv")
+write.csv(GO.wall.down, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_GO_DOWNREG_host.csv")
 
 
 # Find significantly enriched GO terms in all genes
@@ -219,10 +219,10 @@ CC <- subset(enriched.GO.05, ontology=="CC")
 CC <- CC[order(-CC$numDEInCat),] 
 BP <- subset(enriched.GO.05, ontology=="BP")
 BP <- BP[order(-BP$numDEInCat),]
-write.csv(MF, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_MF_Sig_Enriched_GO.05.csv")
-write.csv(CC, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_CC_Sig_Enriched_GO.05.csv") 
-write.csv(BP, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_BP_Sig_Enriched_GO.05.csv")
-write.csv(enriched.GO.05, file = "RAnalysis/Output/RNA-seq/GOSeq/pver_Sig_Enriched_GO.05_ALL.csv")
+write.csv(MF, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_MF_Sig_Enriched_GO.05.host.csv")
+write.csv(CC, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_CC_Sig_Enriched_GO.05.host.csv") 
+write.csv(BP, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_BP_Sig_Enriched_GO.05.host.csv")
+write.csv(enriched.GO.05, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_Sig_Enriched_GO.05_ALL_host.csv")
 
 nrow(enriched.GO.05) # 308
 nrow(filter(enriched.GO.05, ontology=="BP")) #number sig BP terms 211
@@ -318,7 +318,7 @@ BPplot # lots of BP, hard to see. Could subset df and plot by BP dfs
 # Save MF, CC, and BP plot in grid layout
 GOplot <- grid.arrange(MFplot, BPplot, ncol=3, clip="off")
 
-ggsave("RAnalysis/Output/Final_Figures/pver_GOplot_05_FullAnnot.pdf", GOplot, width = 21, height = 21, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/Host/pver_GOplot_05_FullAnnot_host.pdf", GOplot, width = 21, height = 21, units = c("in"))
 ```
 
 # Combining MF, CC, and BP into one plot and order by pvalue
@@ -346,7 +346,7 @@ GOplot2 <- enriched.GO.05 %>% drop_na(ontology) %>% mutate(term = fct_reorder(te
         plot.background=element_blank()) #Set the plot background #set title attributes
 GOplot2
 
-ggsave("RAnalysis/Output/Final_Figures/pver_GOplot2_05.pdf", GOplot2, width = 28, height = 28, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/Host/pver_GOplot2_05_host.pdf", GOplot2, width = 28, height = 28, units = c("in"))
 
 # Combining into one plot and order by pvalue 
 GOplot_pvalue <- enriched.GO.05 %>% drop_na(ontology) %>% mutate(term = fct_reorder(term, over_represented_pvalue)) %>%
@@ -372,7 +372,7 @@ GOplot_pvalue <- enriched.GO.05 %>% drop_na(ontology) %>% mutate(term = fct_reor
         plot.background=element_blank()) #Set the plot background #set title attributes
 GOplot_pvalue
 
-ggsave("RAnalysis/Output/Final_Figures/pver_GOplot_pvalue_05_FullAnnot.pdf", GOplot_pvalue, width = 28, height = 28, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/Host/pver_GOplot_pvalue_05_FullAnnot_host.pdf", GOplot_pvalue, width = 28, height = 28, units = c("in"))
 ```
 
 
@@ -495,7 +495,7 @@ MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %
       element_text(size = 20))
 fig5 <- BPplot + MFplot
 
-ggsave("RAnalysis/Output/Final_Figures/GO_enrichment_DEG_heatmap.pdf", fig5, width = 30, height = 30, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/Host/GO_enrichment_DEG_heatmap_host.pdf", fig5, width = 30, height = 30, units = c("in"))
 ```
 
 ## Make supplemental table summarizing GO enrichment
@@ -516,9 +516,7 @@ GO.enrichment.summary <- GO.enrichment.summary %>% #collapse and have gene IDs f
   ungroup()
 
 
-GO.enrichment.summary.DEG<- GO.enrichment.summary %>% add_column(type = "DEG.GO.terms")
-
-write.csv(GO.enrichment.summary.DEG, 'RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.summary.table.DEG.csv') 
+write.csv(GO.enrichment.summary, 'RAnalysis/Output/RNA-seq/GOSeq/Host/GO.enrichment.summary.table.DEG.host.csv') 
 ```
 
 
@@ -581,7 +579,7 @@ MF_plot_GO <- GO.MF  %>%  mutate(term = fct_reorder(term, -log10(over_represente
 
  MF_plot_GO
 
- ggsave("RAnalysis/Output/Final_Figures/GO.plot.MF.terms.pdf", MF_plot_GO , width = 10, height = 10, units = c("in"))
+ ggsave("RAnalysis/Output/Final_Figures/Host/GO.plot.MF.terms.host.pdf", MF_plot_GO , width = 10, height = 10, units = c("in"))
 
  BP_plot_GO <- GO.BP  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>%
                    #mutate(term = fct_reorder(term, Day)) %>%
@@ -610,7 +608,7 @@ facet_grid(slim_term ~ ., scales = "free", space= "free", shrink=TRUE, labeller 
  
  BP_plot_GO
 
- ggsave("RAnalysis/Output/Final_Figures/GO.plot.BP.terms.pdf", BP_plot_GO , width = 10, height = 30, units = c("in"))
+ ggsave("RAnalysis/Output/Final_Figures/Host/GO.plot.BP.terms.host.pdf", BP_plot_GO , width = 10, height = 30, units = c("in"))
  
 
  CC_plot_GO <- GO.CC  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>%
@@ -638,7 +636,7 @@ facet_grid(slim_term ~ ., scales = "free", space= "free", shrink=TRUE, labeller 
 
  CC_plot_GO
 
- ggsave("RAnalysis/Output/Final_Figures/GO.plot.CC.terms.pdf", CC_plot_GO , width = 10, height = 10, units = c("in"))
+ ggsave("RAnalysis/Output/Final_Figures/Host/GO.plot.CC.terms.host.pdf", CC_plot_GO , width = 10, height = 10, units = c("in"))
 
 ```
 
@@ -666,7 +664,7 @@ GO.plot.BP <-  ggplot(GO.BP, aes(x = ontology, y = term)) +
           plot.title = element_text(hjust = 0.1),
           axis.title.y = element_blank())
 
-ggsave(filename=paste0("RAnalysis/Output/RNA-seq/GOSeq/test.BP.plot.png"), plot=GO.plot.BP, dpi=300, width=13, height=18, units="in")
+ggsave(filename=paste0("RAnalysis/Output/RNA-seq/GOSeq/Host/final.BP.plot.host.png"), plot=GO.plot.BP, dpi=300, width=30, height=40, units="in")
 
 ```
 

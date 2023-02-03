@@ -1,0 +1,3 @@
+load("/Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Output/WGBS/sample_all_methylated_data_5x.Rdata")
+load("/Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata")
+load("/Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata")

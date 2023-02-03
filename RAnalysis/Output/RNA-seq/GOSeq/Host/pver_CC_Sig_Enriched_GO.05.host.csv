@@ -1,0 +1,28 @@
+"","category","over_represented_pvalue","under_represented_pvalue","numDEInCat","numInCat","term","ontology","bh_adjust"
+"39","GO:0005789",0.0298868069366857,0.988969007421898,8,440,"endoplasmic reticulum membrane","CC",1
+"43","GO:0005938",0.00156759028319025,0.999696012684104,7,195,"cell cortex","CC",1
+"38","GO:0005680",0.0111331165894898,0.99947278779746,2,19,"anaphase-promoting complex","CC",1
+"41","GO:0005892",0.022919522450641,0.998376094734576,2,26,"acetylcholine-gated channel complex","CC",1
+"105","GO:0019005",0.048265064703014,0.99477595879811,2,42,"SCF ubiquitin ligase complex","CC",1
+"162","GO:0034362",5.57709495013346e-05,1,2,2,"low-density lipoprotein particle","CC",0.373474725466657
+"258","GO:0098691",0.000875420772104194,0.999991750424333,2,5,"dopaminergic synapse","CC",0.975351737112171
+"263","GO:0098981",0.0164055230887518,0.999040194900709,2,21,"cholinergic synapse","CC",1
+"264","GO:0099060",0.0373957474146012,0.996511239074604,2,33,"integral component of postsynaptic specialization membrane","CC",1
+"2","GO:0000808",0.0378955690242564,0.999455330971036,1,4,"origin recognition complex","CC",1
+"6","GO:0001535",0.01956721181861,0.999903785860538,1,2,"radial spoke head","CC",1
+"36","GO:0005602",0.00852221580095591,1,1,1,"complement component C1 complex","CC",1
+"37","GO:0005640",0.0344676615875843,0.999550075364643,1,4,"nuclear outer membrane","CC",1
+"40","GO:0005859",0.0479055913645547,0.99900268039592,1,7,"muscle myosin complex","CC",1
+"42","GO:0005899",0.00989191228071346,1,1,1,"insulin receptor complex","CC",1
+"135","GO:0030427",0.0162521564267641,0.99993373718465,1,2,"site of polarized growth","CC",1
+"154","GO:0032982",0.0293845038545664,0.999709720872979,1,3,"myosin filament","CC",1
+"159","GO:0033557",0.0155566969079251,0.999939308326292,1,2,"Slx1-Slx4 complex","CC",1
+"164","GO:0034455",0.0196822631292974,0.999902645383426,1,2,"t-UTP complex","CC",1
+"182","GO:0045495",0.0480134391772181,0.999025590387325,1,6,"pole plasm","CC",1
+"192","GO:0048269",0.0364477375838055,0.999496468562215,1,4,"methionine adenosyltransferase complex","CC",1
+"218","GO:0060417",0.019686428736067,0.999902603963411,1,2,"yolk","CC",1
+"257","GO:0098674",0.0293845038546097,0.999709720872978,1,3,"extrinsic component of neuronal dense core vesicle membrane","CC",1
+"262","GO:0098892",0.0434684683862555,0.999234308001063,1,5,"extrinsic component of postsynaptic specialization membrane","CC",1
+"296","GO:1990467",0.0247558250737053,0.999794402274545,1,3,"NuA3a histone acetyltransferase complex","CC",1
+"297","GO:1990468",0.00949503202243157,1,1,1,"NuA3b histone acetyltransferase complex","CC",1
+"300","GO:1990811",0.00987305295208217,1,1,1,"MWP complex","CC",1
