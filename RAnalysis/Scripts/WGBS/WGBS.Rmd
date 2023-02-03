@@ -480,9 +480,24 @@ ggsave("RAnalysis/Output/WGBS/DMG_heatmap_GO_terms.10x.pdf", fig5, width = 20, h
 
 ## Make supplemental table summarizing GO enrichment
 ```{r}
-GO.enrichment.summary.table <- bind_rows(GO.BP, GO.MF, GO.CC)
-head(GO.enrichment.summary.table)
-write.csv(GO.enrichment.summary.table, 'RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv') 
+GO.enrichment.summary.10x <- bind_rows(GO.BP, GO.MF, GO.CC)
+
+#add gene_IDs. To get gene_IDs we will merge with the GO.terms DF.
+GOgenes <- data.frame(gene_id=Gene.GO.IDs$gene, category=Gene.GO.IDs$GO.IDs) 
+GOgenes$gene_id <- as.character(GOgenes$gene_id) #make gene ID a character so we can collapse our many near-identical columns
+
+GO.enrichment.summary.10x  <- left_join(GO.enrichment.summary.10x, GOgenes, by="category" ) #join the DFs
+
+#adjust p-values 
+GO.enrichment.summary.10x$bh_adjust <-  p.adjust(GO.enrichment.summary.10x$over_represented_pvalue, method="BH")
+
+GO.enrichment.summary.10x <- GO.enrichment.summary.10x %>% #collapse and have gene IDs for a particular term in a single row as a comma-sep list. 
+  group_by(slim_term, slim_cat, category, over_represented_pvalue, under_represented_pvalue, numDEInCat, numInCat, term, ontology, bh_adjust) %>%
+  summarise(genes = toString(gene_id)) %>% #rename collapsed gene_ID column "gene"
+  ungroup()
+
+head(GO.enrichment.summary.10x)
+write.csv(GO.enrichment.summary.10x, 'RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv') 
 ```
 
 ######
@@ -654,9 +669,24 @@ ggsave("RAnalysis/Output/WGBS/DMG_heatmap_GO_terms.5x.pdf", fig5, width = 20, he
 
 ## Make supplemental table summarizing GO enrichment
 ```{r}
-GO.enrichment.summary.table <- bind_rows(GO.BP, GO.MF, GO.CC)
-head(GO.enrichment.summary.table)
-write.csv(GO.enrichment.summary.table, 'RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.5x.csv') 
+GO.enrichment.summary.5x <- bind_rows(GO.BP, GO.MF, GO.CC)
+
+#add gene_IDs. To get gene_IDs we will merge with the GO.terms DF.
+GOgenes <- data.frame(gene_id=Gene.GO.IDs$gene, category=Gene.GO.IDs$GO.IDs) 
+GOgenes$gene_id <- as.character(GOgenes$gene_id) #make gene ID a character so we can collapse our many near-identical columns
+
+GO.enrichment.summary.5x  <- left_join(GO.enrichment.summary.5x, GOgenes, by="category" ) #join the DFs
+
+#adjust p-values 
+GO.enrichment.summary.5x$bh_adjust <-  p.adjust(GO.enrichment.summary.5x$over_represented_pvalue, method="BH")
+
+GO.enrichment.summary.5x <- GO.enrichment.summary.5x %>% #collapse and have gene IDs for a particular term in a single row as a comma-sep list. 
+  group_by(slim_term, slim_cat, category, over_represented_pvalue, under_represented_pvalue, numDEInCat, numInCat, term, ontology, bh_adjust) %>%
+  summarise(genes = toString(gene_id)) %>% #rename collapsed gene_ID column "gene"
+  ungroup()
+
+head(GO.enrichment.summary.5x)
+write.csv(GO.enrichment.summary.5x, 'RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.5x.csv') 
 ```
 
 

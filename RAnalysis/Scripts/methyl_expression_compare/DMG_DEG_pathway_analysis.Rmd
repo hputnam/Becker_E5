@@ -220,7 +220,14 @@ long.pathway.DEG <- phenotype.pathways.DEG %>%
     mutate(genes = strsplit(as.character(genes), ",")) %>% #defines what character separates the list
     unnest(genes) #unnests and makes each gene have its own row
 
+#rename column from genes to gene
+long.pathway.DEG <- long.pathway.DEG %>% 
+       rename("gene_id" = "genes")
 
+#remove type column from data frame to match DMG 
+long.pathway.DEG = subset(long.pathway.DEG, select = -c(type) )
+
+#change data frames from wide to long so each gene has a row
 long.pathway.DMG <- phenotype.pathways.DMG %>% 
     mutate(genes = strsplit(as.character(genes), ",")) %>% 
     unnest(genes)
@@ -228,10 +235,50 @@ long.pathway.DMG <- phenotype.pathways.DMG %>%
 #remove the _gene_ in the DMG gene list to match DEG gene numbers
 long.pathway.DMG$genes <-  gsub("_gene_","_", long.pathway.DMG$genes)
 
+#rename column from genes to gene
+long.pathway.DMG <- long.pathway.DMG %>% 
+       rename("gene_id" = "genes")
+
 ```
 
-#compare gene lists for correlation
+
+#compare gene lists for correlation, DEG, DMG need to bring in statistic data frame
+```{r}
+#methylation and expression dataframe calculated and complete in meth_GE_compare.Rmd script, found here: https://github.com/hputnam/Becker_E5/blob/master/RAnalysis/Scripts/methyl_expression_compare/meth_GE_compare.Rmd
+#this data frame lists only the genes found in meth and express data frames
+meth.express <- readRDS("RAnalysis/Data/GE_meth_compare/Multi_geneSummaryComplete.RData")
+
+#remove _gene_ in gene id to match other data frames
+meth.express$gene_id <-  gsub("_gene_","_", meth.express$gene_id)
+
+#this data frame lists all methylated genes found 
+methyl.annot <- readRDS("RAnalysis/Data/GE_meth_compare/meth_annot_full.RData")
+
+#remove _gene_ in gene id to match other data frames
+methyl.annot$gene_id <-  gsub("_gene_","_", methyl.annot$gene_id)
+
+#this data frame lists all expressed genes found
+express.annot <- readRDS("RAnalysis/Data/GE_meth_compare/gene_annot_full.RData")
+
+#remove _gene_ in gene id to match other data frames
+express.annot$gene_id <-  gsub("_gene_","_", express.annot$gene_id)
+
+```
 
 
+```{r}
+#combine DMG and DEG data frames, by binding below so all rows are present
+#DMG columns = 12 rows and DEG = 435 rows, total rows should be 447
+DMG.DEG.dat <- rbind(long.pathway.DEG, long.pathway.DMG)
+#yes rows equal estimate
+```
+
+```{r}
+#combine all meth express data frame with DMG.DEG data frame
+#all rows should stay, stats should be merged with gene id
+#447 total rows
+
+meth.exp.filt <- merge(meth.express, DMG.DEG.dat, by = 'gene_id')
+```
 
 
