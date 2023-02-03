@@ -204,7 +204,33 @@ ggsave("RAnalysis/Output/Final_Figures/DEG.complete.slimterms.pdf", GO.plot.DEG.
 ```
 
 
-#Filter dataframes for gene ontology groups that are shared to see if expression and methylation are correlated
+#Filter dataframes for gene ontology groups that are involved in nitrogen pathways, stress pathways to see if expression and methylation are correlated
+```{r}
+
+phenotype.pathways.DEG <- filter(DEG.complete, slim_term %in%  c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound"))
+
+
+phenotype.pathways.DMG <- filter(DMG.complete, slim_term %in%  c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound"))
+```
+
+#change data frames from wide to long format
+```{r}
+#change data frames from wide to long so each gene has a row 
+long.pathway.DEG <- phenotype.pathways.DEG %>% 
+    mutate(genes = strsplit(as.character(genes), ",")) %>% #defines what character separates the list
+    unnest(genes) #unnests and makes each gene have its own row
+
+
+long.pathway.DMG <- phenotype.pathways.DMG %>% 
+    mutate(genes = strsplit(as.character(genes), ",")) %>% 
+    unnest(genes)
+
+#remove the _gene_ in the DMG gene list to match DEG gene numbers
+long.pathway.DMG$genes <-  gsub("_gene_","_", long.pathway.DMG$genes)
+
+```
+
+#compare gene lists for correlation
 
 
 
