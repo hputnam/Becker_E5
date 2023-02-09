@@ -40,13 +40,13 @@ library("AnnotationDbi")
 # Import the data files 
 ```{r}
 #upload go enrichment summary for DEGs
-DEG <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/GO.enrichment.summary.table.DEG.csv", header = TRUE, row.names = 1)
+DEG <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/GO.enrichment.summary.table.DEG.host.csv", header = TRUE, row.names = 1)
 
 #rename category to GOterm
 colnames(DEG)[3] ="GOterm" #rename columns
 
 #write csv with bh_adjust
-write.csv(DEG, file = "RAnalysis/Output/RNA-seq/GOSeq/GO.DEG.parent.terms.csv")
+write.csv(DEG, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/GO.DEG.parent.terms.host.csv")
 
 #upload go enrichment summary for DMGs
 DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv", header = TRUE, row.names = 1)
@@ -97,7 +97,7 @@ for (category in ontologies) {
     scores <- setNames(-log(go_results_DMG$bh_adjust), go_results_DMG$GOterm)
     reducedTerms <- reduceSimMatrix(simMatrix,
                                 scores,
-                                threshold=0.8,
+                                threshold=0.9,
                                 orgdb="org.Ce.eg.db")
     
     #keep only the goterms from the reduced list
@@ -116,7 +116,7 @@ for (category in ontologies) {
     scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
     scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
     xlab("Ontology Category")+
-    facet_grid(ParentTerm ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 7, multi_line = TRUE))+
+    facet_grid(ParentTerm ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 9, multi_line = TRUE))+
     ggtitle("")+
     theme_bw() + 
     theme(panel.border = element_blank(), 
@@ -133,7 +133,7 @@ for (category in ontologies) {
           plot.title = element_text(hjust = 0),
           axis.title.y = element_blank())
   
-ggsave(filename=paste0("RAnalysis/Output/meth_express_compare/DMG_plot", "_", category, ".png"), plot=GO.plot.DMG, dpi=100, width=20, height=30, units="in", limitsize=FALSE)
+ggsave(filename=paste0("RAnalysis/Output/meth_express_compare/DMG_plot", "_", category, ".png"), plot=GO.plot.DMG, dpi=100, width=30, height=30, units="in", limitsize=FALSE)
     
   }
 
@@ -156,7 +156,7 @@ ontologies<-c("BP", "MF", "CC")
 for (category in ontologies) {
   
     #Read relevant file of results from goseq analysis  
-    go_results_DEG<-read_csv(file = paste0("RAnalysis/Output/RNA-seq/GOSeq/GO.DEG.parent.terms.csv"))
+    go_results_DEG<-read_csv(file = paste0("RAnalysis/Output/RNA-seq/GOSeq/Host/GO.DEG.parent.terms.host.csv"))
     
     go_results_DEG<-go_results_DEG%>%
       filter(ontology==category)%>%
@@ -191,7 +191,7 @@ for (category in ontologies) {
     scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
     scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
     xlab("Ontology Category")+
-    facet_grid(ParentTerm ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 7, multi_line = TRUE))+
+    facet_grid(ParentTerm ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 9, multi_line = TRUE))+
     ggtitle("")+
     theme_bw() + 
     theme(panel.border = element_blank(), 
@@ -208,7 +208,7 @@ for (category in ontologies) {
           plot.title = element_text(hjust = 0),
           axis.title.y = element_blank())
   
-ggsave(filename=paste0("RAnalysis/Output/meth_express_compare/DEG_plot", "_", category, ".png"), plot=GO.plot.DEG, dpi=100, width=20, height=22, units="in", limitsize=FALSE)
+ggsave(filename=paste0("RAnalysis/Output/meth_express_compare/DEG_plot", "_", category, ".png"), plot=GO.plot.DEG, dpi=100, width=30, height=22, units="in", limitsize=FALSE)
     
   }
 

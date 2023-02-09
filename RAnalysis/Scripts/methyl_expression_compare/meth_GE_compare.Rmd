@@ -80,6 +80,7 @@ colnames(counts) <- c("C17","C18","C19","C20","C21","C22","C23","C24","C25","C26
 counts <- counts[, colnames(counts) %in% ID] #intersect with ID to maintain only samples a
 counts <- counts[, order(colnames(counts))]
 dge_gene <- DGEList(counts,genes = rownames(counts))
+test <- as.data.frame(dge_gene)
 saveRDS(dge_gene, "RAnalysis/Data/GE_meth_compare/RNA_gene_preNormalization_DGEListObj.Rdata")
 ```
 
@@ -137,6 +138,7 @@ subset_meth_E <- meth[, colnames(meth)%in%list_E] #subset data from main m matri
 
 mean_meth_E <- rowMeans(subset_meth_E)
 
+
 # Mean gene meth control
 subset_meth_C <- meth[, colnames(meth)%in%list_C] #subset data from main m matrix for just control data
 
@@ -149,6 +151,7 @@ cv_meth_E <- sd_meth_E/mean_meth_E
 # Coefficient of Variation for control
 sd_meth_C <- rowSds(subset_meth_C)
 cv_meth_C <- sd_meth_C/mean_meth_C
+
 
 # Coefficient of Variation among treatments
 meanAmongTrt_meth <- cbind(mean_meth_E,mean_meth_C)
@@ -174,7 +177,6 @@ saveRDS(meth_annot,"RAnalysis/Data/GE_meth_compare/meth_annot_full.RData")
 
 
 #### Summarize the gene expression data ####
-
 expression <- dge_gene$counts
 subset_expression <- expression[, colnames(expression)%in%list_E] 
 subset_expression <- subset_expression[rowSums(subset_expression[])>0,]
