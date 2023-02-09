@@ -183,6 +183,8 @@ ggsave("RAnalysis/Output/Final_Figures/DMG.complete.slimterms.pdf", GO.plot.DMG.
 
 ```
 
+#facet by ontology, x axis of dot plots could be genes and methylation to see which are shared and each ontology level what is overlap in each
+#see next is how gene and meth functions overlap facet grouping by parent term and which gives you overlap in parent terms
 #DEG go plot
 ```{r}
 #upload complete parent term dataframe DMGs and make figures
@@ -225,8 +227,8 @@ ggsave("RAnalysis/Output/Final_Figures/DEG.complete.slimterms.pdf", GO.plot.DEG.
 
 #Filter dataframes for gene ontology groups that are involved in nitrogen pathways, stress pathways to see if expression and methylation are correlated
 ```{r}
-phenotype.pathways.DEG <- filter(DEG.complete, slim_term %in%  c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound"))
-
+#filter by any category that contained the word, could do anything that has the word nitrogen, stress, and heat 
+phenotype.pathways.DEG <- filter(DEG.complete, slim_term %in%  c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound")) 
 
 phenotype.pathways.DMG <- filter(DMG.complete, slim_term %in%  c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound"))
 ```
@@ -240,7 +242,7 @@ long.pathway.DEG <- phenotype.pathways.DEG %>%
 
 #rename column from genes to gene
 long.pathway.DEG <- long.pathway.DEG %>% 
-       rename("gene_id" = "genes")
+       dplyr::rename("gene_id" = "genes")
 
 #remove type column from data frame to match DMG 
 long.pathway.DEG = subset(long.pathway.DEG, select = -c(type) )
@@ -258,7 +260,7 @@ long.pathway.DMG$genes <-  gsub("_gene_","_", long.pathway.DMG$genes)
 
 #rename column from genes to gene
 long.pathway.DMG <- long.pathway.DMG %>% 
-       rename("gene_id" = "genes")
+       dplyr::rename("gene_id" = "genes")
 
 #remove extra first space in gene_id names in column 
 long.pathway.DMG$gene_id <- gsub(' Pver', 'Pver', long.pathway.DMG$gene_id)
@@ -312,11 +314,13 @@ meth.merge <- merge(methyl.annot, long.pathway.DMG)
 #all DEG rows should stay = 435, only 410
 express.merge <- merge(express.annot, long.pathway.DEG, by = 'gene_id')
 
-#combine express and meth data
+#the reason some expressed or methylated genes do not merge with stats are due to filtering for >3 CpG in methylation and >0 mean expression
 
 
 ```
 
+
+#look at comparisons between genes in control and enriched, calculate unique gene_ids in both control and enriched and number that are shared between the two groups, venn diagram
 ```{r}
 ## Mean Methylation vs Gene Expression following Liew et al
 df <- meth.exp.filt
@@ -327,16 +331,18 @@ df %>% drop_na()
 df$log_gene_C <- log(df$gene_mean_express_C+1)
 df$per_meth_C <- df$mean_meth_C * 100
 
-#df$density <- get_density(df$gene_mean_express_C, df$mean_meth_C*100, n = 308)
+#make plot with correlation tests
+#decide between pearson, kendall, or spearman
+#first test normality
+shapiro.test(df$gene_mean_express_C) # <0.05
+shapiro.test(df$mean_meth_C) # <0.05
+#both variables are less then 0.05 indicating data do not follow normal distribution
 
-#correlation for control
-cor.C <- cor.test(df$per_meth_C, df$gene_mean_express_C, 
-                    method = "pearson")
-cor.C
-
-control <- ggscatter(df, x=per_meth_C, y=log_gene_C, cor.coef = TRUE, cor.method = "pearson") + 
-    #geom_point() + ylim(0,2) + 
-    #geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+#use kendall test for correlation, Kendall’s is more robust and generally the preferred method between spearman and kendall
+control <- ggplot(df, aes(x=per_meth_C, y=log_gene_C)) + 
+    geom_point() + ylim(0,3) + 
+    geom_smooth(method=lm, colour="orange",size=2,na.rm = TRUE) +
+    stat_cor(method = "kendall", label.x = 60, label.y = 0.5 ) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
     theme_cowplot();control
@@ -346,14 +352,18 @@ control <- ggscatter(df, x=per_meth_C, y=log_gene_C, cor.coef = TRUE, cor.method
 df$log_gene_E <- log(df$gene_mean_express_E+1)
 df$per_meth_E <- df$mean_meth_E * 100
 
-#correlation for control
-cor.E <- cor.test(df$per_meth_E, df$gene_mean_express_E, 
-                    method = "pearson")
-cor.E
+#make plot with correlation tests
+#decide between pearson, kendall, or spearman
+#first test normality
+shapiro.test(df$gene_mean_express_E) # <0.05
+shapiro.test(df$mean_meth_E) # <0.05
+#both variables are less then 0.05 indicating data do not follow normal distribution
 
+#use kendall test for correlation, Kendall’s is more robust and generally the preferred method between spearman and kendall
 enriched <- ggplot(df,aes(x=per_meth_E,y=log_gene_E, cor.coef = TRUE, cor.method = "pearson")) + 
-    geom_point() + ylim(0,2) + 
+    geom_point() + ylim(0,3) + 
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    stat_cor(method = "kendall", label.x = 60, label.y = 0.5 ) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
     theme_cowplot();enriched
