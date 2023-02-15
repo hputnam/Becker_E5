@@ -361,7 +361,7 @@ module load fastp/0.19.7-foss-2018b
 
 array1=($(ls *.fastq.gz)) #Make an array of sequences to trim
 for i in ${array1[@]}; do #Make a loop that trims each file in the array
-fastp --in1 ${i} --in2 $(echo ${i}|sed s/_R1/_R2/) --out1 ../trimmed/${i} --out2 ../trimmed/$(echo ${i}|sed s/_R1/_R2/) --qualified_quality_phred 20 --unqualified_percent_limit 10 --length_required 100 detect_adapter_for_pe --cut_right cut_right_window_size 5 cut_right_mean_quality 20
+fastp --in1 ${i} --in2 $(echo ${i}|sed s/_R1/_R2/) --out1 ../trimmed/${i} --out2 ../trimmed/$(echo ${i}|sed s/_R1/_R2/) --qualified_quality_phred 20 --unqualified_percent_limit 10 --length_required 100 --detect_adapter_for_pe --cut_right cut_right_window_size 5 cut_right_mean_quality 20
 done
 
 ```
