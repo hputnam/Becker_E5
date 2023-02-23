@@ -323,7 +323,7 @@ multiqc /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc
 c) Copy MultiQC files to local computer
 
 ```
-scp -r danielle_becker@Andromeda.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/qc
+scp -r danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/qc
 
 ```
 
@@ -341,9 +341,9 @@ cd trimmed
 
 c) Write script for Trimming and run on Andromeda
 
-# Run fastp on files
-# Trims 20bp from 5' end of all reads
-# Trims poly G, if present
+#Run fastp on files
+#Trims 20bp from 5' end of all reads
+#Trims poly G, if present
 
 ```
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/trim.sh
@@ -378,14 +378,14 @@ Submitted batch job 235101 - started at 15:30 pm, ended at 01:30 am - 10 hours
 
 # 5) Check quality of trimmed files
 
-a) Check number of files in /trimmed folder
+a) Check number of files in /trimmed directory
 
 ```
 ls -1 | wc -l
 #64
 ```
 
-b) Check number of reads
+b) Check number of reads in /trimmed directory
 
 ```
 zgrep -c "@GWNJ" *.gz > trimmed_seq_counts
@@ -500,7 +500,7 @@ module load MultiQC/1.7-foss-2018b-Python-2.7.15
 multiqc /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc
 ```
 ```
-scp -r danielle_becker@Andromeda.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/trimmed_qc
+scp -r danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/trimmed_qc
 
 ```
 
@@ -843,10 +843,10 @@ g) Secure-copy gene counts onto local computer, make sure to open a seperate com
 ```
 #copy gene count matrix
 
-scp danielle_becker@Andromeda.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/Poc_gene_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
+scp danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/Poc_gene_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
 
 
 #copy transcript count matrix
-scp danielle_becker@Andromeda.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/transcript_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
+scp danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/transcript_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
 
 ```
