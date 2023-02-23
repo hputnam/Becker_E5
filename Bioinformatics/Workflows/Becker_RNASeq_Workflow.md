@@ -10,8 +10,12 @@
 - Python  
 
 # 1) Obtain Reference Genome
+
+I am using the *Pocillopora verrucosa* genome since it is the closest complete genome for *Pocillopora meandrina and eydouxi*
+
 [Buitrago-López et al 2020](https://academic.oup.com/gbe/article/12/10/1911/5898631)
 
+Location on Andromeda, the HPC server for URI:
 ```
 cd /data/putnamlab/REFS/
 
@@ -109,9 +113,8 @@ md5sum /data/putnamlab/KITT/hputnam/20201209_Becker_RNASeq_combo/combo/*.gz > UR
 
 ```
 sbatch check_transfer.sh
+Submitted batch job 1816196 20201230
 ```
-###Submitted batch job 1816196 20201230
-
 
 ### Checksum from Genewiz
 
@@ -182,13 +185,19 @@ b6e5da4446b5bccb63e46661e9b1e293  E8_R2_001.fastq.gz
 be19f114b314fdc30dd39962aa12a3dc  E9_R2_001.fastq.gz
 ```
 
-c) Cross-reference the checksum document from GENEWIZ with the data we have on our computer
+c) Verify data integrity with md5sum
 
-```
-### with a small amount of files, able to first cross-check that the sequences matched between both files on the desktop
-### used the code below in terminal to cross-check the files and compare for sanity check
+Cross-reference the checksum document from GENEWIZ with the data we have on our computer
 
+With a small amount of files, able to first cross-check that the sequences matched between both files on the desktop
+
+Use the code below in terminal to cross-check the files and compare for sanity check
 ```
+in directory: /data/putnamlab/KITT/hputnam/20201124_Becker_RNASeq
+
+md5sum -c 20201124_Becker_RNASeq.md5
+```
+Should output 'OK' next to each file name
 
 d) Count number of reads per file using the code after @ in fastq.gz files (e.g.,@GWNJ).
 
@@ -300,8 +309,7 @@ done
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_raw.sh
 ```
-
-### Submitted batch job 1816766 on 20210104
+Submitted batch job 1816766 on 20210104
 
 
 
@@ -372,7 +380,7 @@ done
 ```
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/trim.sh
-Submitted batch job 235101 - started at 15:30 pm, ended at 01:30 am - 10 hours
+Submitted batch job 235101 on 20220223 - started at 15:30 pm, ended at 01:30 am - 10 hours
 ```
 
 
@@ -500,7 +508,7 @@ module load MultiQC/1.7-foss-2018b-Python-2.7.15
 multiqc /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc
 ```
 ```
-scp -r danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/trimmed_qc
+scp -r danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/Bioinformatics/Output/RNASeq/trimmed.qc.multiqc
 
 ```
 
@@ -577,7 +585,7 @@ module load HISAT2/2.1.0-foss-2018b
 #Aligning paired end reads
 #Has the R1 in array1 because the sed in the for loop changes it to an R2. SAM files are of both forward and reverse reads
 
-array1=($(ls *_R1_001.fastq.gz))
+array1=($(ls *R1*.fq.gz))
 for i in ${array1[@]}; do
 hisat2 -p 48 --rna-strandness RF --dta -q -x /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pver_ref -1 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/${i} \
 -2 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/$(echo ${i}|sed s/_R1/_R2/) -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sam
@@ -586,7 +594,7 @@ done
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
-#Submitted batch job 19930
+#Submitted batch job 235530 20230223 at 17:14
 
 ```
 
