@@ -52,11 +52,12 @@ Gene models (GFF3)    614efffa87f6e8098b78490a5804c857
 Miscellaneous files	MD5 hash
 Full transcripts	            76b5d8d405798d5ca7f6f8cc4b740eb2
 
-On Bluewaves
-Pver_genes_names_v1.0.fna.gz  019359071e3ab319cd10e8f08715fc71 
+On Andromeda
+Pver_genes_names_v1.0.fna.gz  019359071e3ab319cd10e8f08715fc71
 ```
 
 ### Functional annotation
+
 [functional annotation xlsx file link](https://oup.silverchair-cdn.com/oup/backfile/Content_public/Journal/gbe/12/10/10.1093_gbe_evaa184/1/evaa184_supplementary_data.zip?Expires=1608305338&Signature=q7Y3SsLOTtlk5ZF6UMMLGy~HRtUFQqRbQt8ZiasnG3EeO11vmHcNgToGSowqYxQK1vibkmPEzMWDeS6u8qG~D20t7G31abz9zbpFrdW9T0cisHAQwY5g~lyK-WRFd-EDYW1eHFI4x~vU0G0xopva7kx1KlXdWxyZW86Fr7CDckFFvav78SAvZtmcvL8WuY4tWmEf33LK4ruuX7ZndqT8k~Kzag57phDdN1qleKWmeAf2wI-Wn8B4w-gV7UU4WQV1Ybs1wwdmexfPxH-DYEuSm-3T4sFq52FW1eRa8WD0V9XDUyysgajGh3sXRxHy-hEUUdnrzlVEk9~Doo9l9IIaUA__&Key-Pair-Id=APKAIE5G5CRDK6RD3PGA)
 
 
@@ -76,7 +77,7 @@ ln -s ../../../../../REFS/Pverr/ ./refs/
 ## path where we stored the RAW fastq.gz files
 ```/data/putnamlab/KITT/hputnam/20201209_Becker_RNASeq_combo/combo```
 
-# 2) Check file integrity 
+# 2) Check file integrity
 
 a) Count all files to make sure all downloaded
 
@@ -93,8 +94,8 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/check_transfer.sh
 ```
 #!/bin/bash ###creating slurm script
 #SBATCH -t 24:00:00 ###give script 24 hours to run
-#SBATCH --nodes=1 --ntasks-per-node=1 ###on server, different nodes you can use for processing power, node just do one task 
-#SBATCH --export=NONE 
+#SBATCH --nodes=1 --ntasks-per-node=1 ###on server, different nodes you can use for processing power, node just do one task
+#SBATCH --export=NONE
 #SBATCH --mem=100GB ###in server allocate 100GB amount of memory
 #SBATCH --account=putnamlab ###primary account
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw ###path
@@ -107,7 +108,7 @@ md5sum /data/putnamlab/KITT/hputnam/20201209_Becker_RNASeq_combo/combo/*.gz > UR
 ```
 
 ```
-sbatch check_transfer.sh 
+sbatch check_transfer.sh
 ```
 ###Submitted batch job 1816196 20201230
 
@@ -269,7 +270,7 @@ E9_R2_001.fastq.gz:25068848
 
 a) Make folders for raw FastQC results and scripts
 
-b) Write script for checking quality with FastQC and submit as job on bluewaves
+b) Write script for checking quality with FastQC and submit as job on Andromeda
 
 ```
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_raw.sh
@@ -307,7 +308,7 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_raw.sh
 c) Make sure all files were processed
 
 ```
-ls -1 | wc -l 
+ls -1 | wc -l
 #64
 ```
 
@@ -322,14 +323,14 @@ multiqc /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc
 c) Copy MultiQC files to local computer
 
 ```
-scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/qc
+scp -r danielle_becker@Andromeda.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/qc
 
 ```
 
 
-# 4) Trim and clean reads 
+# 4) Trim and clean reads
 
-a) Make trimmed reads folder in all other results folders 
+a) Make trimmed reads folder in all other results folders
 
 ```
 
@@ -338,7 +339,11 @@ cd trimmed
 
 ```
 
-c) Write script for Trimming and run on bluewaves
+c) Write script for Trimming and run on Andromeda
+
+# Run fastp on files
+# Trims 20bp from 5' end of all reads
+# Trims poly G, if present
 
 ```
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/trim.sh
@@ -359,24 +364,24 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/trim.sh
 
 module load fastp/0.19.7-foss-2018b
 
-array1=($(ls *.fastq.gz)) #Make an array of sequences to trim
-for i in ${array1[@]}; do #Make a loop that trims each file in the array
-fastp --in1 ${i} --in2 $(echo ${i}|sed s/_R1/_R2/) --out1 ../trimmed/${i} --out2 ../trimmed/$(echo ${i}|sed s/_R1/_R2/) --qualified_quality_phred 20 --unqualified_percent_limit 10 --length_required 100 --detect_adapter_for_pe --cut_right cut_right_window_size 5 cut_right_mean_quality 20
+array1=($(ls *R1*.fastq.gz)) #Make an array of sequences to trim
+for i in ${array1[@]}; do
+fastp --in1 ${i} --in2 $(echo ${i}|sed s/_R1/_R2/) --detect_adapter_for_pe --trim_poly_g --trim_front1 20 --trim_front2 20 --out1 ../trimmed/${i} --out2 ../trimmed/$(echo ${i}|sed s/_R1/_R2/)  
 done
 
 ```
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/trim.sh
-Submitted batch job 1819574
+Submitted batch job 235101 - started at 15:30 pm, ended at 01:30 am - 10 hours
 ```
 
 
-# 5) Check quality of trimmed files 
+# 5) Check quality of trimmed files
 
-a) Check number of files 
+a) Check number of files in /trimmed folder
 
 ```
-ls -1 | wc -l 
+ls -1 | wc -l
 #64
 ```
 
@@ -469,11 +474,11 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_trimmed.sh
 #SBATCH --export=NONE
 #SBATCH --mem=100GB
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc
-#SBATCH --error="script_error" 
-#SBATCH --output="output_script" 
+#SBATCH --error="script_error"
+#SBATCH --output="output_script"
 
 module load FastQC/0.11.8-Java-1.8
 
@@ -489,17 +494,17 @@ Submitted batch job 1834516
 ```
 
 
-d) Run MultiQC on trimmed data 
+d) Run MultiQC on trimmed data
 ```
 module load MultiQC/1.7-foss-2018b-Python-2.7.15
 multiqc /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc
 ```
 ```
-scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/trimmed_qc
+scp -r danielle_becker@Andromeda.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/trimmed_qc
 
 ```
 
-# 6) Align reads 
+# 6) Align reads
 
 a) Generate genome build
 
@@ -526,10 +531,10 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_genome_build.
 #SBATCH --export=NONE
 #SBATCH --mem=100GB
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs
-#SBATCH --error="script_error" 
+#SBATCH --error="script_error"
 #SBATCH --output="output_script"
 
 module load HISAT2/2.1.0-foss-2018b
@@ -558,12 +563,12 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed
 #SBATCH -p putnamlab
 #SBATCH --cpus-per-task=3
-#SBATCH --error="script_error" 
+#SBATCH --error="script_error"
 #SBATCH --output="output_script"
 
 
@@ -572,8 +577,8 @@ module load HISAT2/2.1.0-foss-2018b
 #Aligning paired end reads
 #Has the R1 in array1 because the sed in the for loop changes it to an R2. SAM files are of both forward and reverse reads
 
-array1=($(ls *_R1_001.fastq.gz)) 
-for i in ${array1[@]}; do 
+array1=($(ls *_R1_001.fastq.gz))
+for i in ${array1[@]}; do
 hisat2 -p 48 --rna-strandness RF --dta -q -x /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pver_ref -1 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/${i} \
 -2 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/$(echo ${i}|sed s/_R1/_R2/) -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}.sam
 done
@@ -599,11 +604,11 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
 #SBATCH --cpus-per-task=3
-#SBATCH --error="script_error" 
+#SBATCH --error="script_error"
 #SBATCH --output="output_script"
 
 module load SAMtools/1.9-foss-2018b
@@ -646,9 +651,9 @@ done
 ### Needed to modify Pverr_genome_assembly file, information in this [GitHub issue](https://github.com/Putnam-Lab/Lab_Management/issues/11)
 
 ```
-##copy modified genome assembly file to bluewaves, enter this command into local computer shell
+##copy modified genome assembly file to Andromeda, enter this command into local computer shell
 
-scp -r /Users/Danielle/Downloads/Pver_genome_assembly_v1.0_modified.gff3 danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/
+scp -r /Users/Danielle/Downloads/Pver_genome_assembly_v1.0_modified.gff3 danielle_becker@Andromeda.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/
 ```
 
 ```
@@ -658,7 +663,7 @@ cd counts
 ```
 
 
-b) Assemble and estimate reads 
+b) Assemble and estimate reads
 
 ```
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.sh
@@ -670,15 +675,15 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.s
 #SBATCH --nodes=1 --ntasks-per-node=5
 #SBATCH --export=NONE
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
 #SBATCH --cpus-per-task=3
 
 module load StringTie/2.1.4-GCC-9.3.0
 
-array1=($(ls *.bam)) 
-for i in ${array1[@]}; do 
+array1=($(ls *.bam))
+for i in ${array1[@]}; do
 stringtie -p 48 --rf -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/Pver_genome_assembly_v1.0_modified.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/${i}.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i}
 done
 ```
@@ -688,7 +693,7 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble
 Submitted batch job 1871636
 ```
 
-c) Merge stringTie gtf results 
+c) Merge stringTie gtf results
 
 #in this step we are making a file with all the gtf names and stringtie will merge them all together for a master list for your specific genes
 
@@ -722,7 +727,7 @@ nano re_estimate.assembly.sh
 #SBATCH --nodes=1 --ntasks-per-node=5
 #SBATCH --export=NONE
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
 #SBATCH --cpus-per-task=3
@@ -730,8 +735,8 @@ nano re_estimate.assembly.sh
 module load StringTie/2.1.4-GCC-9.3.0
 
 
-array1=($(ls *.bam)) 
-for i in ${array1[@]}; do 
+array1=($(ls *.bam))
+for i in ${array1[@]}; do
 stringtie -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/Pver_genome_assembly_v1.0_modified.gff3 -o ${i}.merge.gtf ${i}
 echo "${i}"
 done
@@ -742,7 +747,7 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/re_estimate.assemb
 Submitted batch job 1871641
 ```
 ```
-# move merged GTF files to their own folder 
+# move merged GTF files to their own folder
 mv *merge.gtf ../GTF_merge
 
 ```
@@ -833,16 +838,15 @@ Submitted batch job 1871645
 ```
 
 
-g) Secure-copy gene counts onto local computer, make sure to open a seperate command shell outside of bluewaves on your own terminal
+g) Secure-copy gene counts onto local computer, make sure to open a seperate command shell outside of Andromeda on your own terminal
 
 ```
 #copy gene count matrix
 
-scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/Poc_gene_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
+scp danielle_becker@Andromeda.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/Poc_gene_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
 
 
 #copy transcript count matrix
-scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/transcript_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
+scp danielle_becker@Andromeda.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/transcript_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
 
 ```
-
