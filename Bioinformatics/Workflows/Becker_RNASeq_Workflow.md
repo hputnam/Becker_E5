@@ -331,7 +331,7 @@ multiqc /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc
 c) Copy MultiQC files to local computer
 
 ```
-scp -r danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw/qc/*.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/qc
+scp -r danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc/multiqc_report.html /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/Bioinformatics/Output/RNASeq/trimmed.qc.multiqc
 
 ```
 
@@ -393,78 +393,79 @@ ls -1 | wc -l
 #64
 ```
 
+
 b) Check number of reads in /trimmed directory
 
 ```
 zgrep -c "@GWNJ" *.gz > trimmed_seq_counts
 
-C21_R1_001.fastq.gz:12569436
-C21_R2_001.fastq.gz:12569436
-C23_R1_001.fastq.gz:15920237
-C18_R1_001.fastq.gz:17448563
-C23_R2_001.fastq.gz:15920237
-C22_R1_001.fastq.gz:17783162
-C20_R1_001.fastq.gz:18346189
-C22_R2_001.fastq.gz:17783162
-C26_R2_001.fastq.gz:17679573
-C18_R2_001.fastq.gz:17448563
-C24_R1_001.fastq.gz:17244418
-C26_R1_001.fastq.gz:17679573
-C19_R2_001.fastq.gz:18977336
-C24_R2_001.fastq.gz:17244418
-C20_R2_001.fastq.gz:18346189
-C19_R1_001.fastq.gz:18977336
-C17_R1_001.fastq.gz:19053464
-C17_R2_001.fastq.gz:19053464
-C25_R1_001.fastq.gz:22683683
-C25_R2_001.fastq.gz:22683683
-C29_R1_001.fastq.gz:13714128
-C27_R1_001.fastq.gz:18756419
-C29_R2_001.fastq.gz:13714128
-C27_R2_001.fastq.gz:18756419
-C28_R1_001.fastq.gz:18131021
-E11_R1_001.fastq.gz:14185860
-E11_R2_001.fastq.gz:14185860
-C28_R2_001.fastq.gz:18131021
-C31_R1_001.fastq.gz:18796208
-C30_R1_001.fastq.gz:20242216
-C31_R2_001.fastq.gz:18796208
-C30_R2_001.fastq.gz:20242216
-C32_R1_001.fastq.gz:20583523
-C32_R2_001.fastq.gz:20583523
-E10_R1_001.fastq.gz:22441661
-E12_R1_001.fastq.gz:21608172
-E10_R2_001.fastq.gz:22441661
-E13_R1_001.fastq.gz:18961264
-E12_R2_001.fastq.gz:21608172
-E13_R2_001.fastq.gz:18961264
-E14_R1_001.fastq.gz:17170729
-E14_R2_001.fastq.gz:17170729
-E15_R1_001.fastq.gz:17920244
-E15_R2_001.fastq.gz:17920244
-E1_R1_001.fastq.gz:19467393
-E5_R1_001.fastq.gz:12558989
-E1_R2_001.fastq.gz:19467393
-E4_R1_001.fastq.gz:16639960
-E16_R1_001.fastq.gz:22697805
-E5_R2_001.fastq.gz:12558989
-E2_R2_001.fastq.gz:18593178
-E4_R2_001.fastq.gz:16639960
-E3_R1_001.fastq.gz:19740214
-E2_R1_001.fastq.gz:18593178
-E16_R2_001.fastq.gz:22697805
-E3_R2_001.fastq.gz:19740214
-E7_R1_001.fastq.gz:18431790
-E6_R1_001.fastq.gz:18968203
-E6_R2_001.fastq.gz:18968203
-E7_R2_001.fastq.gz:18431790
-E8_R1_001.fastq.gz:17970740
-E8_R2_001.fastq.gz:17970740
-E9_R1_001.fastq.gz:19333946
-E9_R2_001.fastq.gz:19333946
+C17_R1.fastp-trim.20230215.fq.gz:24075726
+C17_R2.fastp-trim.20230215.fq.gz:24075726
+C18_R1.fastp-trim.20230215.fq.gz:22164069
+C18_R2.fastp-trim.20230215.fq.gz:22164069
+C19_R1.fastp-trim.20230215.fq.gz:24108648
+C19_R2.fastp-trim.20230215.fq.gz:24108648
+C20_R1.fastp-trim.20230215.fq.gz:23308448
+C20_R2.fastp-trim.20230215.fq.gz:23308448
+C21_R1.fastp-trim.20230215.fq.gz:15900108
+C21_R2.fastp-trim.20230215.fq.gz:15900108
+C22_R1.fastp-trim.20230215.fq.gz:22276164
+C22_R2.fastp-trim.20230215.fq.gz:22276164
+C23_R1.fastp-trim.20230215.fq.gz:20264849
+C23_R2.fastp-trim.20230215.fq.gz:20264849
+C24_R1.fastp-trim.20230215.fq.gz:21739688
+C24_R2.fastp-trim.20230215.fq.gz:21739688
+C25_R1.fastp-trim.20230215.fq.gz:28400490
+C25_R2.fastp-trim.20230215.fq.gz:28400490
+C26_R1.fastp-trim.20230215.fq.gz:22356889
+C26_R2.fastp-trim.20230215.fq.gz:22356889
+C27_R1.fastp-trim.20230215.fq.gz:23741291
+C27_R2.fastp-trim.20230215.fq.gz:23741291
+C28_R1.fastp-trim.20230215.fq.gz:22662492
+C28_R2.fastp-trim.20230215.fq.gz:22662492
+C29_R1.fastp-trim.20230215.fq.gz:17264107
+C29_R2.fastp-trim.20230215.fq.gz:17264107
+C30_R1.fastp-trim.20230215.fq.gz:25439860
+C30_R2.fastp-trim.20230215.fq.gz:25439860
+C31_R1.fastp-trim.20230215.fq.gz:23852854
+C31_R2.fastp-trim.20230215.fq.gz:23852854
+C32_R1.fastp-trim.20230215.fq.gz:25904515
+C32_R2.fastp-trim.20230215.fq.gz:25904515
+E10_R1.fastp-trim.20230215.fq.gz:28094072
+E10_R2.fastp-trim.20230215.fq.gz:28094072
+E11_R1.fastp-trim.20230215.fq.gz:17954806
+E11_R2.fastp-trim.20230215.fq.gz:17954806
+E12_R1.fastp-trim.20230215.fq.gz:26996226
+E12_R2.fastp-trim.20230215.fq.gz:26996226
+E13_R1.fastp-trim.20230215.fq.gz:23732695
+E13_R2.fastp-trim.20230215.fq.gz:23732695
+E14_R1.fastp-trim.20230215.fq.gz:21831061
+E14_R2.fastp-trim.20230215.fq.gz:21831061
+E15_R1.fastp-trim.20230215.fq.gz:22614254
+E15_R2.fastp-trim.20230215.fq.gz:22614254
+E16_R1.fastp-trim.20230215.fq.gz:28776838
+E16_R2.fastp-trim.20230215.fq.gz:28776838
+E1_R1.fastp-trim.20230215.fq.gz:24465103
+E1_R2.fastp-trim.20230215.fq.gz:24465103
+E2_R1.fastp-trim.20230215.fq.gz:23120087
+E2_R2.fastp-trim.20230215.fq.gz:23120087
+E3_R1.fastp-trim.20230215.fq.gz:25025833
+E3_R2.fastp-trim.20230215.fq.gz:25025833
+E4_R1.fastp-trim.20230215.fq.gz:21164262
+E4_R2.fastp-trim.20230215.fq.gz:21164262
+E5_R1.fastp-trim.20230215.fq.gz:15836446
+E5_R2.fastp-trim.20230215.fq.gz:15836446
+E6_R1.fastp-trim.20230215.fq.gz:24285839
+E6_R2.fastp-trim.20230215.fq.gz:24285839
+E7_R1.fastp-trim.20230215.fq.gz:23378626
+E7_R2.fastp-trim.20230215.fq.gz:23378626
 
+
+scp -r danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_seq_counts /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/Bioinformatics/Output/RNASeq/
 
 ```
+
+
 
 c) Run FastQC on trimmed data
 ```
@@ -595,6 +596,10 @@ done
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
 #Submitted batch job 235530 20230223 at 17:14
+
+#Download alignment statistics information from mapping, will be the output from your script above, even though it is a mapped output, you are in the trimmed folder here
+
+scp -r danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/script_error /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/Bioinformatics/Output/RNASeq/
 
 ```
 
