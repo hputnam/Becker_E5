@@ -509,7 +509,7 @@ Submitted batch job 1834516
 
 d) Run MultiQC on trimmed data
 ```
-module load MultiQC/1.7-foss-2018b-Python-2.7.15
+module load MultiQC/1.9-intel-2020a-Python-3.8.2
 multiqc /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc
 ```
 ```
@@ -652,12 +652,29 @@ rm /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/*.sam
 ```
 Explanation for SAMtools functions for checking the mapped reads in a paired-end dataset found here: https://www.biostars.org/p/138116/
 
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/mapped_read_counts.sh
+
+#!/bin/bash
+#SBATCH -t 72:00:00
+#SBATCH --nodes=1 --ntasks-per-node=8
+#SBATCH --export=NONE
+#SBATCH --mem=500GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu
+#SBATCH --account=putnamlab
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
+#SBATCH --cpus-per-task=3
+
 module load SAMtools/1.9-foss-2018b
 
 array1=($(ls *.bam))  
 for i in ${array1[@]}; do
 samtools view -F 0x4 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/${i} | cut -f 1 | sort | uniq | wc -l > mapped_read_counts
 done
+
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/mapped_read_counts.sh
+
+#Submitted batch job 236602
 
 ```
 
