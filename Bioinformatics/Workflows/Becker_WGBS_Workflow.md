@@ -2,11 +2,11 @@ Whole Genome Bisulfite Sequencing (WGBS) Workflow created by Hollie M. Putnam on
 
 WGBS Workflow edited by Danielle M. Becker 20210312
 
-grep -E 'gene structure "(gene)";' input_file.txt
-
 # Genewiz Data for WGBS
 
 ```
+grep -E 'gene structure "(gene)";' input_file.txt
+
 mkdir /data/putnamlab/hputnam/Becker_E5
 
 cd /data/putnamlab/hputnam/Becker_E5
