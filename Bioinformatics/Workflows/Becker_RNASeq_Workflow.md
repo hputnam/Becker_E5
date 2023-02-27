@@ -459,6 +459,10 @@ E6_R1.fastp-trim.20230215.fq.gz:24285839
 E6_R2.fastp-trim.20230215.fq.gz:24285839
 E7_R1.fastp-trim.20230215.fq.gz:23378626
 E7_R2.fastp-trim.20230215.fq.gz:23378626
+E8_R1.fastp-trim.20230215.fq.gz:22972241
+E8_R2.fastp-trim.20230215.fq.gz:22972241
+E9_R1.fastp-trim.20230215.fq.gz:24270035
+E9_R2.fastp-trim.20230215.fq.gz:24270035
 
 
 scp -r danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_seq_counts /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/Bioinformatics/Output/RNASeq/
@@ -595,7 +599,7 @@ done
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/Hisat2_align2.sh
-#Submitted batch job 235530 20230223 at 17:14
+#Submitted batch job 235530 20230223 at 17:14, ended at 21:18, 3 hours 44 minutes
 
 #Download alignment statistics information from mapping, will be the output from your script above, even though it is a mapped output, you are in the trimmed folder here
 
@@ -634,7 +638,7 @@ done
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SAMtoBAM.sh
-#Submitted batch job 19931
+#Submitted batch job 235853 on 20230224 at 09:02, finished at 06:51, was 18 hours total
 ```
 
 ### Remove Sam files to save space
@@ -656,8 +660,6 @@ samtools view -F 0x4 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/
 done
 
 ```
-
-
 
 # 7) Perform gene counts with stringTie
 

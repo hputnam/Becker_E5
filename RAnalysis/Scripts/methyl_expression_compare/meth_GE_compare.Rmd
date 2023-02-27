@@ -133,11 +133,13 @@ list_E <- as.list(list_E$Sample_ID) #make list of just enriched IDs
 
 list_C <- as.list(list_C$Sample_ID) #make list of just control IDs
   
+
 # mean gene meth enriched 
 subset_meth_E <- meth[, colnames(meth)%in%list_E] #subset data from main m matrix for just enriched data
 
-mean_meth_E <- rowMeans(subset_meth_E)
+#test <- subset_meth_E %>% summarise_at(vars(E1:E9), mean, na.rm = TRUE)
 
+mean_meth_E <- rowMeans(subset_meth_E)
 
 # Mean gene meth control
 subset_meth_C <- meth[, colnames(meth)%in%list_C] #subset data from main m matrix for just control data
@@ -274,6 +276,7 @@ control <- ggplot(df,aes(x=per_meth_C,y=log_gene_C)) +
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+  stat_cor(method = "pearson", label.x = 65, label.y = 0.5) +
     theme_cowplot();control
 
 
@@ -301,8 +304,7 @@ meth_meanexpress <- control + labs(title = "", subtitle = "Control") + enriched 
 
 meth_meanexpress
 
-ggsave(meth_meanexpress, filename="RAnalysis/Output/Final_Figures/ME_meth_correlation.png", height = 7, width = 15)
-
+ggsave(meth_meanexpress, filename="RAnalysis/Output/Final_Figures/Host/ME_meth_correlation.png", height = 7, width = 15)
 
 ```
 
@@ -340,22 +342,14 @@ meanGbMvsGEcv_control <- ggplot(df,aes(log(x=gene_cv_express_C+1),y=mean_meth_C*
     labs(x=bquote("Gene Expression"~CV[Ind]~"(log)"),y="DNA Methylation (%)") +
     theme_cowplot();meanGbMvsGEcv_control
 
-enriched_plots <- plot_grid(mean_GbMvsGE_enriched, meanGbMvsGEcv_enriched, labels=c("A", "B"),ncol=1)
-control_plots <- plot_grid(mean_GbMvsGE_control, meanGbMvsGEcv_control, labels=c("C", "D"),ncol=1)
+enriched_plots <- plot_grid(mean_GbMvsGE_enriched, meanGbMvsGEcv_enriched, labels=c("A. Enriched", "B. Enriched"), ncol=1)
+control_plots <- plot_grid(mean_GbMvsGE_control, meanGbMvsGEcv_control, labels=c("C. Control", "D. Control"), ncol=1)
 
 ### Figure Mean Methylation vs Gene Expression###
 fig_GE_meth <- plot_grid(enriched_plots, control_plots)
-ggsave(fig_GE_meth, filename="RAnalysis/Output/Final_Figures/GbM_GE_correlation.png", height = 7, width = 9)
+ggsave(fig_GE_meth, filename="RAnalysis/Output/Final_Figures/Host/GbM_GE_correlation.png", height = 7, width = 15)
 
-### Statistics ###
-# Linear model with Mean gene DNA methylation as predictor 
-# and Mean gene expression or CV as response  
-# Mean Methylation vs. Mean Gene Expression
-(cpg_ge <- summary(lm(mat$gene_mean~mat$mean)))
-# Mean Methylation vs. CV Gene Expression
-(cpg_cv <- summary(lm(mat$gene_cv_S~mat$mean_S)))
-# Number of genes included
-length(mat$mean_S)
+
 ```
 
 
@@ -374,83 +368,3 @@ mat_red$methylDirection <- ifelse(mat_red$diff_Trt < 0,
                                       "Hypermethylation")
 ```
 
-```{r Plot GE vs meth diff}
-#### Gene Expression vs. DMG change ####
-p1<-ggplot(mat_red,
-           aes(x=diff_Trt_meth,y=gene_diff_Trt_express,colour=methylDirection)) + 
-  geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
-  geom_point(size=3) + ylim(-2.5,2.5) + xlim(-11,11) +  
-  theme_cowplot() +
-  labs(y=bquote("Gene expression (FoldChange"~Log[2]~")"),x="Methylation change in DMGs (fraction difference)") +
-  theme(plot.title = element_text(hjust=0.5), legend.position = "none")
-p1
-p2<-ggplot(mat_red,
-           aes(x=diff_Trt_meth,y=diff.cv,colour=methylDirection)) + 
-  geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
-  geom_point(size=3) + ylim(-4,4) + xlim(-11,11) +  
-  theme_cowplot() +
-  labs(y=bquote("Gene Expression"~CV[ind]~"difference"),x="Methylation change in DMGs (fraction difference)") +
-  theme(plot.title = element_text(hjust=0.5), legend.position = "none")
-p2
-fig <- plot_grid(p1, p2)
-ggsave(fig,filename="RAnalysis/Output/Final_Figures/DMG_GE_correlation.png", height = 4, width = 9)
-```
-
-```{r}
-## Statistical Model ##
-# DMG Methylation diff vs. Mean diff Gene Expression
-(dmg_ge <- summary(lm(mat_red$gene_diff_Trt_express~mat_red$diff_Trt_meth)))
-
-# DMG Methylation diff vs. CV diff Gene Expression
-(dmg_cv <- summary(lm(mat_red$diff.cv~mat_red$diff_Trt_meth)))
-plot(lm(mat_red$gene_diff_Trt_express~mat_red$diff_Trt_meth))
-plot(lm(mat_red$diff.cv~mat_red$diff_Trt_meth))
-```
-
-```{r}
-#### Gene level summary difference ####
-mat_final <- mat
-Ctrol_dnam_diff <- (mat_final$mean_Dc-mat_final$mean_Cc)*100
-Heated_dnam_diff <- (mat_final$mean_Dh-mat_final$mean_Ch)*100
-gene_summary <- data.frame(Ctrol_dnam=Ctrol_dnam_diff,
-                           Ctrol_ge=Ctrol_ge_diff)
-gene_summary$Ctrol_density <- get_density(gene_summary$Ctrol_ge, gene_summary$Ctrol_dnam, n = 100)
-gene_summary$Heated_density <- get_density(gene_summary$Heated_ge, gene_summary$Heated_dnam, n = 100)
-gene_summary$SymbC_density <- get_density(gene_summary$SymbC_ge, gene_summary$SymbC_dnam, n = 100)
-gene_summary$SymbD_density <- get_density(gene_summary$SymbD_ge, gene_summary$SymbD_dnam, n = 100)
-```
-
-```{r}
-#Plot
-## Dc_Cc - Gene level summary difference
-pG_1<-ggplot(gene_summary,
-           aes(y=Ctrol_ge_diff,x=Ctrol_dnam)) + 
-  geom_point(size=3,aes(color=Ctrol_density)) + 
-  scale_color_viridis() + xlim(-20,20) + ylim(-5,5) +
-  geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
-  theme_cowplot() + 
-  labs(y=bquote("Gene expression (FoldChange"~Log[2]~")"),x="Mean gene methylation (difference %)",title="Dc.vs.Cc") +
-  theme(plot.title = element_text(hjust=0.5))
-pG_1
-pG_1_nolab <- pG_1 + theme(axis.title = element_blank(),
-                       legend.position = "none")
-
-summary(lm(gene_summary$SymbD_ge~gene_summary$SymbD_dnam))
-```
-
-```{r}
-#### Final Figure ####
-plot1 <- plot_grid(p1_nolab,p2_nolab, p3_nolab,p4_nolab,ncol=4)
-plot2 <- plot_grid(pG_1_nolab,pG_2_nolab,pG_3_nolab,pG_4_nolab,ncol=4)
-x.grob1 <- textGrob("DMGs (difference %)", 
-                    gp=gpar(col="black", fontsize=15))
-x.grob2 <- textGrob("DNA Methylation (difference %)", 
-                    gp=gpar(col="black", fontsize=15))
-y.grob1 <- textGrob("Gene Expression (log2 fold change)", 
-                    gp=gpar( col="black", fontsize=15), rot=90)
-save1<-grid.arrange(arrangeGrob(plot1,bottom = x.grob1))
-save2<-grid.arrange(arrangeGrob(plot2, bottom = x.grob2))
-plot3<-plot_grid(save2,save1,nrow=2,labels=c("A","B"))
-saveG<-grid.arrange(arrangeGrob(plot3, left = y.grob1))
-ggsave(saveG,filename="output/Fig_9.png", height = 8, width = 13)
-```

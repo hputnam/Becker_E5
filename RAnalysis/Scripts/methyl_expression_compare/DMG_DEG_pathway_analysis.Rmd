@@ -239,6 +239,7 @@ DEG.DMG <- rbind(DMG.complete, DEG.complete)
 DEG.DMG.BP <- DEG.DMG %>%
 filter(ontology == "BP")
 
+
 #make biological process DEG DMG comparison figure
 GO.plot.BP.DEG.DMG <-  ggplot(DEG.DMG.BP, aes(x = type, y = term)) + 
     geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
@@ -304,6 +305,8 @@ GO.plot.MF.DEG.DMG <-  ggplot(DEG.DMG.MF, aes(x = type, y = term)) +
 ggsave("RAnalysis/Output/Final_Figures/Host/GO.MF.DEG.DMG.pdf", GO.plot.MF.DEG.DMG , width = 20, height = 49, units = c("in"))
 
 ```
+
+
 #make final DMG DEG cellular component comparison plot
 ```{r}
 #filter for just the molecular function ontology
@@ -339,11 +342,6 @@ GO.plot.CC.DEG.DMG <-  ggplot(DEG.DMG.CC, aes(x = type, y = term)) +
 ggsave("RAnalysis/Output/Final_Figures/Host/GO.CC.DEG.DMG.pdf", GO.plot.CC.DEG.DMG , width = 20, height = 30, units = c("in"))
 
 ```
-
-
-
-
-
 
 
 #Filter dataframes for gene ontology groups that are involved in nitrogen pathways, stress pathways to see if expression and methylation are correlated
@@ -461,7 +459,7 @@ shapiro.test(df$mean_meth_C) # <0.05
 
 #use kendall test for correlation, Kendall’s is more robust and generally the preferred method between spearman and kendall
 control <- ggplot(df, aes(x=per_meth_C, y=log_gene_C)) + 
-    geom_point() + ylim(0,3) + 
+    geom_point() + ylim(0,3) + xlim(0,100) +
     geom_smooth(method=lm, colour="orange",size=2,na.rm = TRUE) +
     stat_cor(method = "kendall", label.x = 60, label.y = 0.5 ) +
     scale_color_viridis() +
@@ -482,13 +480,14 @@ shapiro.test(df$mean_meth_E) # <0.05
 
 #use kendall test for correlation, Kendall’s is more robust and generally the preferred method between spearman and kendall
 enriched <- ggplot(df,aes(x=per_meth_E,y=log_gene_E, cor.coef = TRUE, cor.method = "pearson")) + 
-    geom_point() + ylim(0,3) + 
+    geom_point() + ylim(0,3) + xlim(0,100) +
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     stat_cor(method = "kendall", label.x = 60, label.y = 0.5 ) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
     theme_cowplot();enriched
 
+ggsave(enriched, filename="RAnalysis/Output/meth_express_compare/pathway.specific.express.meth.png", height = 7, width = 15)
 
 ### Figure Mean Methylation vs Gene Expression###
 
@@ -498,5 +497,24 @@ meth_meanexpress
 
 ggsave(meth_meanexpress, filename="RAnalysis/Output/meth_express_compare/pathway.specific.express.meth.png", height = 7, width = 15)
 ```
+
+```{r}
+#find unique GO slim terms that overlap between DEG and DMG lists
+test1 <- unique(DEG.complete$slim_term)
+test1 <- data_frame(test1)
+test1 <- test1 %>% 
+       rename("test1" = "slim_term")
+
+test2 <- unique(DMG.complete$slim_term)
+test2 <- data_frame(test2)
+test2 <- test2 %>% 
+       rename("test2" = "slim_term")
+
+test3 <- merge(test1, test2, on="slim_term")
+#23 unique terms
+
+```
+
+
 
 
