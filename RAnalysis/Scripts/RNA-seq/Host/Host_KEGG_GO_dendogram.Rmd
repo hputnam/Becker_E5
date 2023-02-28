@@ -25,12 +25,12 @@ library(ggtree)
 
 #input data
 ```{r}
-f_gene_groups=c('RAnalysis/Data/RNA-seq/Host/dendogram_datasheet.csv') 
+f_gene_groups=c('RAnalysis/Data/RNA-seq/Host/dendogram_datasheet_BP.csv') 
 ```
 
 #output directory + base name for the output graph
 ```{r}
-outidx=c('RAnalysis/Output/RNA-seq/Dendogram/Clusters 1a-gsea.graphs')
+outidx=c('RAnalysis/Output/RNA-seq/Dendogram/BP_clusters_DEG.graphs')
 
 f_gene_groups_sep=","
 ```
@@ -99,7 +99,7 @@ max1=7   #you can try different numbers and choose the best clustering
 ```
 
 
-##### run lines 80-134 as a chunk
+##### run a for loop for each term to make connections for dendogram
 ```{r}
 for(i in 1:length(f_gene_groups)){
   #geneGroups1 = read.csv(f_gene_groups[i],sep=f_gene_groups_sep,stringsAsFactors=F)

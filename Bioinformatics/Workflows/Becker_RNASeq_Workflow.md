@@ -674,7 +674,8 @@ done
 
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/mapped_read_counts.sh
 
-#Submitted batch job 236602
+#Submitted batch job 236602, took 7 hours
+#19421210 counts
 
 ```
 
@@ -712,7 +713,7 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.s
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
 #SBATCH --cpus-per-task=3
 
-module load StringTie/2.1.4-GCC-9.3.0
+module load StringTie/2.2.1-GCC-11.2.0
 
 array1=($(ls *.bam))
 for i in ${array1[@]}; do
@@ -722,7 +723,7 @@ done
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble.sh
-Submitted batch job 1871636
+Submitted batch job 237016, 1 hour 20 minutes
 ```
 
 c) Merge stringTie gtf results
@@ -733,7 +734,7 @@ c) Merge stringTie gtf results
 ls *gtf > mergelist.txt
 cat mergelist.txt
 
-module load StringTie/2.1.4-GCC-9.3.0
+module load StringTie/2.2.1-GCC-11.2.0
 
 stringtie --merge -p 8 -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/Pver_genome_assembly_v1.0_modified.gff3 -o stringtie_merged.gtf mergelist.txt
 
@@ -742,16 +743,34 @@ stringtie --merge -p 8 -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/re
 d) Assess assembly quality
 
 ```
-module load gffcompare/0.11.5-foss-2018b
+
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/gffcompare.sh
+
+#!/bin/bash
+#SBATCH -t 72:00:00
+#SBATCH --nodes=1 --ntasks-per-node=8
+#SBATCH --export=NONE
+#SBATCH --mem=500GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu
+#SBATCH --account=putnamlab
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts
+#SBATCH --cpus-per-task=3
+
+module load GffCompare/0.12.6-GCC-11.2.0
 
 gffcompare -r /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/Pver_genome_assembly_v1.0_modified.gff3 -o merged stringtie_merged.gtf
+
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/gffcompare.sh
+
+#Submitted batch job 237924, took one minute
 
 ```
 
 e) Re-estimate assembly
 
 ```
-nano re_estimate.assembly.sh
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/re_estimate.assembly.sh
 ```
 ```
 #!/bin/bash
@@ -764,8 +783,7 @@ nano re_estimate.assembly.sh
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped
 #SBATCH --cpus-per-task=3
 
-module load StringTie/2.1.4-GCC-9.3.0
-
+module load StringTie/2.2.1-GCC-11.2.0
 
 array1=($(ls *.bam))
 for i in ${array1[@]}; do
@@ -776,14 +794,16 @@ done
 ```
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/re_estimate.assembly.sh
-Submitted batch job 1871641
+Submitted batch job 237925, 1 hour 24 minutes
 ```
+
 ```
 # move merged GTF files to their own folder
-mv *merge.gtf ../GTF_merge
+mkdir GTF_merge
+
+mv *merge.gtf GTF_merge
 
 ```
-
 
 f) Create gene matrix
 
@@ -803,38 +823,38 @@ done
 ```
 #sample_list.txt document
 
-C17_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C17_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C18_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C18_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C19_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C19_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C20_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C20_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C21_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C21_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C22_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C22_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C23_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C23_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C24_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C24_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C25_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C25_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C26_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C26_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C27_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C27_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C28_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C28_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C29_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C29_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C30_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C30_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C31_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C31_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-C32_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C32_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E10_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E10_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E11_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E11_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E12_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E12_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E13_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E13_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E14_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E14_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E15_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E15_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E16_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E16_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E1_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E1_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E2_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E2_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E3_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E3_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E4_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E4_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E5_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E5_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E6_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E6_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E7_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E7_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E8_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E8_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
-E9_R1_001.fastq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E9_R1_001.fastq.gz.sam.sorted.bam.merge.gtf
+C17_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C17_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C18_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C18_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C19_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C19_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C20_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C20_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C21_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C21_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C22_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C22_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C23_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C23_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C24_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C24_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C25_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C25_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C26_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C26_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C27_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C27_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C28_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C28_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C29_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C29_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C30_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C30_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C31_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C31_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+C32_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/C32_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E10_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E10_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E11_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E11_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E12_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E12_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E13_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E13_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E14_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E14_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E15_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E15_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E16_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E16_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E1_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E1_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E2_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E2_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E3_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E3_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E4_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E4_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E5_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E5_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E6_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E6_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E7_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E7_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E8_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E8_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
+E9_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/E9_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam.merge.gtf
 
 ```
 ```
@@ -857,7 +877,7 @@ nano /data/putnamlab/hputnam/Becker_E5/RNASeq_Becker_E5/scripts/GTFtoCounts.sh
 #SBATCH --cpus-per-task=3
 
 
-module load StringTie/2.1.4-GCC-9.3.0
+module load StringTie/2.2.1-GCC-11.2.0
 module load Python/2.7.18-GCCcore-9.3.0
 
 python prepDE.py -g Poc_gene_count_matrix.csv -i sample_list.txt
@@ -866,7 +886,7 @@ python prepDE.py -g Poc_gene_count_matrix.csv -i sample_list.txt
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/GTFtoCounts.sh
-Submitted batch job 1871645
+Submitted batch job 237934
 ```
 
 
@@ -875,10 +895,10 @@ g) Secure-copy gene counts onto local computer, make sure to open a seperate com
 ```
 #copy gene count matrix
 
-scp danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/Poc_gene_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
+scp danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/Poc_gene_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/RNA-seq/Host
 
 
 #copy transcript count matrix
-scp danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/transcript_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RNASeq/
+scp danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/transcript_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/RNA-seq/Host
 
 ```
