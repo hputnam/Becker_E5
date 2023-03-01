@@ -52,9 +52,10 @@ row.names(gcount) <- gcount$gene_id
 dim(gcount)
 head(gcount)
 
+
 #remove extra characters from multiple column header names for sample ids, skip first column labeled gene counts so specify 1:ncol
 for ( col in 1:ncol(gcount)){
-  colnames(gcount)[col] <-  sub("_R1_001.fastq.gz.sam.sorted.bam.merge.gtf", "", colnames(gcount)[col])
+  colnames(gcount)[col] <-  sub("_R1.fastp.trim.20230215.fq.gz.sam.sorted.bam.merge.gtf", "", colnames(gcount)[col])
 }
 
 #subset the gcount matrix and reorder it so it matches the treatment info
@@ -183,7 +184,7 @@ DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","control","enric
 head(DEGSeq2.results)
 sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
 
-#213
+#256
 
 #### DESeq2, the function plotMA shows the log2 fold changes attributable to a given variable over the mean of normalized counts for all the samples in the DESeqDataSet.
 
@@ -203,8 +204,8 @@ write.csv(DEGSeq2.sig.results, 'RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.re
 ```
 ## Identify unique genes from DEGs from treatments 
 ```{r}
-dim(DEGSeq2.sig.results) # 213 x 7
-length(unique(DEGSeq2.sig.results$gene_id)) # 213 unique genes between all treatments 
+dim(DEGSeq2.sig.results) # 256 x 7
+length(unique(DEGSeq2.sig.results$gene_id)) # 256 unique genes between all treatments 
 write.csv(DEGSeq2.sig.results, file = "RAnalysis/Output/RNA-seq/DEG/Host/DEGs.all_treatment_20230126_host.csv")
 ```
 
@@ -278,11 +279,11 @@ write.csv(counts(DEGSeq2_list), file="RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2_
 ## DEG summary info 
 ## Run to calculate the DEGs, and upregulated vs. downregulated genes
 ```{r}
-length(unique(DEGSeq2.sig.results$gene_id)) # 213 unique DEGs
+length(unique(DEGSeq2.sig.results$gene_id)) # 256 unique DEGs
 down <- DEGSeq2.sig.results %>% filter(log2FoldChange < 0) 
-length(unique(down$gene_id)) # 147 unique DEGs downregulated
+length(unique(down$gene_id)) # 172 unique DEGs downregulated
 up <- DEGSeq2.sig.results %>% filter(log2FoldChange > 0)
-length(unique(up$gene_id)) # 66 unique DEGs upregulated
+length(unique(up$gene_id)) # 84 unique DEGs upregulated
 ```
 
 

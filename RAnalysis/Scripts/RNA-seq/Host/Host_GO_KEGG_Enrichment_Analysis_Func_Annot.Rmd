@@ -524,7 +524,7 @@ write.csv(GO.enrichment.summary, 'RAnalysis/Output/RNA-seq/GOSeq/Host/GO.enrichm
 
 ```{r}
 #number of unique go slim terms per category
-length(unique(GO.enrichment.summary$slim_term)) #47 unique go terms
+length(unique(GO.enrichment.summary$slim_term)) #42 unique go terms
 
 #view slim terms per ontology category
 ## filtering go slim category of BP 
@@ -532,14 +532,14 @@ BP_slim <- GO.enrichment.summary %>%
   filter(ontology=="BP")
 view(BP_slim)
 #number of BP go slim terms
-length(unique(BP_slim$slim_term)) #33
+length(unique(BP_slim$slim_term)) #32
 
 ## filtering go slim category of MF 
 MF_slim <- GO.enrichment.summary %>%
   filter(ontology=="MF")
 view(MF_slim)
 #number of BP go slim terms
-length(unique(MF_slim$slim_term)) #12
+length(unique(MF_slim$slim_term)) #8
 
 ## filtering go slim category of CC 
 CC_slim <- GO.enrichment.summary %>%
@@ -687,7 +687,7 @@ ggsave(filename=paste0("RAnalysis/Output/RNA-seq/GOSeq/Host/final.BP.plot.host.p
 ```{r}
 
 #Load in KO term functional annotation and edit to match GFF3 and annotation file
-KFS.KO.orig <- read_tsv("RAnalysis/Data/KEGG_ontology/Pver_KO_annot.tsv", col_names = TRUE)
+KFS.KO.orig <- read_tsv("RAnalysis/Data/KEGG_ontology/Pver_KO_annot.tsv.zip", col_names = TRUE)
 
 KFS.KO <- KFS.KO.orig[-1,c(1,2,3)]
 colnames(KFS.KO) <- c("sig","gene_id", "ko")
@@ -712,7 +712,7 @@ head(KO.terms)
 colnames(KO.terms) <- c("gene_id", "GO.ID")
 
 #Bind KO and GO references
-GO.terms <- read_csv("RAnalysis/Output/RNA-seq/GOSeq/GO.terms.csv")[-1]
+GO.terms <- read_csv("RAnalysis/Output/RNA-seq/GOSeq/Host/GO.terms.host.csv")[-1]
 
 GOKO.terms <- bind_rows(GO.terms, KO.terms)
 
@@ -768,8 +768,8 @@ down.KO.05 <- unique(left_join(down.KO.05[,-6], KFS.KO.def, by=c("category")))
 
 Write output KEGG enrichment files
 ```{r}
-write.csv(up.KO.05, file = "RAnalysis/Output/RNA-seq/KEGG/KO.05.up.csv")
-write.csv(down.KO.05, file = "RAnalysis/Output/RNA-seq/KEGG/KO.05.down.csv")
+write.csv(up.KO.05, file = "RAnalysis/Output/RNA-seq/KEGG/Host/KO.05.up.csv")
+write.csv(down.KO.05, file = "RAnalysis/Output/RNA-seq/KEGG/Host/KO.05.down.csv")
 ```
 
 ## Make supplemental table summarizing KO enrichment
@@ -808,9 +808,10 @@ KOdf_D$gene_id <- as.character(KOdf_D$gene_id) #make gene ID a character so we c
 Bind rows for up and down and save!
 ```{r}
 KOdf <- bind_rows(KOdf_U, KOdf_D)
+KOdf <- na.omit(KOdf)
 head(KOdf)
 str(KOdf)
-write.csv(KOdf, file = "RAnalysis/Output/RNA-seq/KEGG/KOenrichmentsummary.csv", row.names = FALSE)
+write.csv(KOdf, file = "RAnalysis/Output/RNA-seq/KEGG/Host/KOenrichmentsummary.csv", row.names = FALSE)
 ```
 
 ```{r}
@@ -841,7 +842,7 @@ KEGGplot <- KOdf  %>%  mutate(term = fct_reorder(term, -log10(over_represented_p
 KEGGplot
 
 
-ggsave("RAnalysis/Output/Final_Figures/KEGGplot.png", KEGGplot, width = 10, height = 10, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/Host/KEGGplot.png", KEGGplot, width = 10, height = 10, units = c("in"))
  
 ```
 
