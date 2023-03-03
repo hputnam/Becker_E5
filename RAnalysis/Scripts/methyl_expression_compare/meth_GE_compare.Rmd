@@ -254,11 +254,37 @@ saveRDS(gSum,"RAnalysis/Data/GE_meth_compare/Multi_geneSummaryComplete.RData")
 saveRDS(gSum_red,"RAnalysis/Data/GE_meth_compare/Multi_geneSummaryReduced.RData")
 ```
 
+#compare global mean meth vs express overall
 ```{r}
 mat <- readRDS("RAnalysis/Data/GE_meth_compare/Multi_geneSummaryReduced.RData")
 
 ## Mean Methylation vs Gene Expression following Liew et al
 df <- mat
+
+#log gene expression x % methylation
+df$log_gene <- log(df$gene_mean_express+1)
+df$per_meth <- df$mean_meth * 100
+
+#plot of global express x meth
+
+meth.express.compare <- ggplot(df,aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + ylim(0,2) + 
+    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+  stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
+    theme_cowplot();meth.express.compare
+
+
+### Figure Mean Methylation vs Gene Expression###
+
+ggsave(meth.express.compare, filename="RAnalysis/Output/Final_Figures/Host/global_ME_meth_correlation.png", height = 7, width = 10)
+
+```
+
+
+#compare global mean meth vs express for control and enriched
+```{r}
 
 #control log gene expression x % methylation
 df$log_gene_C <- log(df$gene_mean_express_C+1)
@@ -268,7 +294,7 @@ df$density <- get_density(df$gene_mean_express_C, df$mean_meth_C*100, n = 100)
 
 #correlation for control
 cor.C <- cor.test(df$per_meth_C, df$gene_mean_express_C, 
-                    method = "pearson")
+                    method = "kendall")
 cor.C
 
 control <- ggplot(df,aes(x=per_meth_C,y=log_gene_C)) + 
@@ -276,7 +302,7 @@ control <- ggplot(df,aes(x=per_meth_C,y=log_gene_C)) +
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-  stat_cor(method = "pearson", label.x = 65, label.y = 0.5) +
+  stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
     theme_cowplot();control
 
 
@@ -286,7 +312,7 @@ df$per_meth_E <- df$mean_meth_E * 100
 
 #correlation for control
 cor.E <- cor.test(df$per_meth_E, df$gene_mean_express_E, 
-                    method = "pearson")
+                    method = "kendall")
 cor.E
 
 enriched <- ggplot(df,aes(x=per_meth_E,y=log_gene_E,)) + 
@@ -294,7 +320,7 @@ enriched <- ggplot(df,aes(x=per_meth_E,y=log_gene_E,)) +
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-  stat_cor(method = "pearson", label.x = 65, label.y = 0.5) +
+  stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
     theme_cowplot();enriched
 
 
@@ -304,7 +330,7 @@ meth_meanexpress <- control + labs(title = "", subtitle = "Control") + enriched 
 
 meth_meanexpress
 
-ggsave(meth_meanexpress, filename="RAnalysis/Output/Final_Figures/Host/ME_meth_correlation.png", height = 7, width = 15)
+ggsave(meth_meanexpress, filename="RAnalysis/Output/Final_Figures/Host/treatments_ME_meth_correlation.png", height = 7, width = 15)
 
 ```
 
@@ -317,6 +343,7 @@ mean_GbMvsGE_enriched <- ggplot(df,aes(x=gene_mean_express_E,y=mean_meth_E*100))
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="Gene Expression (log2-cpm)",y="DNA Methylation (%)") +
+  stat_cor(method = "kendall", digits = 3, label.x = 10, label.y = 90 ) +
     theme_cowplot();mean_GbMvsGE_enriched
 
 df$density <- get_density(df$gene_mean_express_C, df$mean_meth_C*100, n = 100)
@@ -325,6 +352,7 @@ mean_GbMvsGE_control <- ggplot(df,aes(x=gene_mean_express_C, y=mean_meth_C*100))
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="Gene Expression (log2-cpm)",y="DNA Methylation (%)") +
+  stat_cor(method = "kendall", digits = 3, label.x = 10, label.y = 90 ) +
     theme_cowplot();mean_GbMvsGE_control
 
 ## Mean Methylation vs Gene Expression CV (log)
@@ -333,6 +361,7 @@ meanGbMvsGEcv_enriched <- ggplot(df,aes(log(x=gene_cv_express_E),y=mean_meth_E*1
     geom_point(aes(color = density)) + ylim(0,100) + scale_color_viridis() +
     geom_smooth(method=lm,colour="orange",size=2) +
     labs(x=bquote("Gene Expression"~CV[Ind]~"(log)"),y="DNA Methylation (%)") +
+  stat_cor(method = "kendall", digits = 3, label.x = -0.5, label.y = 90 ) +
     theme_cowplot();meanGbMvsGEcv_enriched
 
 df$density <- get_density(log(df$gene_cv_express_C+1), df$mean_meth_C*100, n = 100)
@@ -340,6 +369,7 @@ meanGbMvsGEcv_control <- ggplot(df,aes(log(x=gene_cv_express_C+1),y=mean_meth_C*
     geom_point(aes(color = density)) + ylim(0,100) + scale_color_viridis() +
     geom_smooth(method=lm,colour="orange",size=2) +
     labs(x=bquote("Gene Expression"~CV[Ind]~"(log)"),y="DNA Methylation (%)") +
+  stat_cor(method = "kendall", digits = 3, label.x = 1, label.y = 90 ) +
     theme_cowplot();meanGbMvsGEcv_control
 
 enriched_plots <- plot_grid(mean_GbMvsGE_enriched, meanGbMvsGEcv_enriched, labels=c("A. Enriched", "B. Enriched"), ncol=1)
@@ -347,7 +377,7 @@ control_plots <- plot_grid(mean_GbMvsGE_control, meanGbMvsGEcv_control, labels=c
 
 ### Figure Mean Methylation vs Gene Expression###
 fig_GE_meth <- plot_grid(enriched_plots, control_plots)
-ggsave(fig_GE_meth, filename="RAnalysis/Output/Final_Figures/Host/GbM_GE_correlation.png", height = 7, width = 15)
+ggsave(fig_GE_meth, filename="RAnalysis/Output/Final_Figures/Host/GbM_GE_correlation.png", height = 10, width = 15)
 
 
 ```
@@ -366,5 +396,38 @@ mat_red$diff.cv <- c(mat_red$gene_cv_express_E-mat_red$gene_cv_express_C)
 mat_red$methylDirection <- ifelse(mat_red$diff_Trt < 0,
                                       "Hypomethylation",
                                       "Hypermethylation")
+```
+
+```{r Plot GE vs meth diff}
+#### Gene Expression vs. DMG change ####
+p1<-ggplot(mat_red,
+           aes(x=diff_Trt_meth,y=gene_diff_Trt_express,colour=methylDirection)) + 
+  geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+  geom_point(size=3) + ylim(-2.5,2.5) + xlim(-11,11) +  
+  theme_cowplot() +
+  labs(y=bquote("Gene expression (FoldChange"~Log[2]~")"),x="Methylation change in DMGs (fraction difference)") +
+  theme(plot.title = element_text(hjust=0.5), legend.position = "none")
+p1
+p2<-ggplot(mat_red,
+           aes(x=diff_Trt_meth,y=diff.cv,colour=methylDirection)) + 
+  geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+  geom_point(size=3) + ylim(-4,4) + xlim(-11,11) +  
+  theme_cowplot() +
+  labs(y=bquote("Gene Expression"~CV[ind]~"difference"),x="Methylation change in DMGs (fraction difference)") +
+  theme(plot.title = element_text(hjust=0.5), legend.position = "none")
+p2
+fig <- plot_grid(p1, p2, labels = c("A", "B"))
+ggsave(fig,filename="RAnalysis/Output/Final_Figures/Host/DMG_GE_correlation.png", height = 5, width = 10)
+```
+
+```{r}
+## Statistical Model ##
+# DMG Methylation diff vs. Mean diff Gene Expression
+(dmg_ge <- summary(lm(mat_red$gene_diff_Trt_express~mat_red$diff_Trt_meth)))
+
+# DMG Methylation diff vs. CV diff Gene Expression
+(dmg_cv <- summary(lm(mat_red$diff.cv~mat_red$diff_Trt_meth)))
+plot(lm(mat_red$gene_diff_Trt_express~mat_red$diff_Trt_meth))
+plot(lm(mat_red$diff.cv~mat_red$diff_Trt_meth))
 ```
 

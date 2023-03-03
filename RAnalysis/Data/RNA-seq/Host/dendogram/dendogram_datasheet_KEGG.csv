@@ -1,0 +1,186 @@
+experiment,percentDEInCat,term,genes
+enriched_vs_control,100,tectonin beta-propeller repeat-containing protein 2,gene13298
+enriched_vs_control,100,pleckstrin homology domain-containing family A member 1/2,gene22737
+enriched_vs_control,100,cytokine receptor-like factor 3,gene696
+enriched_vs_control,100,naked cuticle,gene13481
+enriched_vs_control,100,guanine nucleotide-binding protein subunit alpha-12,gene4609
+enriched_vs_control,100,chromatin modification-related protein EAF6,gene1867
+enriched_vs_control,100,syntaxin 16,gene9323
+enriched_vs_control,100,ethanolaminephosphotransferase [EC:2.7.8.1],gene5863
+enriched_vs_control,100,programmed cell death protein 5,gene14
+enriched_vs_control,100,AN1-type zinc finger protein 3,gene18486
+enriched_vs_control,100,"solute carrier family 25, member 43",gene23231
+enriched_vs_control,100,diamine N-acetyltransferase [EC:2.3.1.57],gene15981
+enriched_vs_control,100,diamine N-acetyltransferase [EC:2.3.1.57],gene486_5de57afd
+enriched_vs_control,100,neuralized-like protein 2,gene9534
+enriched_vs_control,100,homeobox protein Nkx-5,gene16743
+enriched_vs_control,100,3-oxo-5-alpha-steroid 4-dehydrogenase 3 / polyprenol reductase [EC:1.3.1.22 1.3.1.94],gene13043
+enriched_vs_control,100,structure-specific endonuclease subunit SLX1 [EC:3.6.1.-],gene187
+enriched_vs_control,50,coiled-coil domain-containing protein 14,gene13700
+enriched_vs_control,50,coiled-coil domain-containing protein 14,gene15034
+enriched_vs_control,50,anaphase-promoting complex subunit 6,gene5996
+enriched_vs_control,50,anaphase-promoting complex subunit 6,gene9424
+enriched_vs_control,50,RNA 3'-terminal phosphate cyclase (ATP) [EC:6.5.1.4],gene15241
+enriched_vs_control,50,RNA 3'-terminal phosphate cyclase (ATP) [EC:6.5.1.4],gene16339
+enriched_vs_control,50,kelch repeat and BTB domain-containing protein 8,gene5180
+enriched_vs_control,50,kelch repeat and BTB domain-containing protein 8,gene17264
+enriched_vs_control,50,large subunit ribosomal protein L2,gene774
+enriched_vs_control,50,large subunit ribosomal protein L2,gene4700
+enriched_vs_control,50,lysocardiolipin and lysophospholipid acyltransferase [EC:2.3.1.- 2.3.1.51],gene14589
+enriched_vs_control,50,lysocardiolipin and lysophospholipid acyltransferase [EC:2.3.1.- 2.3.1.51],gene22809
+enriched_vs_control,50,lysocardiolipin and lysophospholipid acyltransferase [EC:2.3.1.- 2.3.1.51],gene751_5de57afd
+enriched_vs_control,50,protein kinase C and casein kinase substrate in neurons protein,gene10012
+enriched_vs_control,50,protein kinase C and casein kinase substrate in neurons protein,gene11124
+enriched_vs_control,50,protein cornichon,gene6870
+enriched_vs_control,50,protein cornichon,gene8962
+enriched_vs_control,50,cytokinin riboside 5'-monophosphate phosphoribohydrolase [EC:3.2.2.-],gene16367
+enriched_vs_control,50,cytokinin riboside 5'-monophosphate phosphoribohydrolase [EC:3.2.2.-],gene25262
+enriched_vs_control,33.33333333,"alpha-1,3-mannosylglycoprotein beta-1,4-N-acetylglucosaminyltransferase C [EC:2.4.1.201 2.4.1.145]",gene916
+enriched_vs_control,33.33333333,"alpha-1,3-mannosylglycoprotein beta-1,4-N-acetylglucosaminyltransferase C [EC:2.4.1.201 2.4.1.145]",gene920
+enriched_vs_control,33.33333333,"alpha-1,3-mannosylglycoprotein beta-1,4-N-acetylglucosaminyltransferase C [EC:2.4.1.201 2.4.1.145]",gene921
+enriched_vs_control,33.33333333,GPN-loop GTPase,gene3620
+enriched_vs_control,33.33333333,GPN-loop GTPase,gene6226
+enriched_vs_control,33.33333333,GPN-loop GTPase,gene6843
+enriched_vs_control,25,cryptochrome,gene2643
+enriched_vs_control,25,cryptochrome,gene7747
+enriched_vs_control,25,cryptochrome,gene13943
+enriched_vs_control,25,cryptochrome,gene13944
+enriched_vs_control,25,serine/tyrosine/threonine adenylyltransferase [EC:2.7.7.-],gene774
+enriched_vs_control,25,serine/tyrosine/threonine adenylyltransferase [EC:2.7.7.-],gene4700
+enriched_vs_control,25,serine/tyrosine/threonine adenylyltransferase [EC:2.7.7.-],gene23430
+enriched_vs_control,25,serine/tyrosine/threonine adenylyltransferase [EC:2.7.7.-],gene25690
+enriched_vs_control,20,"solute carrier family 6 (neurotransmitter transporter, amino acid/orphan) member 15/16/17/18/20",gene4406
+enriched_vs_control,20,"solute carrier family 6 (neurotransmitter transporter, amino acid/orphan) member 15/16/17/18/20",gene5144
+enriched_vs_control,20,"solute carrier family 6 (neurotransmitter transporter, amino acid/orphan) member 15/16/17/18/20",gene22963
+enriched_vs_control,20,"solute carrier family 6 (neurotransmitter transporter, amino acid/orphan) member 15/16/17/18/20",gene22964
+enriched_vs_control,20,"solute carrier family 6 (neurotransmitter transporter, amino acid/orphan) member 15/16/17/18/20",gene22965
+enriched_vs_control,100,peroxin-11B,gene2753
+enriched_vs_control,100,ER-derived vesicles protein,gene23053
+enriched_vs_control,100,fatty acid hydroxylase domain-containing protein 2,gene15639
+enriched_vs_control,100,heat shock protein beta-7,gene11517
+enriched_vs_control,100,HSPB1-associated protein 1,gene14546
+enriched_vs_control,100,"cell division cycle 20, cofactor of APC complex",gene630
+enriched_vs_control,100,"cell division cycle 20, cofactor of APC complex",gene662_5de57afd
+enriched_vs_control,100,nonsense-mediated mRNA decay protein 3,gene9524
+enriched_vs_control,100,origin recognition complex subunit 6,gene16605
+enriched_vs_control,100,TNF receptor-associated factor 5,gene7590
+enriched_vs_control,100,"Rho family, other",gene15656
+enriched_vs_control,100,leukotriene-A4 hydrolase [EC:3.3.2.6],gene16312
+enriched_vs_control,100,translation initiation factor 3 subunit C,gene5890
+enriched_vs_control,100,delta-1-pyrroline-5-carboxylate synthetase [EC:2.7.2.11 1.2.1.41],gene26149
+enriched_vs_control,100,kinesin family member 1,gene5236
+enriched_vs_control,50,glutathione-specific gamma-glutamylcyclotransferase [EC:4.3.2.7],gene2049
+enriched_vs_control,50,glutathione-specific gamma-glutamylcyclotransferase [EC:4.3.2.7],gene11755
+enriched_vs_control,50,peptide-methionine (R)-S-oxide reductase [EC:1.8.4.12],gene6370
+enriched_vs_control,50,peptide-methionine (R)-S-oxide reductase [EC:1.8.4.12],gene24018
+enriched_vs_control,50,"crystallin, alpha B",gene2515
+enriched_vs_control,50,"crystallin, alpha B",gene11517
+enriched_vs_control,50,isovaleryl-CoA dehydrogenase [EC:1.3.8.4],gene24733
+enriched_vs_control,50,isovaleryl-CoA dehydrogenase [EC:1.3.8.4],gene26142
+enriched_vs_control,50,mitochondrial genome maintenance exonuclease 1 [EC:3.1.-.-],gene82
+enriched_vs_control,50,mitochondrial genome maintenance exonuclease 1 [EC:3.1.-.-],gene12152
+enriched_vs_control,50,abhydrolase domain-containing protein 4,gene15783
+enriched_vs_control,50,abhydrolase domain-containing protein 4,gene15784
+enriched_vs_control,50,abhydrolase domain-containing protein 5 [EC:2.3.1.51],gene15783
+enriched_vs_control,50,abhydrolase domain-containing protein 5 [EC:2.3.1.51],gene15784
+enriched_vs_control,50,tryptophanase [EC:4.1.99.1],gene11125
+enriched_vs_control,50,tryptophanase [EC:4.1.99.1],gene11126
+enriched_vs_control,50,nucleobindin,gene7478
+enriched_vs_control,50,nucleobindin,gene15943
+enriched_vs_control,50,"MFS transporter, Spinster family, sphingosine-1-phosphate transporter",gene318
+enriched_vs_control,50,"MFS transporter, Spinster family, sphingosine-1-phosphate transporter",gene12634
+enriched_vs_control,50,polycomb group RING finger protein 4,gene6262
+enriched_vs_control,50,polycomb group RING finger protein 4,gene6266
+enriched_vs_control,50,spermatogenesis-associated protein 6,gene15765
+enriched_vs_control,50,spermatogenesis-associated protein 6,gene17502
+enriched_vs_control,50,radial spoke head protein 4/6,gene18093
+enriched_vs_control,50,radial spoke head protein 4/6,gene19316
+enriched_vs_control,50,TNF receptor-associated factor 6 [EC:2.3.2.27],gene7590
+enriched_vs_control,50,TNF receptor-associated factor 6 [EC:2.3.2.27],gene10605
+enriched_vs_control,50,"ATP-binding cassette, subfamily G (WHITE), member 2",gene13279
+enriched_vs_control,50,"ATP-binding cassette, subfamily G (WHITE), member 2",gene18735
+enriched_vs_control,50,proline dehydrogenase [EC:1.5.5.2],gene8101
+enriched_vs_control,50,proline dehydrogenase [EC:1.5.5.2],gene15293
+enriched_vs_control,33.33333333,hexokinase [EC:2.7.1.1],gene541
+enriched_vs_control,33.33333333,hexokinase [EC:2.7.1.1],gene542
+enriched_vs_control,33.33333333,hexokinase [EC:2.7.1.1],gene849
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene248
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene1508
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene1510
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene1511
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene1512
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene2235
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene2236
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene2237
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene3187
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene3325
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene4165
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene4166
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene4169
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene4711
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene4712
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene4713
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene4714
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene6303
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene6371
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene6815
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene6816
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene6817
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene7437
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene7615
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene8193
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene8446
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene13505
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene14920
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene23129
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene23131
+enriched_vs_control,6.451612903,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",gene26080
+enriched_vs_control,33.33333333,"Ras homolog gene family, member A",gene15654
+enriched_vs_control,33.33333333,"Ras homolog gene family, member A",gene15655
+enriched_vs_control,33.33333333,"Ras homolog gene family, member A",gene15656
+enriched_vs_control,33.33333333,S-adenosylmethionine synthetase [EC:2.5.1.6],gene846
+enriched_vs_control,33.33333333,S-adenosylmethionine synthetase [EC:2.5.1.6],gene14739
+enriched_vs_control,33.33333333,S-adenosylmethionine synthetase [EC:2.5.1.6],gene18546
+enriched_vs_control,33.33333333,sorting nexin-10/11,gene7975
+enriched_vs_control,33.33333333,sorting nexin-10/11,gene15540
+enriched_vs_control,33.33333333,sorting nexin-10/11,gene15541
+enriched_vs_control,20,heat shock protein Hsp-16.1/Hsp-16.11,gene2515
+enriched_vs_control,20,heat shock protein Hsp-16.1/Hsp-16.11,gene11516
+enriched_vs_control,20,heat shock protein Hsp-16.1/Hsp-16.11,gene11517
+enriched_vs_control,20,heat shock protein Hsp-16.1/Hsp-16.11,gene11518
+enriched_vs_control,20,heat shock protein Hsp-16.1/Hsp-16.11,gene11519
+enriched_vs_control,33.33333333,protein lifeguard,gene1676
+enriched_vs_control,33.33333333,protein lifeguard,gene7879
+enriched_vs_control,33.33333333,protein lifeguard,gene25700
+enriched_vs_control,25,methionyl-tRNA synthetase [EC:6.1.1.10],gene12577
+enriched_vs_control,25,methionyl-tRNA synthetase [EC:6.1.1.10],gene14740
+enriched_vs_control,25,methionyl-tRNA synthetase [EC:6.1.1.10],gene23926
+enriched_vs_control,25,methionyl-tRNA synthetase [EC:6.1.1.10],gene25471
+enriched_vs_control,25,arachidonate 5-lipoxygenase [EC:1.13.11.34],gene4016
+enriched_vs_control,25,arachidonate 5-lipoxygenase [EC:1.13.11.34],gene7240
+enriched_vs_control,25,arachidonate 5-lipoxygenase [EC:1.13.11.34],gene12746
+enriched_vs_control,25,arachidonate 5-lipoxygenase [EC:1.13.11.34],gene13324
+enriched_vs_control,25,helicase MOV-10 [EC:3.6.4.13],gene10740
+enriched_vs_control,25,helicase MOV-10 [EC:3.6.4.13],gene15306
+enriched_vs_control,25,helicase MOV-10 [EC:3.6.4.13],gene15307
+enriched_vs_control,25,helicase MOV-10 [EC:3.6.4.13],gene23455
+enriched_vs_control,25,endoribonuclease Dicer [EC:3.1.26.-],gene1156
+enriched_vs_control,25,endoribonuclease Dicer [EC:3.1.26.-],gene1157
+enriched_vs_control,25,endoribonuclease Dicer [EC:3.1.26.-],gene5384
+enriched_vs_control,25,endoribonuclease Dicer [EC:3.1.26.-],gene10921
+enriched_vs_control,20,"MFS transporter, SP family, solute carrier family 2 (facilitated glucose transporter), member 8",gene10340
+enriched_vs_control,20,"MFS transporter, SP family, solute carrier family 2 (facilitated glucose transporter), member 8",gene10342
+enriched_vs_control,20,"MFS transporter, SP family, solute carrier family 2 (facilitated glucose transporter), member 8",gene10343
+enriched_vs_control,20,"MFS transporter, SP family, solute carrier family 2 (facilitated glucose transporter), member 8",gene10344
+enriched_vs_control,20,"MFS transporter, SP family, solute carrier family 2 (facilitated glucose transporter), member 8",gene10345
+enriched_vs_control,20,polycystic kidney disease and receptor for egg jelly-related protein,gene82
+enriched_vs_control,20,polycystic kidney disease and receptor for egg jelly-related protein,gene5948
+enriched_vs_control,20,polycystic kidney disease and receptor for egg jelly-related protein,gene13607
+enriched_vs_control,20,polycystic kidney disease and receptor for egg jelly-related protein,gene15331
+enriched_vs_control,20,polycystic kidney disease and receptor for egg jelly-related protein,gene26304
+enriched_vs_control,16.66666667,serine protease 23 [EC:3.4.21.-],gene4825
+enriched_vs_control,16.66666667,serine protease 23 [EC:3.4.21.-],gene8068
+enriched_vs_control,16.66666667,serine protease 23 [EC:3.4.21.-],gene8671
+enriched_vs_control,16.66666667,serine protease 23 [EC:3.4.21.-],gene11681
+enriched_vs_control,16.66666667,serine protease 23 [EC:3.4.21.-],gene16700
+enriched_vs_control,16.66666667,serine protease 23 [EC:3.4.21.-],gene26420

@@ -1,0 +1,186 @@
+category,over_represented_pvalue,under_represented_pvalue,numDEInCat,numInCat,ontology,term,dir,gene_id
+K23881,0.002084154,1,1,1,KEGG,tectonin beta-propeller repeat-containing protein 2,up,Pver_g13298
+K23796,0.00212639,1,1,1,KEGG,pleckstrin homology domain-containing family A member 1/2,up,Pver_g22737
+K24482,0.002524719,1,1,1,KEGG,cytokine receptor-like factor 3,up,Pver_g696
+K03213,0.002533786,1,1,1,KEGG,naked cuticle,up,Pver_g13481
+K04346,0.002560084,1,1,1,KEGG,guanine nucleotide-binding protein subunit alpha-12,up,Pver_g4609
+K11344,0.002569973,1,1,1,KEGG,chromatin modification-related protein EAF6,up,Pver_g1867
+K08489,0.00258329,1,1,1,KEGG,syntaxin 16,up,Pver_g9323
+K00993,0.002594082,1,1,1,KEGG,ethanolaminephosphotransferase [EC:2.7.8.1],up,Pver_g5863
+K06875,0.002596978,1,1,1,KEGG,programmed cell death protein 5,up,Pver_g14
+K24686,0.00261887,1,1,1,KEGG,AN1-type zinc finger protein 3,up,Pver_g18486
+K15120,0.002622027,1,1,1,KEGG,"solute carrier family 25, member 43",up,Pver_g23231
+K00657,0.002623624,1,1,1,KEGG,diamine N-acetyltransferase [EC:2.3.1.57],up,Pver_g15981
+K00657,0.002623624,1,1,1,KEGG,diamine N-acetyltransferase [EC:2.3.1.57],up,Pver_novel_model_486_5de57afd
+K16782,0.002624235,1,1,1,KEGG,neuralized-like protein 2,up,Pver_g9534
+K09349,0.002624236,1,1,1,KEGG,homeobox protein Nkx-5,up,Pver_g16743
+K12345,0.002624236,1,1,1,KEGG,3-oxo-5-alpha-steroid 4-dehydrogenase 3 / polyprenol reductase [EC:1.3.1.22 1.3.1.94],up,Pver_g13043
+K15078,0.002624236,1,1,1,KEGG,structure-specific endonuclease subunit SLX1 [EC:3.6.1.-],up,Pver_g187
+K16541,0.004070576,0.999995912,1,2,KEGG,coiled-coil domain-containing protein 14,up,Pver_g13700
+K16541,0.004070576,0.999995912,1,2,KEGG,coiled-coil domain-containing protein 14,up,Pver_g15034
+K03353,0.004234658,0.999995575,1,2,KEGG,anaphase-promoting complex subunit 6,up,Pver_g5996
+K03353,0.004234658,0.999995575,1,2,KEGG,anaphase-promoting complex subunit 6,up,Pver_g9424
+K01974,0.004460317,0.999995091,1,2,KEGG,RNA 3'-terminal phosphate cyclase (ATP) [EC:6.5.1.4],up,Pver_g15241
+K01974,0.004460317,0.999995091,1,2,KEGG,RNA 3'-terminal phosphate cyclase (ATP) [EC:6.5.1.4],up,Pver_g16339
+K10475,0.004464987,0.999995081,1,2,KEGG,kelch repeat and BTB domain-containing protein 8,up,Pver_g5180
+K10475,0.004464987,0.999995081,1,2,KEGG,kelch repeat and BTB domain-containing protein 8,up,Pver_g17264
+K02886,0.004595162,0.999994789,1,2,KEGG,large subunit ribosomal protein L2,up,Pver_g774
+K02886,0.004595162,0.999994789,1,2,KEGG,large subunit ribosomal protein L2,up,Pver_g4700
+K13513,0.004787258,0.999994344,1,2,KEGG,lysocardiolipin and lysophospholipid acyltransferase [EC:2.3.1.- 2.3.1.51],up,Pver_g14589
+K13513,0.004787258,0.999994344,1,2,KEGG,lysocardiolipin and lysophospholipid acyltransferase [EC:2.3.1.- 2.3.1.51],up,Pver_g22809
+K13513,0.004787258,0.999994344,1,2,KEGG,lysocardiolipin and lysophospholipid acyltransferase [EC:2.3.1.- 2.3.1.51],up,Pver_novel_model_751_5de57afd
+K20123,0.004926435,0.99999401,1,2,KEGG,protein kinase C and casein kinase substrate in neurons protein,up,Pver_g10012
+K20123,0.004926435,0.99999401,1,2,KEGG,protein kinase C and casein kinase substrate in neurons protein,up,Pver_g11124
+K20368,0.005240734,0.99999322,1,2,KEGG,protein cornichon,up,Pver_g6870
+K20368,0.005240734,0.99999322,1,2,KEGG,protein cornichon,up,Pver_g8962
+K22522,0.005241689,0.999993217,1,2,KEGG,cytokinin riboside 5'-monophosphate phosphoribohydrolase [EC:3.2.2.-],up,Pver_g16367
+K22522,0.005241689,0.999993217,1,2,KEGG,cytokinin riboside 5'-monophosphate phosphoribohydrolase [EC:3.2.2.-],up,Pver_g25262
+K13748,0.007694555,0.999980497,1,3,KEGG,"alpha-1,3-mannosylglycoprotein beta-1,4-N-acetylglucosaminyltransferase C [EC:2.4.1.201 2.4.1.145]",up,Pver_g916
+K13748,0.007694555,0.999980497,1,3,KEGG,"alpha-1,3-mannosylglycoprotein beta-1,4-N-acetylglucosaminyltransferase C [EC:2.4.1.201 2.4.1.145]",up,Pver_g920
+K13748,0.007694555,0.999980497,1,3,KEGG,"alpha-1,3-mannosylglycoprotein beta-1,4-N-acetylglucosaminyltransferase C [EC:2.4.1.201 2.4.1.145]",up,Pver_g921
+K24104,0.007835122,0.999979776,1,3,KEGG,GPN-loop GTPase,up,Pver_g3620
+K24104,0.007835122,0.999979776,1,3,KEGG,GPN-loop GTPase,up,Pver_g6226
+K24104,0.007835122,0.999979776,1,3,KEGG,GPN-loop GTPase,up,Pver_g6843
+K02295,0.008836427,0.999971055,1,4,KEGG,cryptochrome,up,Pver_g2643
+K02295,0.008836427,0.999971055,1,4,KEGG,cryptochrome,up,Pver_g7747
+K02295,0.008836427,0.999971055,1,4,KEGG,cryptochrome,up,Pver_g13943
+K02295,0.008836427,0.999971055,1,4,KEGG,cryptochrome,up,Pver_g13944
+K08997,0.009094028,0.99996934,1,4,KEGG,serine/tyrosine/threonine adenylyltransferase [EC:2.7.7.-],up,Pver_g774
+K08997,0.009094028,0.99996934,1,4,KEGG,serine/tyrosine/threonine adenylyltransferase [EC:2.7.7.-],up,Pver_g4700
+K08997,0.009094028,0.99996934,1,4,KEGG,serine/tyrosine/threonine adenylyltransferase [EC:2.7.7.-],up,Pver_g23430
+K08997,0.009094028,0.99996934,1,4,KEGG,serine/tyrosine/threonine adenylyltransferase [EC:2.7.7.-],up,Pver_g25690
+K05048,0.010454654,0.99995676,1,5,KEGG,"solute carrier family 6 (neurotransmitter transporter, amino acid/orphan) member 15/16/17/18/20",up,Pver_g4406
+K05048,0.010454654,0.99995676,1,5,KEGG,"solute carrier family 6 (neurotransmitter transporter, amino acid/orphan) member 15/16/17/18/20",up,Pver_g5144
+K05048,0.010454654,0.99995676,1,5,KEGG,"solute carrier family 6 (neurotransmitter transporter, amino acid/orphan) member 15/16/17/18/20",up,Pver_g22963
+K05048,0.010454654,0.99995676,1,5,KEGG,"solute carrier family 6 (neurotransmitter transporter, amino acid/orphan) member 15/16/17/18/20",up,Pver_g22964
+K05048,0.010454654,0.99995676,1,5,KEGG,"solute carrier family 6 (neurotransmitter transporter, amino acid/orphan) member 15/16/17/18/20",up,Pver_g22965
+K13352,0.003749402,1,1,1,KEGG,peroxin-11B,down,Pver_g2753
+K20369,0.004461601,1,1,1,KEGG,ER-derived vesicles protein,down,Pver_g23053
+K22282,0.006394606,1,1,1,KEGG,fatty acid hydroxylase domain-containing protein 2,down,Pver_g15639
+K09546,0.006841481,1,1,1,KEGG,heat shock protein beta-7,down,Pver_g11517
+K19375,0.00691829,1,1,1,KEGG,HSPB1-associated protein 1,down,Pver_g14546
+K03363,0.007432786,1,1,1,KEGG,"cell division cycle 20, cofactor of APC complex",down,Pver_g630
+K03363,0.007432786,1,1,1,KEGG,"cell division cycle 20, cofactor of APC complex",down,Pver_novel_model_662_5de57afd
+K07562,0.007542858,1,1,1,KEGG,nonsense-mediated mRNA decay protein 3,down,Pver_g9524
+K02608,0.007547722,1,1,1,KEGG,origin recognition complex subunit 6,down,Pver_g16605
+K09849,0.007561711,1,1,1,KEGG,TNF receptor-associated factor 5,down,Pver_g7590
+K07975,0.007561769,1,1,1,KEGG,"Rho family, other",down,Pver_g15656
+K01254,0.007561769,1,1,1,KEGG,leukotriene-A4 hydrolase [EC:3.3.2.6],down,Pver_g16312
+K03252,0.007561769,1,1,1,KEGG,translation initiation factor 3 subunit C,down,Pver_g5890
+K12657,0.007561769,1,1,1,KEGG,delta-1-pyrroline-5-carboxylate synthetase [EC:2.7.2.11 1.2.1.41],down,Pver_g26149
+K10392,0.007561769,1,1,1,KEGG,kinesin family member 1,down,Pver_g5236
+K07232,0.009412945,0.999977896,1,2,KEGG,glutathione-specific gamma-glutamylcyclotransferase [EC:4.3.2.7],down,Pver_g2049
+K07232,0.009412945,0.999977896,1,2,KEGG,glutathione-specific gamma-glutamylcyclotransferase [EC:4.3.2.7],down,Pver_g11755
+K07305,0.010161092,0.999974233,1,2,KEGG,peptide-methionine (R)-S-oxide reductase [EC:1.8.4.12],down,Pver_g6370
+K07305,0.010161092,0.999974233,1,2,KEGG,peptide-methionine (R)-S-oxide reductase [EC:1.8.4.12],down,Pver_g24018
+K09542,0.010486005,0.999972554,1,2,KEGG,"crystallin, alpha B",down,Pver_g2515
+K09542,0.010486005,0.999972554,1,2,KEGG,"crystallin, alpha B",down,Pver_g11517
+K00253,0.011037366,0.999969583,1,2,KEGG,isovaleryl-CoA dehydrogenase [EC:1.3.8.4],down,Pver_g24733
+K00253,0.011037366,0.999969583,1,2,KEGG,isovaleryl-CoA dehydrogenase [EC:1.3.8.4],down,Pver_g26142
+K19465,0.012188988,0.999962883,1,2,KEGG,mitochondrial genome maintenance exonuclease 1 [EC:3.1.-.-],down,Pver_g82
+K19465,0.012188988,0.999962883,1,2,KEGG,mitochondrial genome maintenance exonuclease 1 [EC:3.1.-.-],down,Pver_g12152
+K13698,0.012395389,0.999961611,1,2,KEGG,abhydrolase domain-containing protein 4,down,Pver_g15783
+K13698,0.012395389,0.999961611,1,2,KEGG,abhydrolase domain-containing protein 4,down,Pver_g15784
+K13699,0.012395389,0.999961611,1,2,KEGG,abhydrolase domain-containing protein 5 [EC:2.3.1.51],down,Pver_g15783
+K13699,0.012395389,0.999961611,1,2,KEGG,abhydrolase domain-containing protein 5 [EC:2.3.1.51],down,Pver_g15784
+K01667,0.012882223,0.999958526,1,2,KEGG,tryptophanase [EC:4.1.99.1],down,Pver_g11125
+K01667,0.012882223,0.999958526,1,2,KEGG,tryptophanase [EC:4.1.99.1],down,Pver_g11126
+K20371,0.013010839,0.999957691,1,2,KEGG,nucleobindin,down,Pver_g7478
+K20371,0.013010839,0.999957691,1,2,KEGG,nucleobindin,down,Pver_g15943
+K23677,0.013220551,0.999956312,1,2,KEGG,"MFS transporter, Spinster family, sphingosine-1-phosphate transporter",down,Pver_g318
+K23677,0.013220551,0.999956312,1,2,KEGG,"MFS transporter, Spinster family, sphingosine-1-phosphate transporter",down,Pver_g12634
+K11459,0.014441086,0.99994784,1,2,KEGG,polycomb group RING finger protein 4,down,Pver_g6262
+K11459,0.014441086,0.99994784,1,2,KEGG,polycomb group RING finger protein 4,down,Pver_g6266
+K23224,0.014638956,0.999946396,1,2,KEGG,spermatogenesis-associated protein 6,down,Pver_g15765
+K23224,0.014638956,0.999946396,1,2,KEGG,spermatogenesis-associated protein 6,down,Pver_g17502
+K19756,0.014835206,0.999944944,1,2,KEGG,radial spoke head protein 4/6,down,Pver_g18093
+K19756,0.014835206,0.999944944,1,2,KEGG,radial spoke head protein 4/6,down,Pver_g19316
+K03175,0.01504747,0.999943351,1,2,KEGG,TNF receptor-associated factor 6 [EC:2.3.2.27],down,Pver_g7590
+K03175,0.01504747,0.999943351,1,2,KEGG,TNF receptor-associated factor 6 [EC:2.3.2.27],down,Pver_g10605
+K05681,0.015063737,0.999943228,1,2,KEGG,"ATP-binding cassette, subfamily G (WHITE), member 2",down,Pver_g13279
+K05681,0.015063737,0.999943228,1,2,KEGG,"ATP-binding cassette, subfamily G (WHITE), member 2",down,Pver_g18735
+K00318,0.01506444,0.999943222,1,2,KEGG,proline dehydrogenase [EC:1.5.5.2],down,Pver_g8101
+K00318,0.01506444,0.999943222,1,2,KEGG,proline dehydrogenase [EC:1.5.5.2],down,Pver_g15293
+K00844,0.016211417,0.999912359,1,3,KEGG,hexokinase [EC:2.7.1.1],down,Pver_g541
+K00844,0.016211417,0.999912359,1,3,KEGG,hexokinase [EC:2.7.1.1],down,Pver_g542
+K00844,0.016211417,0.999912359,1,3,KEGG,hexokinase [EC:2.7.1.1],down,Pver_g849
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g248
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g1508
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g1510
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g1511
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g1512
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g2235
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g2236
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g2237
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g3187
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g3325
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g4165
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g4166
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g4169
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g4711
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g4712
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g4713
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g4714
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g6303
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g6371
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g6815
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g6816
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g6817
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g7437
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g7615
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g8193
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g8446
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g13505
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g14920
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g23129
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g23131
+K08187,0.017935216,0.99887668,2,31,KEGG,"MFS transporter, MCT family, solute carrier family 16 (monocarboxylic acid transporters), member 10",down,Pver_g26080
+K04513,0.019243699,0.999876337,1,3,KEGG,"Ras homolog gene family, member A",down,Pver_g15654
+K04513,0.019243699,0.999876337,1,3,KEGG,"Ras homolog gene family, member A",down,Pver_g15655
+K04513,0.019243699,0.999876337,1,3,KEGG,"Ras homolog gene family, member A",down,Pver_g15656
+K00789,0.019701481,0.999870356,1,3,KEGG,S-adenosylmethionine synthetase [EC:2.5.1.6],down,Pver_g846
+K00789,0.019701481,0.999870356,1,3,KEGG,S-adenosylmethionine synthetase [EC:2.5.1.6],down,Pver_g14739
+K00789,0.019701481,0.999870356,1,3,KEGG,S-adenosylmethionine synthetase [EC:2.5.1.6],down,Pver_g18546
+K17924,0.020077745,0.999865334,1,3,KEGG,sorting nexin-10/11,down,Pver_g7975
+K17924,0.020077745,0.999865334,1,3,KEGG,sorting nexin-10/11,down,Pver_g15540
+K17924,0.020077745,0.999865334,1,3,KEGG,sorting nexin-10/11,down,Pver_g15541
+K19766,0.02008732,0.999838392,1,5,KEGG,heat shock protein Hsp-16.1/Hsp-16.11,down,Pver_g2515
+K19766,0.02008732,0.999838392,1,5,KEGG,heat shock protein Hsp-16.1/Hsp-16.11,down,Pver_g11516
+K19766,0.02008732,0.999838392,1,5,KEGG,heat shock protein Hsp-16.1/Hsp-16.11,down,Pver_g11517
+K19766,0.02008732,0.999838392,1,5,KEGG,heat shock protein Hsp-16.1/Hsp-16.11,down,Pver_g11518
+K19766,0.02008732,0.999838392,1,5,KEGG,heat shock protein Hsp-16.1/Hsp-16.11,down,Pver_g11519
+K24205,0.021467063,0.999845955,1,3,KEGG,protein lifeguard,down,Pver_g1676
+K24205,0.021467063,0.999845955,1,3,KEGG,protein lifeguard,down,Pver_g7879
+K24205,0.021467063,0.999845955,1,3,KEGG,protein lifeguard,down,Pver_g25700
+K01874,0.022489281,0.999809834,1,4,KEGG,methionyl-tRNA synthetase [EC:6.1.1.10],down,Pver_g12577
+K01874,0.022489281,0.999809834,1,4,KEGG,methionyl-tRNA synthetase [EC:6.1.1.10],down,Pver_g14740
+K01874,0.022489281,0.999809834,1,4,KEGG,methionyl-tRNA synthetase [EC:6.1.1.10],down,Pver_g23926
+K01874,0.022489281,0.999809834,1,4,KEGG,methionyl-tRNA synthetase [EC:6.1.1.10],down,Pver_g25471
+K00461,0.029771653,0.999665698,1,4,KEGG,arachidonate 5-lipoxygenase [EC:1.13.11.34],down,Pver_g4016
+K00461,0.029771653,0.999665698,1,4,KEGG,arachidonate 5-lipoxygenase [EC:1.13.11.34],down,Pver_g7240
+K00461,0.029771653,0.999665698,1,4,KEGG,arachidonate 5-lipoxygenase [EC:1.13.11.34],down,Pver_g12746
+K00461,0.029771653,0.999665698,1,4,KEGG,arachidonate 5-lipoxygenase [EC:1.13.11.34],down,Pver_g13324
+K18422,0.029907999,0.999662609,1,4,KEGG,helicase MOV-10 [EC:3.6.4.13],down,Pver_g10740
+K18422,0.029907999,0.999662609,1,4,KEGG,helicase MOV-10 [EC:3.6.4.13],down,Pver_g15306
+K18422,0.029907999,0.999662609,1,4,KEGG,helicase MOV-10 [EC:3.6.4.13],down,Pver_g15307
+K18422,0.029907999,0.999662609,1,4,KEGG,helicase MOV-10 [EC:3.6.4.13],down,Pver_g23455
+K11592,0.029907999,0.999662609,1,4,KEGG,endoribonuclease Dicer [EC:3.1.26.-],down,Pver_g1156
+K11592,0.029907999,0.999662609,1,4,KEGG,endoribonuclease Dicer [EC:3.1.26.-],down,Pver_g1157
+K11592,0.029907999,0.999662609,1,4,KEGG,endoribonuclease Dicer [EC:3.1.26.-],down,Pver_g5384
+K11592,0.029907999,0.999662609,1,4,KEGG,endoribonuclease Dicer [EC:3.1.26.-],down,Pver_g10921
+K08145,0.034236143,0.999527817,1,5,KEGG,"MFS transporter, SP family, solute carrier family 2 (facilitated glucose transporter), member 8",down,Pver_g10340
+K08145,0.034236143,0.999527817,1,5,KEGG,"MFS transporter, SP family, solute carrier family 2 (facilitated glucose transporter), member 8",down,Pver_g10342
+K08145,0.034236143,0.999527817,1,5,KEGG,"MFS transporter, SP family, solute carrier family 2 (facilitated glucose transporter), member 8",down,Pver_g10343
+K08145,0.034236143,0.999527817,1,5,KEGG,"MFS transporter, SP family, solute carrier family 2 (facilitated glucose transporter), member 8",down,Pver_g10344
+K08145,0.034236143,0.999527817,1,5,KEGG,"MFS transporter, SP family, solute carrier family 2 (facilitated glucose transporter), member 8",down,Pver_g10345
+K19921,0.037245119,0.999440475,1,5,KEGG,polycystic kidney disease and receptor for egg jelly-related protein,down,Pver_g82
+K19921,0.037245119,0.999440475,1,5,KEGG,polycystic kidney disease and receptor for egg jelly-related protein,down,Pver_g5948
+K19921,0.037245119,0.999440475,1,5,KEGG,polycystic kidney disease and receptor for egg jelly-related protein,down,Pver_g13607
+K19921,0.037245119,0.999440475,1,5,KEGG,polycystic kidney disease and receptor for egg jelly-related protein,down,Pver_g15331
+K19921,0.037245119,0.999440475,1,5,KEGG,polycystic kidney disease and receptor for egg jelly-related protein,down,Pver_g26304
+K09627,0.037269989,0.999416624,1,6,KEGG,serine protease 23 [EC:3.4.21.-],down,Pver_g4825
+K09627,0.037269989,0.999416624,1,6,KEGG,serine protease 23 [EC:3.4.21.-],down,Pver_g8068
+K09627,0.037269989,0.999416624,1,6,KEGG,serine protease 23 [EC:3.4.21.-],down,Pver_g8671
+K09627,0.037269989,0.999416624,1,6,KEGG,serine protease 23 [EC:3.4.21.-],down,Pver_g11681
+K09627,0.037269989,0.999416624,1,6,KEGG,serine protease 23 [EC:3.4.21.-],down,Pver_g16700
+K09627,0.037269989,0.999416624,1,6,KEGG,serine protease 23 [EC:3.4.21.-],down,Pver_g26420

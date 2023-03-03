@@ -61,6 +61,9 @@ pal <- brewer.pal(n = 3, name = "PRGn")
 #upload go enrichment summary for DEGs
 DEG <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/GO.enrichment.summary.table.DEG.host.csv", header = TRUE, row.names = 1)
 
+#adjust p-values 
+DEG$bh_adjust <-  p.adjust(DEG$over_represented_pvalue, method="BH") 
+
 #rename category to GOterm
 colnames(DEG)[3] ="GOterm" #rename columns
 
@@ -68,7 +71,7 @@ colnames(DEG)[3] ="GOterm" #rename columns
 write.csv(DEG, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/GO.DEG.parent.terms.host.csv")
 
 #upload go enrichment summary for DMGs
-DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv", header = TRUE, row.names = 1)
+DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.5x.csv", header = TRUE, row.names = 1)
 
 #rename category to GOterm
 colnames(DMG)[3] ="GOterm" #rename columns
@@ -149,7 +152,7 @@ DEG.NA <- DEG %>%
 #upload complete parent term dataframe DMGs and make figures
 
 #upload complete go enrichment summary for DMGs
-DMG.complete <- read.csv("RAnalysis/Data/WGBS/DMG_GO_parent_terms_NAs_completed.10x.csv", header = TRUE)
+DMG.complete <- read.csv("RAnalysis/Data/WGBS/DMG_GO_parent_terms_complete.10x.csv", header = TRUE)
 
 #adjust p-values 
 DMG.complete$bh_adjust <-  p.adjust(DMG.complete$over_represented_pvalue, method="BH") 
@@ -189,7 +192,10 @@ ggsave("RAnalysis/Output/Final_Figures/Host/DMG.complete.slimterms.pdf", GO.plot
 #upload complete parent term dataframe DMGs and make figures
 
 #upload complete go enrichment summary for DMGs
-DEG.complete <- read.csv("RAnalysis/Data/RNA-seq/Host/DEG_GO_parent_terms_NAs.csv", header = TRUE)
+DEG.complete <- read.csv("RAnalysis/Data/RNA-seq/Host/DEG_GO_parent_terms_complete.csv", header = TRUE, row.names = 1)
+
+#add column to specific type of measure
+DEG.complete <- DEG.complete %>% add_column(type = "DEG.GO.terms")
 
 #adjust p-values 
 DEG.complete$bh_adjust <-  p.adjust(DEG.complete$over_represented_pvalue, method="BH") 
@@ -238,6 +244,9 @@ DEG.DMG <- rbind(DMG.complete, DEG.complete)
 #filter for just the biological process ontology
 DEG.DMG.BP <- DEG.DMG %>%
 filter(ontology == "BP")
+
+#output csv of shared DMG and DEG terms
+write.csv(DEG.DMG, "RAnalysis/Output/meth_express_compare/global.DEG.DMG.goterms.csv")
 
 
 #make biological process DEG DMG comparison figure
@@ -416,9 +425,17 @@ colnames(express.annot)[2:8] <-  sub(".*gene_", "", colnames(express.annot)[2:8]
 
 ```{r}
 #combine DMG and DEG data frames, by binding below so all rows are present
+
+#add column to specific type of measure
+long.pathway.DEG <- long.pathway.DEG %>% add_column(type = "DEG.GO.terms")
+
+
 #DMG columns = 12 rows and DEG = 435 rows, total rows should be 447
 DMG.DEG.dat <- rbind(long.pathway.DEG, long.pathway.DMG)
 #yes rows equal estimate
+
+#write hypothesis driven csv
+write.csv(DEG.DMG.dat, "RAnalysis/Output/meth_express_compare/hypothesis.DEG.DMG.goterms.csv")
 ```
 
 ```{r}
@@ -447,6 +464,38 @@ df <- meth.exp.filt
 df %>% drop_na()
 
 #control log gene expression x % methylation
+df$log_gene <- log(df$gene_mean_express+1)
+df$per_meth <- df$mean_meth * 100
+
+#make plot with correlation tests
+#decide between pearson, kendall, or spearman
+#first test normality
+shapiro.test(df$gene_mean_express) # <0.05
+shapiro.test(df$mean_meth) # <0.05
+#both variables are less then 0.05 indicating data do not follow normal distribution
+
+#use kendall test for correlation, Kendall’s is more robust and generally the preferred method between spearman and kendall
+meth.express.specific <- ggplot(df, aes(x=per_meth, y=log_gene)) + 
+    geom_point() + ylim(0,3) + xlim(0,100) +
+    geom_smooth(method=lm, colour="orange",size=2,na.rm = TRUE) +
+    stat_cor(method = "kendall", label.x = 60, label.y = 0.5 ) +
+    scale_color_viridis() +
+    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+    theme_cowplot();meth.express.specific
+
+
+### Figure Mean Methylation vs Gene Expression###
+
+ggsave(meth.express.specific, filename="RAnalysis/Output/meth_express_compare/pathway.specific.express.meth.png", height = 7, width = 10)
+```
+
+
+
+#look at comparisons between genes in control and enriched, calculate unique gene_ids in both control and enriched and number that are shared between the two groups, venn diagram
+```{r}
+## Mean Methylation vs Gene Expression following Liew et al
+
+#control log gene expression x % methylation
 df$log_gene_C <- log(df$gene_mean_express_C+1)
 df$per_meth_C <- df$mean_meth_C * 100
 
@@ -461,7 +510,7 @@ shapiro.test(df$mean_meth_C) # <0.05
 control <- ggplot(df, aes(x=per_meth_C, y=log_gene_C)) + 
     geom_point() + ylim(0,3) + xlim(0,100) +
     geom_smooth(method=lm, colour="orange",size=2,na.rm = TRUE) +
-    stat_cor(method = "kendall", label.x = 60, label.y = 0.5 ) +
+    stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
     theme_cowplot();control
@@ -482,12 +531,11 @@ shapiro.test(df$mean_meth_E) # <0.05
 enriched <- ggplot(df,aes(x=per_meth_E,y=log_gene_E, cor.coef = TRUE, cor.method = "pearson")) + 
     geom_point() + ylim(0,3) + xlim(0,100) +
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
-    stat_cor(method = "kendall", label.x = 60, label.y = 0.5 ) +
+    stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
     theme_cowplot();enriched
 
-ggsave(enriched, filename="RAnalysis/Output/meth_express_compare/pathway.specific.express.meth.png", height = 7, width = 15)
 
 ### Figure Mean Methylation vs Gene Expression###
 
@@ -495,7 +543,7 @@ meth_meanexpress <- control + labs(title = "", subtitle = "Control") + enriched 
 
 meth_meanexpress
 
-ggsave(meth_meanexpress, filename="RAnalysis/Output/meth_express_compare/pathway.specific.express.meth.png", height = 7, width = 15)
+ggsave(meth_meanexpress, filename="RAnalysis/Output/meth_express_compare/treatment.pathway.specific.express.meth.png", height = 7, width = 15)
 ```
 
 ```{r}

@@ -224,10 +224,10 @@ write.csv(CC, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_CC_Sig_Enriched_G
 write.csv(BP, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_BP_Sig_Enriched_GO.05.host.csv")
 write.csv(enriched.GO.05, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_Sig_Enriched_GO.05_ALL_host.csv")
 
-nrow(enriched.GO.05) # 308
-nrow(filter(enriched.GO.05, ontology=="BP")) #number sig BP terms 211
-nrow(filter(enriched.GO.05, ontology=="MF")) #number sig MF terms 70
-nrow(filter(enriched.GO.05, ontology=="CC")) #number sig CC terms 27
+nrow(enriched.GO.05) # 315
+nrow(filter(enriched.GO.05, ontology=="BP")) #number sig BP terms 209
+nrow(filter(enriched.GO.05, ontology=="MF")) #number sig MF terms 74
+nrow(filter(enriched.GO.05, ontology=="CC")) #number sig CC terms 30
 ```
 
 ## Merge DEG gene ids and GO info
@@ -524,7 +524,7 @@ write.csv(GO.enrichment.summary, 'RAnalysis/Output/RNA-seq/GOSeq/Host/GO.enrichm
 
 ```{r}
 #number of unique go slim terms per category
-length(unique(GO.enrichment.summary$slim_term)) #42 unique go terms
+length(unique(GO.enrichment.summary$slim_term)) #44 unique go terms
 
 #view slim terms per ontology category
 ## filtering go slim category of BP 
