@@ -1,81 +1,84 @@
-# Check for required software on Bluewave
-### Update software to latest version
-- fastqc  
-- MultiQC  
-- fastp  
-- HiSat2  
-- Samtools  
-- StringTie  
-- gffcompare  
-- Python  
+---
+layout: post
+title: Pocillopora verrucosa RNA-seq Symbiont Bioinformatic Workflow
+date: 2023-03-16
+category: [ Code ]
+tag: [ RNA-seq, Symbiont, Bioinformatics, Pocillopora verrucosa ]
+projects: E5 - Molecular Underpinnings
+---
 
-# 1) Obtain Reference Genome (add how sym_c1 genome obtained here)
+### **Goal**
+
+The following document contains the bioinformatic pipeline used for cleaning, aligning and assembling our raw RNA sequences for the symbiont sequences. The goal is to align and get a gene count and transcript matrix for the endosymbiotns of the Red Sea *Pocillopora verrucosa* genome. These commands were compiled into bash scripts to run on the URI HPC [Andromeda](https://its.uri.edu/research-computing/using-andromeda/) server.
+
+### Project overview
+
+**Bioinformatic tools used in analysis:**
+
+- Quality check: [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/), [MultiQC](https://multiqc.info/)
+- Quality trimming: [Fastp](https://github.com/OpenGene/fastp)
+- Alignment to reference genome: [HISAT2](https://ccb.jhu.edu/software/hisat2/index.shtml)
+- Preparation of alignment for assembly: [SAMtools](http://www.htslib.org/doc/samtools.html)
+- Transcript assembly and quantification: [StringTie](https://ccb.jhu.edu/software/stringtie/)
+
+
+### Check for required software on Andromeda
+### Update software to latest version
+- fastqc: FastQC/0.11.9-Java-11
+- MultiQC: MultiQC/1.9-intel-2020a-Python-3.8.2
+- fastp: fastp/0.19.7-foss-2018b
+- HISAT2: HISAT2/2.2.1-foss-2019b
+- SAMtools: SAMtools/1.9-foss-2018b
+- StringTie: StringTie/2.2.1-GCC-11.2.0
+
+
+### Prepare work space
+- Upload raw reads and reference genome to server
+- Assess that your files have all uploaded correctly
+- Prepare your working directory
+- Install all necessary programs
+
+
+# 1) Obtain Reference Genome and set File Struture
+
+Paper for C1 genome
 
 [Liu et al 2018](https://www.nature.com/articles/s42003-018-0098-3)
+
+
+All of the genome files (i.e., genome scaffolds, CDS, proteins, GFF, and functional annotations) were downloaded from the reefgenomics database for the [Cladocopium goreaui - Clade C1 genome features](http://symbs.reefgenomics.org/download/)
+
+I put them on the Putnam Lab HPC Andromeda server for future reference:
+
+```
+cd /data/putnamlab/REFS/Sym_C1
+```
+
+Reef genomics download page for genome scaffolds, gene models, proteins, GFF files
 [Cladocopium goreaui - Clade C1](http://symbs.reefgenomics.org/download/)
 
-```
-cd /data/putnamlab/REFS/
-
-mkdir Sym_C1
-```
-
-### Genome scaffolds
-```
-wget http://pver.reefgenomics.org/download/Pver_genome_assembly_v1.0.fasta.gz
-```
-### Gene Models (CDS)
-```
-wget
-http://pver.reefgenomics.org/download/Pver_genes_names_v1.0.fna.gz
-```
-### Gene Models (Proteins)
-```
-wget
-http://pver.reefgenomics.org/download/Pver_proteins_names_v1.0.faa.gz
-```
-### Gene Models (GFF)
-```
-wget
-http://pver.reefgenomics.org/download/Pver_genome_assembly_v1.0.gff3.gz
-```
-
-### Check to ensure data transfer of genome files
-reef genomics md5 checksums
+You can also directly download the genome files from the [reef genomics database](http://symbs.reefgenomics.org/download/):
 
 ```
-Core files	MD5 hash
+#make folder for downloading refs in directory
 
-Genome scaffolds    fb4d03ba2a9016fabb284d10e513f873
-Gene models (CDS)   019359071e3ab319cd10e8f08715fc71
-Gene models (proteins)    438f1d59b060144961d6a499de016f55
-Gene models (GFF3)    614efffa87f6e8098b78490a5804c857
+cd /data/
+mkdir refs
 
-Miscellaneous files	MD5 hash
-Full transcripts	            76b5d8d405798d5ca7f6f8cc4b740eb2
+cd /refs/
 
-On Bluewaves
-Pver_genes_names_v1.0.fna.gz  019359071e3ab319cd10e8f08715fc71 
+wget http://symbs.reefgenomics.org/download/SymbC1.Genome.Scaffolds.fasta.gz
+
+wget http://symbs.reefgenomics.org/download/SymbC1.Gene_Models.GFF3
 ```
 
-### Functional annotation
-[functional annotation xlsx file link](https://oup.silverchair-cdn.com/oup/backfile/Content_public/Journal/gbe/12/10/10.1093_gbe_evaa184/1/evaa184_supplementary_data.zip?Expires=1608305338&Signature=q7Y3SsLOTtlk5ZF6UMMLGy~HRtUFQqRbQt8ZiasnG3EeO11vmHcNgToGSowqYxQK1vibkmPEzMWDeS6u8qG~D20t7G31abz9zbpFrdW9T0cisHAQwY5g~lyK-WRFd-EDYW1eHFI4x~vU0G0xopva7kx1KlXdWxyZW86Fr7CDckFFvav78SAvZtmcvL8WuY4tWmEf33LK4ruuX7ZndqT8k~Kzag57phDdN1qleKWmeAf2wI-Wn8B4w-gV7UU4WQV1Ybs1wwdmexfPxH-DYEuSm-3T4sFq52FW1eRa8WD0V9XDUyysgajGh3sXRxHy-hEUUdnrzlVEk9~Doo9l9IIaUA__&Key-Pair-Id=APKAIE5G5CRDK6RD3PGA)
-
-
-# make folder structure
-```
-#add the Sym_C1 folder from putnamlab REFS directory to sub folder, refs in Becker_E5 folder
-
-ln -s ../../../../../REFS/Sym_C1/ ./refs/
-
-```
 
 # Downloaded files
 
 ## path where we stored the RAW fastq.gz files
 
 ```
-# these data had already been downloaded to the Becker_E5 - RNA_seq folder from mapping reads to host genome using this command: 
+# these data had already been downloaded to the Becker_E5 - RNA_seq folder from mapping reads to host genome using this command:
 
 ln -s ../../../../../KITT/hputnam/20201209_Becker_RNASeq_combo/combo/*.fastq.gz ./raw/
 
@@ -83,7 +86,7 @@ ln -s ../../../../../KITT/hputnam/20201209_Becker_RNASeq_combo/combo/*.fastq.gz 
 
 ```
 
-# 2) Check file integrity 
+# 2) Check file integrity
 
 a) Count all files to make sure all downloaded
 
@@ -100,8 +103,8 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/check_transfer.sh
 ```
 #!/bin/bash ###creating slurm script
 #SBATCH -t 24:00:00 ###give script 24 hours to run
-#SBATCH --nodes=1 --ntasks-per-node=1 ###on server, different nodes you can use for processing power, node just do one task 
-#SBATCH --export=NONE 
+#SBATCH --nodes=1 --ntasks-per-node=1 ###on server, different nodes you can use for processing power, node just do one task
+#SBATCH --export=NONE
 #SBATCH --mem=100GB ###in server allocate 100GB amount of memory
 #SBATCH --account=putnamlab ###primary account
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/raw ###path
@@ -114,7 +117,7 @@ md5sum /data/putnamlab/KITT/hputnam/20201209_Becker_RNASeq_combo/combo/*.gz > UR
 ```
 
 ```
-sbatch check_transfer.sh 
+sbatch check_transfer.sh
 ```
 ###Submitted batch job 1816196 20201230
 
@@ -314,7 +317,7 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_raw.sh
 c) Make sure all files were processed
 
 ```
-ls -1 | wc -l 
+ls -1 | wc -l
 #64
 ```
 
@@ -334,7 +337,7 @@ scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker
 ```
 
 
-# 4) Trim and clean reads 
+# 4) Trim and clean reads
 
 a) Trimmed reads were already processed in the trimmed folder from previous workflow mapping to the host genome, copied trimmed directory contents to a new directory for C1 processing
 
@@ -382,12 +385,12 @@ Submitted batch job 1819574
 ```
 
 
-# 5) Check quality of trimmed files 
+# 5) Check quality of trimmed files
 
-a) Check number of files 
+a) Check number of files
 
 ```
-ls -1 | wc -l 
+ls -1 | wc -l
 #64
 ```
 
@@ -480,11 +483,11 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/fastqc_trimmed.sh
 #SBATCH --export=NONE
 #SBATCH --mem=100GB
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc
-#SBATCH --error="script_error" 
-#SBATCH --output="output_script" 
+#SBATCH --error="script_error"
+#SBATCH --output="output_script"
 
 module load FastQC/0.11.8-Java-1.8
 
@@ -500,7 +503,7 @@ Submitted batch job 1834516
 ```
 
 
-d) Run MultiQC on trimmed data 
+d) Run MultiQC on trimmed data
 ```
 module load MultiQC/1.7-foss-2018b-Python-2.7.15
 multiqc /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed/trimmed_qc
@@ -510,7 +513,7 @@ scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker
 
 ```
 
-# 6) Align reads 
+# 6) Align reads
 
 a) Generate genome build with Symbiodiniaceae C1 genome
 
@@ -532,10 +535,10 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts_C1/Hisat2_genome_bui
 #SBATCH --export=NONE
 #SBATCH --mem=100GB
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Sym_C1
-#SBATCH --error="script_error" 
+#SBATCH --error="script_error"
 #SBATCH --output="output_script"
 
 module load HISAT2/2.1.0-foss-2018b
@@ -564,11 +567,11 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts_C1/Hisat2_align2_C1.
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed_C1
 #SBATCH --cpus-per-task=3
-#SBATCH --error="script_error" 
+#SBATCH --error="script_error"
 #SBATCH --output="output_script"
 
 
@@ -577,8 +580,8 @@ module load HISAT2/2.1.0-foss-2018b
 #Aligning paired end reads
 #Has the R1 in array1 because the sed in the for loop changes it to an R2. SAM files are of both forward and reverse reads
 
-array1=($(ls *_R1_001.fastq.gz)) 
-for i in ${array1[@]}; do 
+array1=($(ls *_R1_001.fastq.gz))
+for i in ${array1[@]}; do
 hisat2 -p 48 --rna-strandness RF --dta -q -x /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Sym_C1_ref -1 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed_C1/${i} \
 -2 /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/trimmed_C1/$(echo ${i}|sed s/_R1/_R2/) -S /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/${i}.sam
 done
@@ -604,11 +607,11 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts_C1/SAMtoBAM_C1.sh
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1
 #SBATCH --cpus-per-task=3
-#SBATCH --error="script_error" 
+#SBATCH --error="script_error"
 #SBATCH --output="output_script"
 
 module load SAMtools/1.9-foss-2018b
@@ -647,11 +650,11 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts_C1/SAMtools_mapped.s
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1
 #SBATCH --cpus-per-task=3
-#SBATCH --error="script_error" 
+#SBATCH --error="script_error"
 #SBATCH --output="output_script"
 
 module load SAMtools/1.9-foss-2018b
@@ -672,7 +675,7 @@ Submitted batch job 1912697
 # 7) Perform gene counts with stringTie
 
 
-b) Assemble and estimate reads 
+b) Assemble and estimate reads
 
 ### makes count directory inside script
 
@@ -687,15 +690,15 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts_C1/StringTie_Assembl
 #SBATCH --export=NONE
 #SBATCH --mem=500GB
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1
 #SBATCH --cpus-per-task=3
 
 module load StringTie/2.1.4-GCC-9.3.0
 
-array1=($(ls *.bam)) 
-for i in ${array1[@]}; do 
+array1=($(ls *.bam))
+for i in ${array1[@]}; do
 stringtie -p 48 --rf -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Sym_C1/SymbC1.Gene_Models.GFF3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts_C1/${i}.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1/${i}
 done
 ```
@@ -706,7 +709,7 @@ Submitted batch job 1912768
 
 ```
 
-c) Merge stringTie gtf results 
+c) Merge stringTie gtf results
 
 #in this step we are making a file with all the gtf names and stringtie will merge them all together for a master list for your specific genes
 
@@ -740,7 +743,7 @@ nano re_estimate.assembly_C1.sh
 #SBATCH --nodes=1 --ntasks-per-node=5
 #SBATCH --export=NONE
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=danielle_becker@uri.edu 
+#SBATCH --mail-user=danielle_becker@uri.edu
 #SBATCH --account=putnamlab
 #SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped_C1
 #SBATCH --cpus-per-task=3
@@ -748,8 +751,8 @@ nano re_estimate.assembly_C1.sh
 module load StringTie/2.1.4-GCC-9.3.0
 
 
-array1=($(ls *.bam)) 
-for i in ${array1[@]}; do 
+array1=($(ls *.bam))
+for i in ${array1[@]}; do
 stringtie -e -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Sym_C1/SymbC1.Gene_Models.GFF3 -o ${i}.merge.gtf ${i}
 echo "${i}"
 done
@@ -760,7 +763,7 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts_C1/re_estimate.ass
 Submitted batch job 1913016
 ```
 ```
-# move merged GTF files to their own folder 
+# move merged GTF files to their own folder
 mv *merge.gtf ../GTF_merge_C1
 
 ```
@@ -864,4 +867,3 @@ scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RN
 scp danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/GTF_merge/transcript_count_matrix.csv /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/RNA-seq
 
 ```
-
