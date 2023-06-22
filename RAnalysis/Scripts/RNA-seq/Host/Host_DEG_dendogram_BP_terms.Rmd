@@ -95,7 +95,7 @@ pairwise_dists=function(ids,dist_mat_){
 colors1=c('black','blue','brown','burlywood4','cadetblue','chartreuse4','chocolate3','chocolate4','coral3',
           'blue4','blueviolet','brown1','darkgoldenrod4','deepskyblue4','firebrick4','darkslategrey','purple','red',
           'green','gray', rainbow(n=100))  #colors for the dendrogram clusters
-max1=8   #you can try different numbers and choose the best clustering 
+max1=15   #you can try different numbers and choose the best clustering 
 ```
 
 
@@ -140,6 +140,7 @@ for(i in 1:length(f_gene_groups)){
   gg1 = gg1 + labs(fill="% DEGs", color="Clusters") #changes legend names
   gg1 = gg1 + theme(legend.text=element_text(size=18, face = "bold")) #edits legend component labels font size
   gg1 = gg1 + theme(legend.title=element_text(size=20, face = "bold"))
+  gg1 = gg1 + scale_fill_discrete(labels=c('anatomical structure development', 'signaling', 'transmembrane transport', 'vesicle-mediated transport', ''))
   gg1 = gg1 + scale_colour_manual(values =  colors1)
   gg1 = gg1 + geom_tiplab(offset=0.2, size=5.3) #font size for clusters,aes(color=as.factor(cluster)))
   pdf(paste0(outidx[i],'_tree.pdf'))

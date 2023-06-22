@@ -136,10 +136,13 @@ for(i in 1:length(f_gene_groups)){
   names(cutr_tightClusters) = c('term','cluster')
   
   gg1 = ggtree(hc,layout='rectangular') %<+% cutr_tightClusters 
-  gg1 = gg1 + geom_tippoint(aes(color = as.factor(cluster)), shape = "triangle", size = 2)
+  gg1 = gg1 + geom_tippoint(aes(color = as.factor(cluster)), shape = "triangle", size = 6)
+  gg1 = gg1 + labs(fill="% DEGs", color="Clusters") #changes legend names
+  gg1 = gg1 + theme(legend.text=element_text(size=18, face = "bold")) #edits legend component labels font size
+  gg1 = gg1 + theme(legend.title=element_text(size=20, face = "bold"))
   gg1 = gg1 + scale_colour_manual(values =  colors1)
-  gg1 = gg1 + geom_tiplab(offset=0.1, size=2.75) #,aes(color=as.factor(cluster))) 
-  gg1 = gg1 + xlim(-3, 4)
+  gg1 = gg1 + geom_tiplab(offset=0.2, size=6) #font size for clusters,aes(color=as.factor(cluster)))
+  gg1 = gg1 + xlim(-3, 6) 
   pdf(paste0(outidx[i],'_tree.pdf'))
   print(gg1)
   dev.off()
@@ -149,7 +152,7 @@ for(i in 1:length(f_gene_groups)){
   scores2 = as.data.frame(scores2)
   scores2 <- select(scores2, -c("term"))
   rownames(scores2) = scores1[,1]
-  gg2 = gheatmap(gg1, scores2, offset=2.75, width=0.1, font.size= 5) 
+  gg2 = gheatmap(gg1, scores2, offset=5, width=0.1, font.size= 8) 
   gg2 = gg2 + viridis::scale_fill_viridis(na.value=NA, option = "inferno")
   pdf(paste0(outidx[i],'_tree_scores.pdf'),width=17, height = 22)
   print(gg2)
