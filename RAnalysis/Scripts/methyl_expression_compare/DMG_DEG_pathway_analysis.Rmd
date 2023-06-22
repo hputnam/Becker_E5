@@ -192,7 +192,7 @@ ggsave("RAnalysis/Output/Final_Figures/Host/DMG.complete.slimterms.pdf", GO.plot
 #upload complete parent term dataframe DMGs and make figures
 
 #upload complete go enrichment summary for DMGs
-DEG.complete <- read.csv("RAnalysis/Data/RNA-seq/Host/DEG_GO_parent_terms_complete.csv", header = TRUE, row.names = 1)
+DEG.complete <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/DEG_GO_parent_terms_complete.csv", header = TRUE, row.names = 1)
 
 #add column to specific type of measure
 DEG.complete <- DEG.complete %>% add_column(type = "DEG.GO.terms")
@@ -237,6 +237,10 @@ ggsave("RAnalysis/Output/Final_Figures/Host/DEG.complete.slimterms.pdf", GO.plot
 ```{r}
 #add column for deg dmg specific category to each dataframe
 DMG.complete <- DMG.complete %>% add_column(type = "DMG.GO.terms")
+
+#rename column from genes to gene
+DEG.complete <- DEG.complete %>% 
+       dplyr::rename("category" = "GOterm")
 
 #combine two dataframes to have both DEG and DMG terms in same data frame
 DEG.DMG <- rbind(DMG.complete, DEG.complete)
@@ -435,7 +439,7 @@ DMG.DEG.dat <- rbind(long.pathway.DEG, long.pathway.DMG)
 #yes rows equal estimate
 
 #write hypothesis driven csv
-write.csv(DEG.DMG.dat, "RAnalysis/Output/meth_express_compare/hypothesis.DEG.DMG.goterms.csv")
+write.csv(DMG.DEG.dat, "RAnalysis/Output/meth_express_compare/hypothesis.DEG.DMG.goterms.csv")
 ```
 
 ```{r}

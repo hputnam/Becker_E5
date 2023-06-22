@@ -1,0 +1,100 @@
+---
+title: "ClusterProfiler"
+author: "daniellembecker"
+date: "2023-06-22"
+output: html_document
+---
+
+```{r}
+BiocManager::install("pathview")
+BiocManager::install("enrichplot")
+library(clusterProfiler)
+library(enrichplot)
+library(clusterProfiler)
+# we use ggplot2 to add x axis labels (ex: ridgeplot)
+library(ggplot2)
+library(GSVA)
+```
+
+
+```{r}
+# SET THE DESIRED ORGANISM HERE
+organism = "org.Mm.eg.db"
+BiocManager::install(organism, character.only = TRUE)
+library(organism, character.only = TRUE)
+```
+
+
+```{r}
+# reading in data from deseq2
+  df = read.csv("RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.results.host.csv", header=TRUE)
+
+# we want the log2 fold change 
+original_gene_list <- df$log2FoldChange
+
+# name the vector
+names(original_gene_list) <- df$X
+
+# omit any NA values 
+gene_list<-na.omit(original_gene_list)
+
+# sort the list in decreasing order (required for clusterProfiler)
+gene_list = sort(gene_list, decreasing = TRUE)
+```
+
+
+```{r}
+keytypes(org.Mm.eg.db)
+
+```
+```{r}
+gse <- gseGO(geneList=gene_list, 
+             ont ="ALL", 
+             keyType = "UNIPROT", 
+             nPerm = 10000, 
+             minGSSize = 3, 
+             maxGSSize = 800, 
+             pvalueCutoff = 0.05, 
+             verbose = TRUE, 
+             OrgDb = organism, 
+             pAdjustMethod = "none")
+```
+
+
+#GSVA testing
+
+```{r}
+gcount <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/Poc_gene_count_matrix.csv")
+gcount$gene_id <-  gsub("_gene_","_",gcount$gene_id)
+gcount$gene_id <-  gsub("_split_","_",gcount$gene_id)
+gcount$gene_id <-  gsub("-.*","",gcount$gene_id) #remove the extra g number after the dash
+row.names(gcount) <- gcount$gene_id
+dim(gcount)
+head(gcount)
+
+#remove extra characters from multiple column header names for sample ids, skip first column labeled gene counts so specify 1:ncol
+for ( col in 1:ncol(gcount)){
+  colnames(gcount)[col] <-  sub("_R1.fastp.trim.20230215.fq.gz.sam.sorted.bam.merge.gtf", "", colnames(gcount)[col])
+}
+
+head(gcount)
+
+```
+
+```{r}
+## sample gene set sizes
+gs <- as.list(sample(10:100, size=100, replace=TRUE))
+## sample gene sets
+gs <- lapply(gs, function(n, p)
+                   paste0("g", sample(1:p, size=n, replace=FALSE)), p)
+names(gs) <- paste0("gs", 1:length(gs))
+```
+
+
+
+
+
+
+
+
+

@@ -38,13 +38,13 @@ library("plotrix")
 Import the data files 
 ```{r}
 #treatment information
-treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
+treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/metadata.RNAseq.csv", header = TRUE, sep = ",")
 rownames(treatmentinfo) <- treatmentinfo$sample_id
 str(treatmentinfo)
 head(treatmentinfo)
 
 #gene count matrix
-gcount <- as.data.frame(read.csv("RAnalysis/Data/RNA-seq/Host/Poc_gene_count_matrix.csv"))
+gcount <- as.data.frame(read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/Poc_gene_count_matrix.csv"))
 gcount$gene_id <-  gsub("_gene_","_",gcount$gene_id)
 gcount$gene_id <-  gsub("_split_","_",gcount$gene_id)
 gcount$gene_id <-  gsub("-.*","",gcount$gene_id) #remove the extra g number after the dash
@@ -189,9 +189,6 @@ sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were le
 #### DESeq2, the function plotMA shows the log2 fold changes attributable to a given variable over the mean of normalized counts for all the samples in the DESeqDataSet.
 
 MA_PLOT <- plotMA(DEGSeq2.results, ylim=c(-2,2))
-pdf(file = "RAnalysis/Output/RNA-seq/DEG/Host/ma_plot_host.pdf")
-MA_PLOT
-dev.off()
 
 
 #create data frame with only DESeq2 DEG's with < 0.05 significance 
@@ -286,6 +283,18 @@ up <- DEGSeq2.sig.results %>% filter(log2FoldChange > 0)
 length(unique(up$gene_id)) # 84 unique DEGs upregulated
 ```
 
+```{r}
+#make gct expression data set for GSEA analysis
+
+norm_counts <- counts(SF.gdds, normalized = T)
+
+fid <- "norm_counts.gct" 
+writeLines(c("#1.2", paste(nrow(norm_counts), ncol(norm_counts) - 2, collapse="\t")), fid, sep="\n")
+write.table(norm_counts, "RAnalysis/Data/norm_counts.txt", file=fid, quote=FALSE, row.names=FALSE, col.names=TRUE, sep="\t", append = TRUE)
+
+#write to .txt or tab deliniated file
+
+```
 
 
 
