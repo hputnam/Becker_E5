@@ -59,7 +59,7 @@ pal <- brewer.pal(n = 3, name = "PRGn")
 # Import the data files 
 ```{r}
 #upload go enrichment summary for DEGs
-DEG <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/GO.enrichment.summary.table.DEG.host.csv", header = TRUE, row.names = 1)
+DEG <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/DEG_GO_parent_terms_complete.csv", header = TRUE)
 
 #adjust p-values 
 DEG$bh_adjust <-  p.adjust(DEG$over_represented_pvalue, method="BH") 
@@ -192,13 +192,16 @@ ggsave("RAnalysis/Output/Final_Figures/Host/DMG.complete.slimterms.pdf", GO.plot
 #upload complete parent term dataframe DMGs and make figures
 
 #upload complete go enrichment summary for DMGs
-DEG.complete <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/DEG_GO_parent_terms_complete.csv", header = TRUE, row.names = 1)
+DEG.complete <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/DEG_GO_parent_terms_complete.csv", header = TRUE)
 
 #add column to specific type of measure
-DEG.complete <- DEG.complete %>% add_column(type = "DEG.GO.terms")
+#DEG.complete <- DEG.complete %>% add_column(type = "DEG.GO.terms")
+
 
 #adjust p-values 
 DEG.complete$bh_adjust <-  p.adjust(DEG.complete$over_represented_pvalue, method="BH") 
+
+
 
 GO.plot.DEG.complete <-  ggplot(DEG.complete, aes(x = ontology, y = term)) + 
     geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
@@ -252,15 +255,17 @@ filter(ontology == "BP")
 #output csv of shared DMG and DEG terms
 write.csv(DEG.DMG, "RAnalysis/Output/meth_express_compare/global.DEG.DMG.goterms.csv")
 
+BP.df <- na.omit(DEG.DMG.BP)
+
 
 #make biological process DEG DMG comparison figure
-GO.plot.BP.DEG.DMG <-  ggplot(DEG.DMG.BP, aes(x = type, y = term)) + 
+GO.plot.BP.DEG.DMG <-  ggplot(BP.df, aes(x = type, y = term)) + 
     geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
     scale_size(name="Number of Genes", range=c(5,12), limits=c(1,550))+
     scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
     scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
     xlab("Method")+
-    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE))+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 80, multi_line = TRUE))+
     ggtitle("Biological Process")+
     theme_bw() + 
     theme(panel.border = element_blank(), 
@@ -279,7 +284,7 @@ GO.plot.BP.DEG.DMG <-  ggplot(DEG.DMG.BP, aes(x = type, y = term)) +
 
  
 
-ggsave("RAnalysis/Output/Final_Figures/Host/GO.BP.DEG.DMG.pdf", GO.plot.BP.DEG.DMG , width = 30, height = 49, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/Host/GO.BP.DEG.DMG.pdf", GO.plot.BP.DEG.DMG , width = 35, height = 49, units = c("in"))
 
 ```
 
@@ -360,9 +365,9 @@ ggsave("RAnalysis/Output/Final_Figures/Host/GO.CC.DEG.DMG.pdf", GO.plot.CC.DEG.D
 #Filter dataframes for gene ontology groups that are involved in nitrogen pathways, stress pathways to see if expression and methylation are correlated
 ```{r}
 #filter by any category that contained the word, could do anything that has the word nitrogen, stress, and heat 
-phenotype.pathways.DEG <- filter(DEG.complete, slim_term %in%  c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound")) 
+phenotype.pathways.DEG <- filter(DEG.complete, slim_term %in%  c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound", "carbohydrate derivative metabolic process", "carbohydrate metabolic process")) 
 
-phenotype.pathways.DMG <- filter(DMG.complete, slim_term %in%  c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound"))
+phenotype.pathways.DMG <- filter(DMG.complete, slim_term %in%  c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound", "carbohydrate derivative metabolic process", "carbohydrate metabolic process"))
 ```
 
 #change data frames from wide to long format
@@ -480,11 +485,19 @@ shapiro.test(df$mean_meth) # <0.05
 
 #use kendall test for correlation, Kendall’s is more robust and generally the preferred method between spearman and kendall
 meth.express.specific <- ggplot(df, aes(x=per_meth, y=log_gene)) + 
-    geom_point() + ylim(0,3) + xlim(0,100) +
+    geom_point() + ylim(0,3) + xlim(0,15) +
     geom_smooth(method=lm, colour="orange",size=2,na.rm = TRUE) +
     stat_cor(method = "kendall", label.x = 60, label.y = 0.5 ) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+    theme_cowplot();meth.express.specific
+
+meth.express.specific <- ggplot(df,aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + 
+    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+  stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
     theme_cowplot();meth.express.specific
 
 
@@ -541,6 +554,7 @@ enriched <- ggplot(df,aes(x=per_meth_E,y=log_gene_E, cor.coef = TRUE, cor.method
     theme_cowplot();enriched
 
 
+
 ### Figure Mean Methylation vs Gene Expression###
 
 meth_meanexpress <- control + labs(title = "", subtitle = "Control") + enriched + labs(title = "", subtitle = "Enriched")
@@ -555,15 +569,41 @@ ggsave(meth_meanexpress, filename="RAnalysis/Output/meth_express_compare/treatme
 test1 <- unique(DEG.complete$slim_term)
 test1 <- data_frame(test1)
 test1 <- test1 %>% 
-       rename("test1" = "slim_term")
+       rename("slim_term" = "test1")
 
 test2 <- unique(DMG.complete$slim_term)
 test2 <- data_frame(test2)
 test2 <- test2 %>% 
-       rename("test2" = "slim_term")
+       rename("slim_term" = "test2")
 
 test3 <- merge(test1, test2, on="slim_term")
 #23 unique terms
+
+#make biological process DEG DMG comparison figure
+hypo.DEG.DMG <-  ggplot(df, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,550))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("Method")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE))+
+    #ggtitle()+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.5),
+          axis.title.y = element_blank());hypo.DEG.DMG
+
+ggsave("RAnalysis/Output/Final_Figures/Host/GO.hypo.DEG.DMG.pdf", hypo.DEG.DMG , width = 20, height = 30, units = c("in"))
 
 ```
 
