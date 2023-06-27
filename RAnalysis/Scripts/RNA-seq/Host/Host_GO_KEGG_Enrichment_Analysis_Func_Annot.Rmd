@@ -79,7 +79,7 @@ GFF3$gene_id <-  gsub("_split_","_",GFF3$gene_id) #remove split naming in gene i
 # Identifying treatment and all expressed pver genes (poverA = 0.90,10)
 ```{r}
 #treatment information
-treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
+treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/metadata.RNAseq.csv", header = TRUE, sep = ",")
 str(treatmentinfo)
 head(treatmentinfo)
 
@@ -105,14 +105,14 @@ UPREG  <- DEG.res %>% filter(log2FoldChange > 0)
 
 #all genes
 DEG <- GFF3[GFF3$gene_id %in% DEG.res$gene_id, ]
-dim(DEG) # 213 x 10
+dim(DEG) # 256 x 10
 DEG_names <- as.vector(DEG$gene_id)
 gene_vector <- as.integer(GFF3$gene_id%in%DEG_names)
 names(gene_vector) <- GFF3$gene_id
 
 #UPREG
 DEG.up <- GFF3[GFF3$gene_id %in% UPREG$gene_id, ]
-dim(DEG.up) # 66 x 10
+dim(DEG.up) # 84 x 10
 DEG_names.up <- as.vector(DEG.up$gene_id)
 gene_vector.up <- as.integer(GFF3$gene_id%in%DEG_names.up)
 names(gene_vector.up) <- GFF3$gene_id
@@ -120,7 +120,7 @@ names(gene_vector.up) <- GFF3$gene_id
 
 #DOWNREG
 DEG.down <- GFF3[GFF3$gene_id %in% DOWNREG$gene_id, ]
-dim(DEG.down) # 147 x 10
+dim(DEG.down) # 172 x 10
 DEG_names.down <- as.vector(DEG.down$gene_id)
 gene_vector.down <- as.integer(GFF3$gene_id%in%DEG_names.down)
 names(gene_vector.down) <- GFF3$gene_id
@@ -212,6 +212,24 @@ enriched.GO.05 <- enriched.GO.05[order(-enriched.GO.05$numDEInCat),]
 enriched.GO.05$term <- as.factor(enriched.GO.05$term)
 head(enriched.GO.05)
 
+# Find significantly enriched GO terms in upregulated genes
+enriched.GO.05.up <-GO.wall.up$category[GO.wall.up$over_represented_pvalue<.05]
+enriched.GO.05.up <-data.frame(enriched.GO.05.up)
+colnames(enriched.GO.05.up) <- c("category")
+enriched.GO.05.up <- merge(enriched.GO.05.up, GO.wall.up, by="category")
+enriched.GO.05.up <- enriched.GO.05.up[order(-enriched.GO.05.up$numDEInCat),]
+enriched.GO.05.up$term <- as.factor(enriched.GO.05.up$term)
+head(enriched.GO.05.up)
+
+# Find significantly enriched GO terms in downregulated genes
+enriched.GO.05.down <-GO.wall.down$category[GO.wall.down$over_represented_pvalue<.05]
+enriched.GO.05.down <-data.frame(enriched.GO.05.down)
+colnames(enriched.GO.05.down) <- c("category")
+enriched.GO.05.down <- merge(enriched.GO.05.down, GO.wall.down, by="category")
+enriched.GO.05.down <- enriched.GO.05.down[order(-enriched.GO.05.down$numDEInCat),]
+enriched.GO.05.down$term <- as.factor(enriched.GO.05.down$term)
+head(enriched.GO.05.down)
+
 # Subset enriched GO terms by ontology (BP, CC, MF) and save as csv. 
 MF <- subset(enriched.GO.05, ontology=="MF")
 MF <- MF[order(-MF$numDEInCat),]
@@ -227,7 +245,7 @@ write.csv(enriched.GO.05, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_Sig_E
 nrow(enriched.GO.05) # 315
 nrow(filter(enriched.GO.05, ontology=="BP")) #number sig BP terms 209
 nrow(filter(enriched.GO.05, ontology=="MF")) #number sig MF terms 74
-nrow(filter(enriched.GO.05, ontology=="CC")) #number sig CC terms 30
+nrow(filter(enriched.GO.05, ontology=="CC")) #number sig CC terms 28
 ```
 
 ## Merge DEG gene ids and GO info
@@ -552,7 +570,7 @@ length(unique(CC_slim$slim_term)) #4
 
 ```
 
-# Make plots of upregulated and downregulated DEGs
+# Make plots of ontology seperated DEGs
 ```{r}
 MF_plot_GO <- GO.MF  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>%
                    #mutate(term = fct_reorder(term, Day)) %>%
@@ -582,7 +600,6 @@ MF_plot_GO <- GO.MF  %>%  mutate(term = fct_reorder(term, -log10(over_represente
  ggsave("RAnalysis/Output/Final_Figures/Host/GO.plot.MF.terms.host.pdf", MF_plot_GO , width = 10, height = 10, units = c("in"))
 
  BP_plot_GO <- GO.BP  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>%
-                   #mutate(term = fct_reorder(term, Day)) %>%
                    ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
                    geom_segment( aes(x=term ,xend=term, y=1, yend=-log10(over_represented_pvalue)), color="grey95", size = 3) +
                    geom_point(size=3, shape = 15, colour = "grey70") +
@@ -590,14 +607,12 @@ MF_plot_GO <- GO.MF  %>%  mutate(term = fct_reorder(term, -log10(over_represente
                    theme(
                      panel.grid.minor.y = element_blank(),
                      panel.grid.major.y = element_blank(),
-                     legend.position="bottom"
-                   ) +
-facet_grid(slim_term ~ ., scales = "free", space= "free", shrink=TRUE, labeller = label_wrap_gen(width=30, multi_line = TRUE))+
+                     legend.position="bottom") +
                    xlab("") +
                    ylab("-Log10 (pvalue)") +
                    ggtitle("Biological Processes") +
-                   theme_bw() + #Set background color 
-   #facet_wrap(~slim_term) +
+   facet_grid(slim_term ~ ., scales = "free", space='free') + 
+   theme_bw() +
    theme(axis.text.y = element_text(hjust = 1))   +
                    theme(panel.border = element_blank(), # Set border
                          panel.grid.major = element_blank(), #Set major gridlines
@@ -605,10 +620,11 @@ facet_grid(slim_term ~ ., scales = "free", space= "free", shrink=TRUE, labeller 
                          axis.line = element_line(colour = "black"), #Set axes color
                          plot.background=element_blank())  #Set the plot background #set title attributes
 
- 
- BP_plot_GO
 
- ggsave("RAnalysis/Output/Final_Figures/Host/GO.plot.BP.terms.host.pdf", BP_plot_GO , width = 10, height = 30, units = c("in"))
+
+BP_plot_GO
+
+ ggsave("RAnalysis/Output/Final_Figures/Host/GO.plot.BP.terms.host.pdf", BP_plot_GO , width = 10, height = 49, units = c("in"))
  
 
  CC_plot_GO <- GO.CC  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>%
@@ -647,8 +663,7 @@ GO.plot.BP <-  ggplot(GO.BP, aes(x = ontology, y = term)) +
     scale_size(name="Number of Genes", range=c(5,12), limits=c(1,500))+
     scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
     scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
-    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 6, multi_line = TRUE))+
-    xlab("Ontology")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 60, multi_line = TRUE))+
     theme_bw() + 
     theme(panel.border = element_blank(), 
           panel.grid.major = element_blank(),
@@ -664,12 +679,72 @@ GO.plot.BP <-  ggplot(GO.BP, aes(x = ontology, y = term)) +
           plot.title = element_text(hjust = 0.1),
           axis.title.y = element_blank())
 
-ggsave(filename=paste0("RAnalysis/Output/RNA-seq/GOSeq/Host/final.BP.plot.host.png"), plot=GO.plot.BP, dpi=300, width=30, height=40, units="in")
+ggsave(filename=paste0("RAnalysis/Output/RNA-seq/GOSeq/Host/final.BP.plot.host.png"), plot=GO.plot.BP, dpi=300, width=30, height=49, units="in")
 
 ```
 
 
+# Make upregulated and downregulated plots
+```{r}
+#remove NA from enriched upregulated data frame
+enriched.GO.05.up <- na.omit(enriched.GO.05.up)
 
+upreg.DEG.plot <- enriched.GO.05.up  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>%ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
+                   geom_segment( aes(x=term ,xend=term, y=1, yend=-log10(over_represented_pvalue)), color="grey95", size = 3) +
+                   geom_point(size=3, shape = 15, colour = "grey70") +
+                   coord_flip() +
+                   theme(
+                     panel.grid.minor.y = element_blank(),
+                     panel.grid.major.y = element_blank(),
+                     legend.position="bottom"
+                   ) +
+                   xlab("") +
+                   ylab("-Log10 (pvalue)") +
+                   ggtitle("Upregulated DEGs") +
+                   theme_bw() + #Set background color 
+   facet_grid(ontology ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE))+
+   theme(axis.text.y = element_text(hjust = 1))   +
+                   theme(panel.border = element_blank(), # Set border
+                         panel.grid.major = element_blank(), #Set major gridlines
+                         panel.grid.minor = element_blank(), #Set minor gridlines
+                         axis.line = element_line(colour = "black"), #Set axes color
+                         plot.background=element_blank())  #Set the plot background #set title attributes
+
+
+ ggsave("RAnalysis/Output/Final_Figures/Host/upreg.DEG.plot.pdf", upreg.DEG.plot , width = 10, height = 40, units = c("in"))
+ 
+ 
+
+ #remove NA from enriched downregulated data frame
+enriched.GO.05.down <- na.omit(enriched.GO.05.down)
+
+downreg.DEG.plot <- enriched.GO.05.down  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>%ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
+                   geom_segment( aes(x=term ,xend=term, y=1, yend=-log10(over_represented_pvalue)), color="grey95", size = 3) +
+                   geom_point(size=3, shape = 15, colour = "grey70") +
+                   coord_flip() +
+                   theme(
+                     panel.grid.minor.y = element_blank(),
+                     panel.grid.major.y = element_blank(),
+                     legend.position="bottom"
+                   ) +
+                   xlab("") +
+                   ylab("-Log10 (pvalue)") +
+                   ggtitle("Downregulated DEGs") +
+                   theme_bw() + #Set background color 
+   facet_grid(ontology ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE))+
+   theme(axis.text.y = element_text(hjust = 1))   +
+                   theme(panel.border = element_blank(), # Set border
+                         panel.grid.major = element_blank(), #Set major gridlines
+                         panel.grid.minor = element_blank(), #Set minor gridlines
+                         axis.line = element_line(colour = "black"), #Set axes color
+                         plot.background=element_blank())  #Set the plot background #set title attributes
+
+
+ ggsave("RAnalysis/Output/Final_Figures/Host/downreg.DEG.plot.pdf", downreg.DEG.plot , width = 10, height = 40, units = c("in"))
+
+ 
+
+```
 
 
 #######################################################################################
