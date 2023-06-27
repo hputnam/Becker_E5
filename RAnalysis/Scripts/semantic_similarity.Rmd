@@ -1,100 +1,96 @@
 ---
-title: "ClusterProfiler"
-author: "daniellembecker"
-date: "2023-06-22"
+title: "GO Semantic Similarity"
+author: "Danielle Becker"
+date: "Last updated 2023/06/27"
 output: html_document
 ---
 
-```{r}
-BiocManager::install("pathview")
-BiocManager::install("enrichplot")
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Prepare workspace
+```{r, message=FALSE, warning=FALSE}
+rm(list=ls()) # removes all prior objects
+library(tidyverse)
+library(org.Hs.eg.db)
+library(simplifyEnrichment)
+library(magick)
+library(gridtext)
 library(clusterProfiler)
 library(enrichplot)
-library(clusterProfiler)
 # we use ggplot2 to add x axis labels (ex: ridgeplot)
 library(ggplot2)
-library(GSVA)
 ```
 
+#Use simplifyenrichment package (http://www.bioconductor.org/packages/release/bioc/vignettes/simplifyEnrichment/inst/doc/simplifyEnrichment.html) to calculate semantic similarity for GO terms in gene expression and methylation
+#All dataframes were made in RAnalysis - Scripts - Host - Host_GO_KEGG_Enrichment_Analysis_Func_Annot
+
+#Create semantic similarity matrices for differentially expressed gene categories
+
+Load GO data and select only the GO_IDs associated with BP terms
+```{r, message=FALSE, warning=FALSE}
+  MatGO <- read_csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/DEG_GO_parent_terms_complete.csv", col_names = TRUE)
+nrow(MatGO) # total #enriched terms 307
+nrow(filter(MatGO, ontology=="BP")) #BP terms 210
+nrow(filter(MatGO, ontology=="CC")) #CC terms 27
+nrow(filter(MatGO, ontology=="MF")) #MF terms 70
+MatGO.BP <- MatGO %>% filter(ontology == "BP")
+MatBP <- MatGO.BP$category
+MatGO.MF <- MatGO %>% filter(ontology == "MF")
+MatMF <- MatGO.MF$category
+MatGO.CC <- MatGO %>% filter(ontology == "CC")
+MatCC <- MatGO.CC$category
+```
+
+
+Calculate a similarity matrix and save the output.
+```{r}
+Mat = GO_similarity(MatBP, ont = "BP", db = "org.Hs.eg.db")
+pdf(file = "RAnalysis/Output/RNA-seq/Semantic_similarity/DEG_BP_plot.pdf", width = 7, height = 5)
+simplifyGO(Mat, word_cloud_grob_param = list(max_width = 50), max_words=20)
+dev.off()
+
+MatMF = GO_similarity(MatMF, ont = "MF", db = "org.Hs.eg.db")
+pdf(file = "RAnalysis/Output/RNA-seq/Semantic_similarity/DEG_MF_plot.pdf", width = 7, height = 5)
+simplifyGO(MatMF, word_cloud_grob_param = list(max_width = 50), max_words=20)
+dev.off()
+
+MatCC = GO_similarity(MatCC, ont = "CC", db = "org.Hs.eg.db")
+pdf(file = "RAnalysis/Output/RNA-seq/Semantic_similarity/DEG_CC_plot.pdf", width = 7, height = 5)
+simplifyGO(MatCC, word_cloud_grob_param = list(max_width = 50), max_words=20)
+dev.off()
+```
+
+
+#Create semantic similarity matrices for differentially methylated gene categories
+Load GO data and select only the GO_IDs associated with BP terms
+```{r, message=FALSE, warning=FALSE}
+UEGO <- read_csv("2a-WGCNA/Output/GO.05.UE.csv", col_names = TRUE)
+nrow(UEGO) # total #enriched terms
+nrow(filter(UEGO, ontology=="BP")) #BP terms
+nrow(filter(UEGO, ontology=="CC")) #CC terms
+nrow(filter(UEGO, ontology=="MF")) #MF terms
+UEGO.BP <- UEGO %>% filter(ontology == "BP")
+UEBP <- UEGO.BP$category
+# UEGO.MF <- UEGO %>% filter(ontology == "MF")
+# UEMF <- UEGO.MF$category
+```
+
+Calculate a similarity matrix and save the output.
+```{r}
+UE = GO_similarity(UEBP, ont = "BP", db = "org.Hs.eg.db")
+pdf(file = "3-Semantic-Similarity/Output/Biological_Process_Plots/UEBP_GOSEM.pdf", width = 7, height = 5)
+simplifyGO(UE, word_cloud_grob_param = list(max_width = 50), max_words=20)
+dev.off()
+# UE = GO_similarity(UEMF, ont = "MF", db = "org.Hs.eg.db")
+# simplifyGO(UE, word_cloud_grob_param = list(max_width = 50), max_words=20)
+```
+
+#try using clusterprofiler for the same thing
 
 ```{r}
-# SET THE DESIRED ORGANISM HERE
-organism = "org.Mm.eg.db"
-BiocManager::install(organism, character.only = TRUE)
-library(organism, character.only = TRUE)
+#make annotation using gff and gaf for Pocillopora verrucosa
 ```
-
-
-```{r}
-# reading in data from deseq2
-  df = read.csv("RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.results.host.csv", header=TRUE)
-
-# we want the log2 fold change 
-original_gene_list <- df$log2FoldChange
-
-# name the vector
-names(original_gene_list) <- df$X
-
-# omit any NA values 
-gene_list<-na.omit(original_gene_list)
-
-# sort the list in decreasing order (required for clusterProfiler)
-gene_list = sort(gene_list, decreasing = TRUE)
-```
-
-
-```{r}
-keytypes(org.Mm.eg.db)
-
-```
-```{r}
-gse <- gseGO(geneList=gene_list, 
-             ont ="ALL", 
-             keyType = "UNIPROT", 
-             nPerm = 10000, 
-             minGSSize = 3, 
-             maxGSSize = 800, 
-             pvalueCutoff = 0.05, 
-             verbose = TRUE, 
-             OrgDb = organism, 
-             pAdjustMethod = "none")
-```
-
-
-#GSVA testing
-
-```{r}
-gcount <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/Poc_gene_count_matrix.csv")
-gcount$gene_id <-  gsub("_gene_","_",gcount$gene_id)
-gcount$gene_id <-  gsub("_split_","_",gcount$gene_id)
-gcount$gene_id <-  gsub("-.*","",gcount$gene_id) #remove the extra g number after the dash
-row.names(gcount) <- gcount$gene_id
-dim(gcount)
-head(gcount)
-
-#remove extra characters from multiple column header names for sample ids, skip first column labeled gene counts so specify 1:ncol
-for ( col in 1:ncol(gcount)){
-  colnames(gcount)[col] <-  sub("_R1.fastp.trim.20230215.fq.gz.sam.sorted.bam.merge.gtf", "", colnames(gcount)[col])
-}
-
-head(gcount)
-
-```
-
-```{r}
-## sample gene set sizes
-gs <- as.list(sample(10:100, size=100, replace=TRUE))
-## sample gene sets
-gs <- lapply(gs, function(n, p)
-                   paste0("g", sample(1:p, size=n, replace=FALSE)), p)
-names(gs) <- paste0("gs", 1:length(gs))
-```
-
-
-
-
-
-
-
 
 
