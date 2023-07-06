@@ -746,6 +746,73 @@ downreg.DEG.plot <- enriched.GO.05.down  %>%  mutate(term = fct_reorder(term, -l
 
 ```
 
+#DEG exploratory plots with GOplot
+#following vignette: https://cran.r-project.org/web/packages/GOplot/vignettes/GOplot_vignette.html
+```{r}
+library(GOplot)
+library(dplyr)
+
+dat <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/DEG_GO_parent_terms_complete.csv")
+
+dat$adj_pval <- p.adjust(dat$over_represented_pvalue, method="BH")
+
+# Get a glimpse of the data format of the results of the functional analysis... 
+head(dat)
+
+#need to keep only rows for Category = ontology, ID = goid Term=term, Genes =geneID and adj_pvalue, keep columns 3, 8,9,10, 12
+dat1 <- dat[c(9,3,8,10,12)]
+
+#rename columns ontology=Category, category = ID, term = Term, genes = Genes
+dat2 <- dat1 %>% rename("Category" = "ontology",
+                                        "ID" = "category",
+                                        "Term" = "term", "Genes" = "genes")
+
+
+# ...and of the data frame of selected genes
+head(DEG.res)
+
+#need to keep only rows for gene_id, log2fold, lfcse, stat, pvalue, padj, basemean
+DEG.res1 <- DEG.res[c(7,2,3,4,5,6,1)]
+
+#rename columns 
+DEG.res2 <- DEG.res1 %>% rename("ID" = "gene_id",
+                                        "logFC" = "log2FoldChange",
+                                        "AveExpr" = "lfcSE", "t" = "stat", "P.Value" = "pvalue", "adj.P.Val" = "padj", "B" = "baseMean")
+
+# Generate the plotting object, set up with circle_dat(terms, genes) terms dataframe has columns for category, ID, padj, etc. genes dataframe has columns for ID and logfc
+circ <- circle_dat(dat2, DEG.res2)
+
+#remove any genes without logFC from datfram
+circ <-circ[!is.na(circ$logFC),]
+
+
+```
+
+
+#make exporatory plots
+```{r}
+# Generate a simple barplot
+GOBar(subset(circ, category == 'BP'))
+
+# Facet the barplot according to the categories of the terms 
+GOBar(circ, display = 'multiple')
+
+# Facet the barplot, add a title and change the colour scale for the z-score
+GOBar(circ, display = 'multiple', title = 'Z-score coloured barplot', zsc.col = c('yellow', 'black', 'cyan'))
+
+# Generate the bubble plot with a label threshold of 3
+#got error: arguments imply differing number of rows: 1,0, found answer online to set labels= something smaller than defualt 5
+
+GOBubble(circ, labels = 2)
+```
+
+
+
+
+
+
+
+
 
 #######################################################################################
 
