@@ -1,75 +1,75 @@
 "","category","over_represented_pvalue","under_represented_pvalue","numDEInCat","numInCat","term","ontology","bh_adjust"
-"186","GO:0042802",0.00990817451739833,0.99479539110762,24,1448,"identical protein binding","MF",1
-"96","GO:0016491",0.00730455957359858,0.997262584066477,12,534,"oxidoreductase activity","MF",1
-"112","GO:0019899",0.0477599277974144,0.979481568501143,9,444,"enzyme binding","MF",1
-"127","GO:0022857",0.0158654471580294,0.994790101903895,8,308,"transmembrane transporter activity","MF",1
-"4","GO:0000978",0.0289727093694466,0.990210774946209,7,301,"RNA polymerase II cis-regulatory region sequence-specific DNA binding","MF",1
-"35","GO:0005506",0.0395976357178588,0.98870359741829,5,183,"iron ion binding","MF",1
-"26","GO:0004497",0.0412715476471783,0.99016032261371,4,129,"monooxygenase activity","MF",1
-"31","GO:0005230",0.0164343004173194,0.997066403544627,4,85,"extracellular ligand-gated monoatomic ion channel activity","MF",1
-"99","GO:0016705",0.0332056879806534,0.992612465983264,4,119,"oxidoreductase activity, acting on paired donors, with incorporation or reduction of molecular oxygen","MF",1
-"125","GO:0022836",0.00379973006641946,0.999560669402858,4,57,"gated channel activity","MF",1
-"126","GO:0022848",0.000774585630934364,0.999943455244504,4,37,"acetylcholine-gated monoatomic cation-selective channel activity","MF",1
-"246","GO:0071949",0.00536787871162719,0.999310318597104,4,71,"FAD binding","MF",1
-"7","GO:0001540",0.0110328645020534,0.998839275633075,3,46,"amyloid-beta binding","MF",1
-"32","GO:0005267",0.0234426832479763,0.996701791833994,3,60,"potassium channel activity","MF",1
-"36","GO:0005536",0.000474000080019552,0.999985209498819,3,15,"glucose binding","MF",1
-"103","GO:0017147",0.0354450346995352,0.994117858247907,3,77,"Wnt-protein binding","MF",1
-"131","GO:0030165",0.0317923133452987,0.994970058827257,3,62,"PDZ domain binding","MF",1
-"178","GO:0038024",0.00431988305945784,0.999683951308812,3,30,"cargo receptor activity","MF",1
-"220","GO:0051879",0.0152099371797634,0.998195135048523,3,48,"Hsp90 protein binding","MF",1
-"258","GO:0097027",0.000385334853266963,0.999988941109648,3,14,"ubiquitin-protein transferase activator activity","MF",1
-"13","GO:0003841",0.00592341728803724,0.999810677632678,2,11,"1-acylglycerol-3-phosphate O-acyltransferase activity","MF",1
-"17","GO:0004089",0.0182699192350751,0.998876500689732,2,19,"carbonate dehydratase activity","MF",1
-"33","GO:0005353",0.00189678192620258,0.999971154793951,2,6,"fructose transmembrane transporter activity","MF",1
-"90","GO:0015464",0.0107617298322523,0.999514398861536,2,14,"acetylcholine receptor activity","MF",1
-"100","GO:0016799",0.00634155867607174,0.999787116123066,2,12,"hydrolase activity, hydrolyzing N-glycosyl compounds","MF",1
-"102","GO:0016836",0.00864431066539604,0.999652010566319,2,14,"hydro-lyase activity","MF",1
-"132","GO:0030169",0.00900643580637904,0.999626557360887,2,15,"low-density lipoprotein particle binding","MF",1
-"136","GO:0030544",0.0385118836935814,0.996350531068849,2,32,"Hsp70 protein binding","MF",1
-"161","GO:0033300",0.00542636565876092,0.999837035145599,2,10,"dehydroascorbic acid transmembrane transporter activity","MF",1
-"212","GO:0051119",0.00189678192620258,0.999971154793951,2,6,"sugar transmembrane transporter activity","MF",1
-"240","GO:0070224",0.000129906505072334,1,2,2,"sulfide:quinone oxidoreductase activity","MF",0.569207318784003
-"1","GO:0000254",0.0111975299619265,1,1,1,"C-4 methylsterol oxidase activity","MF",1
-"5","GO:0001162",0.0480722352974363,0.99906100872031,1,5,"RNA polymerase II intronic transcription regulatory region sequence-specific DNA binding","MF",1
-"12","GO:0003839",0.0453189734621718,0.999166440558545,1,5,"gamma-glutamylcyclotransferase activity","MF",1
-"14","GO:0003865",0.0149059845004369,0.999944254036389,1,2,"3-oxo-5-alpha-steroid 4-dehydrogenase activity","MF",1
-"15","GO:0003963",0.0241112827726999,0.999853455563221,1,2,"RNA-3'-phosphate cyclase activity","MF",1
-"16","GO:0004085",0.0297160104631908,0.999702857242313,1,3,"butyryl-CoA dehydrogenase activity","MF",1
-"18","GO:0004307",0.0112363420444325,1,1,1,"ethanolaminephosphotransferase activity","MF",1
-"19","GO:0004340",0.0239174562785992,0.999808014584703,1,3,"glucokinase activity","MF",1
-"20","GO:0004349",0.0241297466146009,0.99985322965146,1,2,"glutamate 5-kinase activity","MF",1
-"21","GO:0004350",0.0121382584841913,1,1,1,"glutamate-5-semialdehyde dehydrogenase activity","MF",1
-"22","GO:0004396",0.0295908076539343,0.999705372698318,1,3,"hexokinase activity","MF",1
-"23","GO:0004420",0.0350193293582598,0.999586331798647,1,3,"hydroxymethylglutaryl-CoA reductase (NADPH) activity","MF",1
-"24","GO:0004463",0.012138258484189,1,1,1,"leukotriene-A4 hydrolase activity","MF",1
-"25","GO:0004478",0.0332251321597466,0.999627939613504,1,3,"methionine adenosyltransferase activity","MF",1
-"27","GO:0004657",0.0325083983974804,0.999643935340596,1,3,"proline dehydrogenase activity","MF",1
-"28","GO:0004825",0.0381900266849673,0.999446332318805,1,4,"methionine-tRNA ligase activity","MF",1
-"29","GO:0005009",0.0359762333330685,0.999563224576328,1,3,"insulin receptor activity","MF",1
-"30","GO:0005222",0.0349666652978194,0.999587585001918,1,3,"intracellular cAMP-activated cation channel activity","MF",1
-"34","GO:0005483",0.0223261280229698,0.999874466553873,1,2,"soluble NSF attachment protein activity","MF",1
-"64","GO:0008470",0.0193018054807001,0.999906317445601,1,2,"isovaleryl-CoA dehydrogenase activity","MF",1
-"66","GO:0008865",0.0261106724807792,0.999770962175445,1,3,"fructokinase activity","MF",1
-"84","GO:0010856",0.0241297469913603,0.999853229646849,1,2,"adenylate cyclase activator activity","MF",1
-"91","GO:0015574",0.0452638671172904,0.999219852075563,1,4,"trehalose transmembrane transporter activity","MF",1
-"95","GO:0016034",0.0116949569819701,1,1,1,"maleylacetoacetate isomerase activity","MF",1
-"98","GO:0016671",0.0499604316039891,0.998984999272324,1,5,"oxidoreductase activity, acting on a sulfur group of donors, disulfide as acceptor","MF",1
-"101","GO:0016803",0.0155299883740475,0.999939469820379,1,2,"ether hydrolase activity","MF",1
-"134","GO:0030250",0.0241297469913603,0.999853229646849,1,2,"guanylate cyclase activator activity","MF",1
-"142","GO:0031405",0.049166473291715,0.999017327878343,1,5,"lipoic acid binding","MF",1
-"146","GO:0031752",0.0116025849615976,1,1,1,"D5 dopamine receptor binding","MF",1
-"148","GO:0031994",0.0241297469914713,0.999853229646847,1,2,"insulin-like growth factor I binding","MF",1
-"149","GO:0031995",0.0121382584841913,1,1,1,"insulin-like growth factor II binding","MF",1
-"163","GO:0033743",0.0348591709280271,0.999539359501092,1,4,"peptide-methionine (R)-S-oxide reductase activity","MF",1
-"164","GO:0034038",0.0114522561004971,1,1,1,"deoxyhypusine synthase activity","MF",1
-"193","GO:0043423",0.0241297469914702,0.999853229646847,1,2,"3-phosphoinositide-dependent protein kinase binding","MF",1
-"216","GO:0051425",0.0241297469915183,0.999853229646847,1,2,"PTB domain binding","MF",1
-"222","GO:0052745",0.0417818619659523,0.999336262357904,1,4,"inositol phosphate phosphatase activity","MF",1
-"223","GO:0055056",0.0345276494418215,0.999597956748968,1,3,"D-glucose transmembrane transporter activity","MF",1
-"234","GO:0061770",0.0121382473051431,1,1,1,"translation elongation factor binding","MF",1
-"241","GO:0070733",0.0487701861332394,0.999033264275474,1,5,"protein adenylyltransferase activity","MF",1
-"253","GO:0080103",0.00972283023679191,1,1,1,"4-methylthiopropyl glucosinolate S-oxygenase activity","MF",1
-"254","GO:0080107",0.00972283023679191,1,1,1,"8-methylthiopropyl glucosinolate S-oxygenase activity","MF",1
-"299","GO:1904841",0.0346944819974758,0.999594031137944,1,3,"TORC2 complex binding","MF",1
-"302","GO:1990050",0.0479708277267844,0.999065005521866,1,5,"phosphatidic acid transfer activity","MF",1
+"181","GO:0042802",0.00389061022818778,0.998082746378852,25,1448,"identical protein binding","MF",1
+"100","GO:0016491",0.00237080333896606,0.999188630222212,13,534,"oxidoreductase activity","MF",1
+"114","GO:0019899",0.0412608951922469,0.982742082162451,9,444,"enzyme binding","MF",1
+"31","GO:0005216",0.0434683580370703,0.984015481142602,7,296,"monoatomic ion channel activity","MF",1
+"128","GO:0022857",0.0388740821308744,0.986035080590938,7,308,"transmembrane transporter activity","MF",1
+"37","GO:0005506",0.0103030620925672,0.997519341307494,6,183,"iron ion binding","MF",1
+"232","GO:0071949",0.000622984264899625,0.99993554970751,5,71,"FAD binding","MF",1
+"23","GO:0004497",0.0386259532299781,0.990981550863491,4,129,"monooxygenase activity","MF",1
+"29","GO:0005044",0.033346489427309,0.992578137402924,4,114,"scavenger receptor activity","MF",1
+"33","GO:0005230",0.0147967820084615,0.997439797494401,4,85,"extracellular ligand-gated monoatomic ion channel activity","MF",1
+"101","GO:0016705",0.0311245859544493,0.993213320109152,4,119,"oxidoreductase activity, acting on paired donors, with incorporation or reduction of molecular oxygen","MF",1
+"104","GO:0017147",0.00558148062744229,0.999273124886696,4,77,"Wnt-protein binding","MF",1
+"126","GO:0022836",0.00338839815081505,0.999620606747382,4,57,"gated channel activity","MF",1
+"127","GO:0022848",0.000696844792199898,0.999950562629044,4,37,"acetylcholine-gated monoatomic cation-selective channel activity","MF",1
+"4","GO:0001540",0.0105899056924084,0.998902625650413,3,46,"amyloid-beta binding","MF",1
+"30","GO:0005112",0.0111003608543911,0.998829690149827,3,46,"Notch binding","MF",1
+"34","GO:0005267",0.022494985688271,0.996884515244869,3,60,"potassium channel activity","MF",1
+"38","GO:0005536",0.00044215279115198,0.999986531758972,3,15,"glucose binding","MF",1
+"131","GO:0030165",0.0287429787359915,0.99562571019711,3,62,"PDZ domain binding","MF",1
+"175","GO:0038024",0.0040000610391229,0.999715311398977,3,30,"cargo receptor activity","MF",1
+"9","GO:0003841",0.00569274296779405,0.999821760633403,2,11,"1-acylglycerol-3-phosphate O-acyltransferase activity","MF",1
+"13","GO:0004089",0.0173495621448187,0.998961930611013,2,19,"carbonate dehydratase activity","MF",1
+"24","GO:0004601",0.0365549444467711,0.996649149786468,2,29,"peroxidase activity","MF",1
+"35","GO:0005353",0.00179536908202071,0.999973454081836,2,6,"fructose transmembrane transporter activity","MF",1
+"94","GO:0015464",0.0101694407200872,0.999554520938427,2,14,"acetylcholine receptor activity","MF",1
+"102","GO:0016799",0.00602269336880398,0.99980315689423,2,12,"hydrolase activity, hydrolyzing N-glycosyl compounds","MF",1
+"103","GO:0016836",0.00824618034097862,0.999676098658769,2,14,"hydro-lyase activity","MF",1
+"132","GO:0030169",0.00887587319588475,0.999634787386351,2,15,"low-density lipoprotein particle binding","MF",1
+"136","GO:0030544",0.037723964323968,0.99646534219607,2,32,"Hsp70 protein binding","MF",1
+"159","GO:0033300",0.00514783625879853,0.999849558981883,2,10,"dehydroascorbic acid transmembrane transporter activity","MF",1
+"203","GO:0051119",0.00179536908202071,0.999973454081836,2,6,"sugar transmembrane transporter activity","MF",1
+"226","GO:0070224",0.000122855383628445,1,2,2,"sulfide:quinone oxidoreductase activity","MF",0.520046838899207
+"244","GO:0097027",0.00878454420546901,0.999643427207416,2,14,"ubiquitin-protein transferase activator activity","MF",1
+"1","GO:0000254",0.0109979130089141,1,1,1,"C-4 methylsterol oxidase activity","MF",1
+"8","GO:0003839",0.0456287339377715,0.999154949702448,1,5,"gamma-glutamylcyclotransferase activity","MF",1
+"10","GO:0003865",0.0155185138135018,0.999939563319546,1,2,"3-oxo-5-alpha-steroid 4-dehydrogenase activity","MF",1
+"11","GO:0003963",0.0229559413478774,0.999867249612642,1,2,"RNA-3'-phosphate cyclase activity","MF",1
+"12","GO:0004085",0.0294237226082197,0.999708730624625,1,3,"butyryl-CoA dehydrogenase activity","MF",1
+"14","GO:0004301",0.0486961416436164,0.999036285983983,1,5,"epoxide hydrolase activity","MF",1
+"15","GO:0004307",0.0110221956667861,1,1,1,"ethanolaminephosphotransferase activity","MF",1
+"16","GO:0004340",0.0236955062570451,0.999811591828798,1,3,"glucokinase activity","MF",1
+"17","GO:0004349",0.0229666371167756,0.999867125154165,1,2,"glutamate 5-kinase activity","MF",1
+"18","GO:0004350",0.0115497559628806,1,1,1,"glutamate-5-semialdehyde dehydrogenase activity","MF",1
+"19","GO:0004396",0.0295632258323883,0.999705943451375,1,3,"hexokinase activity","MF",1
+"20","GO:0004420",0.033697633569746,0.999617222839466,1,3,"hydroxymethylglutaryl-CoA reductase (NADPH) activity","MF",1
+"21","GO:0004463",0.0115497559628749,1,1,1,"leukotriene-A4 hydrolase activity","MF",1
+"22","GO:0004478",0.0322853902673352,0.999648861127336,1,3,"methionine adenosyltransferase activity","MF",1
+"25","GO:0004657",0.0316281019699764,0.999663114207768,1,3,"proline dehydrogenase activity","MF",1
+"26","GO:0004720",0.0147817033109804,0.999926976118536,1,3,"protein-lysine 6-oxidase activity","MF",1
+"27","GO:0004825",0.0373334540185163,0.999471117641231,1,4,"methionine-tRNA ligase activity","MF",1
+"28","GO:0005009",0.0342521667689241,0.999604420766631,1,3,"insulin receptor activity","MF",1
+"32","GO:0005222",0.0336572539670426,0.999618146699824,1,3,"intracellular cAMP-activated cation channel activity","MF",1
+"36","GO:0005483",0.0218401410199797,0.9998799093937,1,2,"soluble NSF attachment protein activity","MF",1
+"65","GO:0008253",0.0499481217804692,0.998985566447808,1,5,"5'-nucleotidase activity","MF",1
+"67","GO:0008470",0.0190228779324628,0.999909024002071,1,2,"isovaleryl-CoA dehydrogenase activity","MF",1
+"69","GO:0008865",0.0260136179903327,0.999772685716848,1,3,"fructokinase activity","MF",1
+"89","GO:0010856",0.0229666373350423,0.999867125151625,1,2,"adenylate cyclase activator activity","MF",1
+"95","GO:0015574",0.0439844846613518,0.999263782580732,1,4,"trehalose transmembrane transporter activity","MF",1
+"99","GO:0016034",0.0112931350925219,1,1,1,"maleylacetoacetate isomerase activity","MF",1
+"134","GO:0030250",0.0229666373350423,0.999867125151625,1,2,"guanylate cyclase activator activity","MF",1
+"141","GO:0031405",0.0476554537985995,0.999077436188875,1,5,"lipoic acid binding","MF",1
+"145","GO:0031752",0.0112396683413607,1,1,1,"D5 dopamine receptor binding","MF",1
+"147","GO:0031994",0.0229666373352927,0.999867125151622,1,2,"insulin-like growth factor I binding","MF",1
+"148","GO:0031995",0.0115497559628806,1,1,1,"insulin-like growth factor II binding","MF",1
+"161","GO:0033743",0.0355908071078228,0.999519699118359,1,4,"peptide-methionine (R)-S-oxide reductase activity","MF",1
+"162","GO:0034038",0.0111523631348858,1,1,1,"deoxyhypusine synthase activity","MF",1
+"187","GO:0043423",0.0229666373352904,0.999867125151622,1,2,"3-phosphoinositide-dependent protein kinase binding","MF",1
+"207","GO:0051425",0.0229666373353994,0.999867125151621,1,2,"PTB domain binding","MF",1
+"212","GO:0055056",0.033389470021204,0.999624244752306,1,3,"D-glucose transmembrane transporter activity","MF",1
+"227","GO:0070733",0.0478991355460979,0.999067882790953,1,5,"protein adenylyltransferase activity","MF",1
+"239","GO:0080103",0.00988785860401975,1,1,1,"4-methylthiopropyl glucosinolate S-oxygenase activity","MF",1
+"240","GO:0080107",0.00988785860401975,1,1,1,"8-methylthiopropyl glucosinolate S-oxygenase activity","MF",1
+"278","GO:1904841",0.0334766162712787,0.999622265703259,1,3,"TORC2 complex binding","MF",1
+"281","GO:1990050",0.0478949406529411,0.999068047673821,1,5,"phosphatidic acid transfer activity","MF",1
