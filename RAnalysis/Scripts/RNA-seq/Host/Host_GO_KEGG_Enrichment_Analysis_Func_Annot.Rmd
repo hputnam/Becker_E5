@@ -752,6 +752,7 @@ downreg.DEG.plot <- enriched.GO.05.down  %>%  mutate(term = fct_reorder(term, -l
 library(GOplot)
 library(dplyr)
 
+
 dat <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/DEG_GO_parent_terms_complete.csv")
 
 dat$adj_pval <- p.adjust(dat$over_represented_pvalue, method="BH")
@@ -770,6 +771,8 @@ dat2 <- dat1 %>% rename("Category" = "ontology",
 
 # ...and of the data frame of selected genes
 head(DEG.res)
+
+
 
 #need to keep only rows for gene_id, log2fold, lfcse, stat, pvalue, padj, basemean
 DEG.res1 <- DEG.res[c(7,2,3,4,5,6,1)]

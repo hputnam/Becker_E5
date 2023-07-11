@@ -69,11 +69,11 @@ all(rownames(treatmentinfo) %in% colnames(gcount)) # must come out TRUE
 
 
 ##### Pre-filter gene counts
-## Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests. We will filter out low coverage samples. Here, we will keep P=87.5% percent of the samples have counts over A=5, allowing only 1 of 8 samples to have a value less than 5 per gene.
+## Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests. We will filter out low coverage samples. Here, we will keep P=50% percent of the samples have counts over A=10, allowing only half our samples to have a value less than 10 per gene.
 
 ```{r}
-#Erin Set filter values for PoverA, P=87.5% percent of the samples have counts over A=5. They chose their value allowing only 1 of 8 samples to have a value less than 5 per gene. 
-filt <- filterfun(pOverA(0.90,10))
+#Pover a for expecting in your two treatments, any gene count greater than ten and in 90% of samples, include in only in control or in enriched 
+filt <- filterfun(pOverA(0.50,10))
 
 #create filter for the counts data
 gfilt <- genefilter(gcount, filt)
