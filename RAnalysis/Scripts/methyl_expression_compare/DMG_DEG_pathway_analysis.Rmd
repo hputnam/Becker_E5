@@ -82,6 +82,7 @@ DMG <- DMG %>% add_column(type = "DMG.GO.terms")
 #adjust p-values 
 DMG$bh_adjust <-  p.adjust(DMG$over_represented_pvalue, method="BH") 
 
+
 #write csv with bh_adjust
 write.csv(DMG, file = "RAnalysis/Output/WGBS/GO.DMG.parent.terms.csv")
 
@@ -243,7 +244,12 @@ DMG.complete <- DMG.complete %>% add_column(type = "DMG.GO.terms")
 
 #rename column from genes to gene
 DEG.complete <- DEG.complete %>% 
-       dplyr::rename("category" = "GOterm")
+       dplyr::rename("GOterm" = "category")
+
+#rename column from genes to gene
+DMG.complete <- DMG.complete %>% 
+       dplyr::rename("GOterm" = "category")
+
 
 #combine two dataframes to have both DEG and DMG terms in same data frame
 DEG.DMG <- rbind(DMG.complete, DEG.complete)
@@ -365,9 +371,15 @@ ggsave("RAnalysis/Output/Final_Figures/Host/GO.CC.DEG.DMG.pdf", GO.plot.CC.DEG.D
 #Filter dataframes for gene ontology groups that are involved in nitrogen pathways, stress pathways to see if expression and methylation are correlated
 ```{r}
 #filter by any category that contained the word, could do anything that has the word nitrogen, stress, and heat 
-phenotype.pathways.DEG <- filter(DEG.complete, slim_term %in%  c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound", "carbohydrate derivative metabolic process", "carbohydrate metabolic process")) 
 
-phenotype.pathways.DMG <- filter(DMG.complete, slim_term %in%  c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound", "carbohydrate derivative metabolic process", "carbohydrate metabolic process"))
+vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport")
+
+phenotype.pathways.DEG <-DEG.complete%>%
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+phenotype.pathways.DMG <- DMG.complete %>% 
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
 ```
 
 #change data frames from wide to long format
@@ -607,6 +619,167 @@ ggsave("RAnalysis/Output/Final_Figures/Host/GO.hypo.DEG.DMG.pdf", hypo.DEG.DMG ,
 
 ```
 
+#make dataframes and figures for specific hypothesis driven pathways and responses from DEGs and DMGs
+
+#nutrient response
+```{r}
+
+nutrient <- c("nutrient")
+
+nutrient.DEG <-DEG.complete%>%
+      filter(grepl(paste(nutrient, collapse="|"), paste(slim_term, term))) 
+
+nutrient.DMG <- DMG.complete %>% 
+      filter(grepl(paste(nutrient, collapse="|"), paste(slim_term, term)))
+
+nutrient.dat <- rbind(nutrient.DEG,nutrient.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  nutrient.GO.plot <-  ggplot(nutrient.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,50))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 6, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Nutrient Response")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.6),
+          axis.title.y = element_blank())
+  
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/nutrient.DMG.DEG.png"), plot=nutrient.GO.plot, dpi=300, width=15, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/nutrient.DMG.DEG.pdf"), plot=nutrient.GO.plot, dpi=300, width=15, height=10, units="in")
+
+```
+
+#nitrogen metabolism
+```{r}
+
+nitrogen <- c("nitrogen")
+
+nitrogen.DEG <-DEG.complete%>%
+      filter(grepl(paste(nitrogen, collapse="|"), paste(slim_term, term))) 
+
+nitrogen.DMG <- DMG.complete %>% 
+      filter(grepl(paste(nitrogen, collapse="|"), paste(slim_term, term)))
+
+nitrogen.dat <- rbind(nitrogen.DEG,nitrogen.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  nitrogen.GO.plot <-  ggplot(nitrogen.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,100))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 8, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Nitrogen Metabolism")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.6),
+          axis.title.y = element_blank())
+  
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/nitrogen.DMG.DEG.png"), plot=nitrogen.GO.plot, dpi=300, width=15, height=15, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/nitrogen.DMG.DEG.pdf"), plot=nitrogen.GO.plot, dpi=300, width=15, height=15, units="in")
+
+```
 
 
+#carbohydrate metabolism
+```{r}
 
+vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport")
+
+phenotype.pathways.DEG <-DEG.complete%>%
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+phenotype.pathways.DMG <- DMG.complete %>% 
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+```
+
+#amino acid metabolism
+```{r}
+
+vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport")
+
+phenotype.pathways.DEG <-DEG.complete%>%
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+phenotype.pathways.DMG <- DMG.complete %>% 
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+```
+
+#oxidoreductase activity
+```{r}
+
+vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport")
+
+phenotype.pathways.DEG <-DEG.complete%>%
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+phenotype.pathways.DMG <- DMG.complete %>% 
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+```
+
+#protein synthesis
+```{r}
+
+vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport")
+
+phenotype.pathways.DEG <-DEG.complete%>%
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+phenotype.pathways.DMG <- DMG.complete %>% 
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+```
+
+#glucose metabolism
+```{r}
+
+vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport")
+
+phenotype.pathways.DEG <-DEG.complete%>%
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+phenotype.pathways.DMG <- DMG.complete %>% 
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+```
+
+#glutamate metabolism
+```{r}
+
+vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport")
+
+phenotype.pathways.DEG <-DEG.complete%>%
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+phenotype.pathways.DMG <- DMG.complete %>% 
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+```
