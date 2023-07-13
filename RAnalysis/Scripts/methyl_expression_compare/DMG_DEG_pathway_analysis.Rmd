@@ -88,34 +88,7 @@ write.csv(DMG, file = "RAnalysis/Output/WGBS/GO.DMG.parent.terms.csv")
 
 ```
 
-#make Venn Diagram of overlapping GOslim terms for DMG and DEG comparison
 
-```{r}
-venn.plot <- venn.diagram(
-  x = list(DEG = DEG$term, DMG = DMG$term),
-  filename = 'RAnalysis/Output/meth_express_compare/venn_diagram.png',
-  category.names = c('DEG GO terms', 'DMG GO terms'),
-  output = TRUE,
-  col = "black",
-	fill = c("dodgerblue", "goldenrod1"),
-  cat.default.pos = "outer",
-  cat.fontface = "bold",
-  cat.pos = c(-18, 18),
-          cat.dist = c(0.055, 0.055)
-)
-```
-
-#subset data sets to see alike terms
-```{r}
-#compare these datasets, simply pass them to the comparedf() function
-#comparedf(DMG, DEG)
-
-#Use summary() to get a more detailed summary
-
-#summary(comparedf(DEG, DMG, by = "term"))
-
-#these examples show unshared characteristics but don't list the actual shared terms
-```
 
 ```{r}
 #use dplyr inner_join instead
@@ -182,7 +155,8 @@ GO.plot.DMG.complete <-  ggplot(DMG.complete, aes(x = ontology, y = term)) +
           axis.title.y = element_blank())
 
  
-ggsave("RAnalysis/Output/Final_Figures/Host/DMG.complete.slimterms.pdf", GO.plot.DMG.complete , width = 20, height = 49, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/Host/DMG.complete.slimterms.pdf", GO.plot.DMG.complete, width = 20, height = 49.5, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/Host/DMG.complete.slimterms.png", GO.plot.DMG.complete, width = 20, height = 49.5, units = c("in"))
 
 
 ```

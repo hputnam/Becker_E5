@@ -693,12 +693,17 @@ ggsave(filename=paste0("RAnalysis/Output/RNA-seq/GOSeq/Host/final.BP.plot.host.p
 #remove NA from enriched upregulated data frame
 enriched.GO.05.up <- na.omit(enriched.GO.05.up)
 
+#filter out cellular component
+enriched.GO.05.up <- enriched.GO.05.up[- grep("Cellular Component", enriched.GO.05.up$ontology),]
+
 # rename ontology terms
 enriched.GO.05.up <- enriched.GO.05.up %>%
     mutate(ontology = recode(ontology, BP = 'Biological Process', MF = 'Molecular Function', CC =  'Cellular Component' ))
 
 #create upreg plot
-upreg.DEG.plot <- enriched.GO.05.up  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>%ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
+upreg.DEG.plot <- enriched.GO.05.up  %>%  
+  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>% 
+  mutate(ontology = factor(ontology, levels = c("Biological Process", "Molecular Function"))) %>% ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
                    geom_segment( aes(x=term ,xend=term, y=1, yend=-log10(over_represented_pvalue)), color="grey95", size = 3) +
                    geom_point(size=3, shape = 15, colour = "grey70") +
                    coord_flip() +
@@ -728,7 +733,16 @@ upreg.DEG.plot <- enriched.GO.05.up  %>%  mutate(term = fct_reorder(term, -log10
  #remove NA from enriched downregulated data frame
 enriched.GO.05.down <- na.omit(enriched.GO.05.down)
 
-downreg.DEG.plot <- enriched.GO.05.down  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>%ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
+#filter out cellular component
+enriched.GO.05.down <- enriched.GO.05.down[- grep("Cellular Component", enriched.GO.05.down$ontology),]
+
+# rename ontology terms
+enriched.GO.05.down <- enriched.GO.05.down %>%
+    mutate(ontology = recode(ontology, BP = 'Biological Process', MF = 'Molecular Function', CC =  'Cellular Component' ))
+
+#make downreg plot
+downreg.DEG.plot <- enriched.GO.05.down  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>% 
+  mutate(ontology = factor(ontology, levels = c("Biological Process", "Molecular Function"))) %>% ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
                    geom_segment( aes(x=term ,xend=term, y=1, yend=-log10(over_represented_pvalue)), color="grey95", size = 3) +
                    geom_point(size=3, shape = 15, colour = "grey70") +
                    coord_flip() +
@@ -741,9 +755,9 @@ downreg.DEG.plot <- enriched.GO.05.down  %>%  mutate(term = fct_reorder(term, -l
                    ylab("-Log10 (pvalue)") +
                    ggtitle("Downregulated Differentially Expressed Genes") +
                    theme_bw() + #Set background color 
-   facet_grid(ontology ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE), labeller = labeller("CC" = "Cellular Component", "MF" = "Molecular Function", "BP" = "Biological Process"))+
+   facet_grid(ontology ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE))+
    theme(axis.text.y = element_text(hjust = 1))   +
-  theme(plot.title = element_text(size = 25, face = "bold")) +
+  theme(plot.title = element_text(size = 25, face = "bold", hjust = 0.95)) +
                    theme(panel.border = element_blank(), # Set border
                          panel.grid.major = element_blank(), #Set major gridlines
                          panel.grid.minor = element_blank(), #Set minor gridlines
@@ -751,9 +765,14 @@ downreg.DEG.plot <- enriched.GO.05.down  %>%  mutate(term = fct_reorder(term, -l
                          plot.background=element_blank())  #Set the plot background #set title attributes
 
 
- ggsave("RAnalysis/Output/Final_Figures/Host/downreg.DEG.plot.pdf", downreg.DEG.plot , width = 10, height = 40, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/Host/downreg.DEG.plot.pdf", downreg.DEG.plot , width = 12, height = 30, units = c("in"))
 
+
+#use patchwork to combine figures and add labels
+Figure1 <- upreg.DEG.plot + downreg.DEG.plot + plot_annotation(tag_levels = 'A')
  
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/down.upreg.DEG.png"), plot=Figure1, dpi=300, width=18, height=28, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/down.upreg.DEG.pdf"), plot=Figure1, dpi=300, width=18, height=28, units="in")
 
 ```
 
