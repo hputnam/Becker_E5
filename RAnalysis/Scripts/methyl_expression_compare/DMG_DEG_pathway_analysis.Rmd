@@ -705,81 +705,347 @@ ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/ni
 
 ```
 
+#heat stress response
+```{r}
+
+heat <- c("heat", "DNA replication", "DNA repair", "immune", "protein folding", "stress")
+
+heat.DEG <-DEG.complete%>%
+      filter(grepl(paste(heat, collapse="|"), paste(slim_term, term))) 
+
+heat.DMG <- DMG.complete %>% 
+      filter(grepl(paste(heat, collapse="|"), paste(slim_term, term)))
+
+heat.dat <- rbind(heat.DEG,heat.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  heat.GO.plot <-  ggplot(heat.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,150))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 8, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Heat Stress Response")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.6),
+          axis.title.y = element_blank())
+  
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/heat.DMG.DEG.png"), plot=heat.GO.plot, dpi=300, width=20, height=15, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/heat.DMG.DEG.pdf"), plot=heat.GO.plot, dpi=300, width=20, height=15, units="in")
+
+
+```
+
 
 #carbohydrate metabolism
 ```{r}
 
-vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport")
+carb <- c("carbohydrate")
 
-phenotype.pathways.DEG <-DEG.complete%>%
-      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+carb.DEG <-DEG.complete%>%
+      filter(grepl(paste(carb, collapse="|"), paste(slim_term, term))) 
 
-phenotype.pathways.DMG <- DMG.complete %>% 
-      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+carb.DMG <- DMG.complete %>% 
+      filter(grepl(paste(carb, collapse="|"), paste(slim_term, term)))
+
+carb.dat <- rbind(carb.DEG,carb.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  carb.GO.plot <-  ggplot(carb.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,50))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 8, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Carbohydrate Metabolism")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.6),
+          axis.title.y = element_blank())
+  
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/carb.DMG.DEG.png"), plot=carb.GO.plot, dpi=300, width=15, height=15, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/carb.DMG.DEG.pdf"), plot=carb.GO.plot, dpi=300, width=15, height=15, units="in")
+ 
 
 ```
 
 #amino acid metabolism
 ```{r}
 
-vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport")
+amino <- c("amino acid", "amino")
 
-phenotype.pathways.DEG <-DEG.complete%>%
-      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+amino.DEG <-DEG.complete%>%
+      filter(grepl(paste(amino, collapse="|"), paste(slim_term, term))) 
 
-phenotype.pathways.DMG <- DMG.complete %>% 
-      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+amino.DMG <- DMG.complete %>% 
+      filter(grepl(paste(amino, collapse="|"), paste(slim_term, term)))
+
+amino.dat <- rbind(amino.DEG,amino.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  amino.GO.plot <-  ggplot(amino.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,10))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 8, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Amino Acid Metabolism")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/amino.DMG.DEG.png"), plot=amino.GO.plot, dpi=300, width=14, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/amino.DMG.DEG.pdf"), plot=amino.GO.plot, dpi=300, width=14, height=10, units="in")
 
 ```
 
 #oxidoreductase activity
 ```{r}
 
-vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport")
+oxy <- c("oxygen", "oxidative", "oxidoreductase activity")
 
-phenotype.pathways.DEG <-DEG.complete%>%
-      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+oxy.DEG <-DEG.complete%>%
+      filter(grepl(paste(oxy, collapse="|"), paste(slim_term, term))) 
 
-phenotype.pathways.DMG <- DMG.complete %>% 
-      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+oxy.DMG <- DMG.complete %>% 
+      filter(grepl(paste(oxy, collapse="|"), paste(slim_term, term)))
+
+oxy.dat <- rbind(oxy.DEG,oxy.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  oxy.GO.plot <-  ggplot(oxy.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,10))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 8, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Oxidoreductase Activity")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/oxy.DMG.DEG.png"), plot=oxy.GO.plot, dpi=300, width=18, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/oxy.DMG.DEG.pdf"), plot=oxy.GO.plot, dpi=300, width=18, height=10, units="in")
 
 ```
 
 #protein synthesis
 ```{r}
 
-vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport")
+protein <- c("protein metabolic process", "protein folding", "protein", "protein modification process", "protein transport")
 
-phenotype.pathways.DEG <-DEG.complete%>%
-      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+protein.DEG <-DEG.complete%>%
+      filter(grepl(paste(protein, collapse="|"), paste(slim_term, term))) 
 
-phenotype.pathways.DMG <- DMG.complete %>% 
-      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+protein.DMG <- DMG.complete %>% 
+      filter(grepl(paste(protein, collapse="|"), paste(slim_term, term)))
+
+protein.dat <- rbind(protein.DEG,protein.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  protein.GO.plot <-  ggplot(protein.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,1500))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 30, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Protein Synthesis")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/protein.DMG.DEG.png"), plot=protein.GO.plot, dpi=300, width=20, height=24, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/protein.DMG.DEG.pdf"), plot=protein.GO.plot, dpi=300, width=20, height=24, units="in")
 
 ```
 
 #glucose metabolism
 ```{r}
 
-vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport")
+glucose <- c("glucose", "glucagon", "glucokinase", "glucocorticoid", "glucosinolate")
 
-phenotype.pathways.DEG <-DEG.complete%>%
-      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+glucose.DEG <-DEG.complete%>%
+      filter(grepl(paste(glucose, collapse="|"), paste(slim_term, term))) 
 
-phenotype.pathways.DMG <- DMG.complete %>% 
-      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+glucose.DMG <- DMG.complete %>% 
+      filter(grepl(paste(glucose, collapse="|"), paste(slim_term, term)))
+
+glucose.dat <- rbind(glucose.DEG,glucose.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  glucose.GO.plot <-  ggplot(glucose.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,20))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 30, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Glucose Metabolism")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/glucose.DMG.DEG.png"), plot=glucose.GO.plot, dpi=300, width=18, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/glucose.DMG.DEG.pdf"), plot=glucose.GO.plot, dpi=300, width=18, height=10, units="in")
 
 ```
 
 #glutamate metabolism
 ```{r}
 
-vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport")
+glutamate <- c("glutamate", "glutathione", "glutamylcyclotransferase", "hydroxymethylglutaryl", "glutathione")
 
-phenotype.pathways.DEG <-DEG.complete%>%
-      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+glutamate.DEG <-DEG.complete%>%
+      filter(grepl(paste(glutamate, collapse="|"), paste(slim_term, term))) 
 
-phenotype.pathways.DMG <- DMG.complete %>% 
-      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+glutamate.DMG <- DMG.complete %>% 
+      filter(grepl(paste(glutamate, collapse="|"), paste(slim_term, term)))
+
+glutamate.dat <- rbind(glutamate.DEG,glutamate.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  glutamate.GO.plot <-  ggplot(glutamate.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,40))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 30, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Glutamate Metabolism")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/glutamate.DMG.DEG.png"), plot=glutamate.GO.plot, dpi=300, width=18, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/glutamate.DMG.DEG.pdf"), plot=glutamate.GO.plot, dpi=300, width=18, height=10, units="in") 
+
+```
+
+#cellular energy metabolism
+```{r}
+
+cell <- c("sugar", "fatty acid", "lipid", "fatty")
+
+cell.DEG <-DEG.complete%>%
+      filter(grepl(paste(cell, collapse="|"), paste(slim_term, term))) 
+
+cell.DMG <- DMG.complete %>% 
+      filter(grepl(paste(cell, collapse="|"), paste(slim_term, term)))
+
+cell.dat <- rbind(cell.DEG,cell.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  cell.GO.plot <-  ggplot(cell.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,20))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 40, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Cellular Energy Metabolism") +
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/cell.DMG.DEG.png"), plot=cell.GO.plot, dpi=300, width=18, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/cell.DMG.DEG.pdf"), plot=cell.GO.plot, dpi=300, width=18, height=10, units="in")
 
 ```
