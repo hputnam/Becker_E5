@@ -1023,3 +1023,21 @@ ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/ce
 ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/cell.DMG.DEG.pdf"), plot=cell.GO.plot, dpi=300, width=18, height=10, units="in")
 
 ```
+
+
+#use patchwork to combine figures and add labels
+
+```{r}
+Figure2 <- nutrient.GO.plot + nitrogen.GO.plot + carb.GO.plot + plot_annotation(tag_levels = 'A')
+Figure3 <- glucose.GO.plot + glutamate.GO.plot + oxy.GO.plot + plot_annotation(tag_levels = 'A')
+Figure4 <- heat.GO.plot + amino.GO.plot + protein.GO.plot + cell.GO.plot + plot_annotation(tag_levels = 'A')
+ 
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/nitrogen.carb_pathways.png"), plot=Figure2, dpi=300, width=40, height=15, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/nitrogen.carb_pathways.pdf"), plot=Figure2, dpi=300, width=40, height=15, units="in")
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/glut.oxy.pathways.png"), plot=Figure3, dpi=300, width=40, height=15, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/glut.oxy.pathways.pdf"), plot=Figure3, dpi=300, width=40, height=15, units="in")
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/heat.protein.pathways.png"), plot=Figure4, dpi=300, width=45, height=45, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/heat.protein.pathways.pdf"), plot=Figure4, dpi=300, width=45, height=45, units="in")
+```

@@ -72,7 +72,8 @@ all(rownames(treatmentinfo) %in% colnames(gcount)) # must come out TRUE
 ## Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests. We will filter out low coverage samples. Here, we will keep P=50% percent of the samples have counts over A=10, allowing only half our samples to have a value less than 10 per gene.
 
 ```{r}
-#Pover a for expecting in your two treatments, any gene count greater than ten and in 90% of samples, include in only in control or in enriched 
+#pOverA: Specifying the minimum count for a proportion of samples for each gene. Here, we are using a pOverA of 0.5, 10. This is because we have 32 samples with a minimum of n=1 sample per fragment and half in enriched and half in control. Therefore, we will accept genes that are present in 16/32 = 0.5 of the samples because we may expect different expression by treatment We are further setting the minimum count of genes to 10, such that 50% of the samples must have a gene count of >10 in order for the gene to remain in the data set.  
+
 filt <- filterfun(pOverA(0.50,10))
 
 #create filter for the counts data
@@ -123,6 +124,45 @@ Our size factors are all less than 4, so we can use VST!
 ```{r}
 gvst <- vst(gdds, blind=FALSE) #apply a variance stabilizing transformation to minimize effects of small counts and normalize library size
 ```
+
+# Conduct PERMANOVA and PCA  
+
+Export data for PERMANOVA test.  
+```{r}
+test<-t(assay(gvst)) #export as matrix
+test<-as.data.frame(test)
+
+#add category columns
+test$sample_ID <-rownames(test)
+test$treatment <-treatmentinfo$treatment[match(test$sample_ID, treatmentinfo$sample_ID)]
+```
+
+Build PERMANOVA model.  
+```{r}
+
+scaled_test <-prcomp(test[c(1:20326)], scale=TRUE, center=TRUE)
+fviz_eig(scaled_test)
+
+# scale data
+vegan <- scale(test[c(1:20326)])
+
+# PerMANOVA 
+permanova<-adonis2(vegan ~ treatment, data = test, method='eu')
+permanova
+```
+
+Gene expression is significantly different between Treatments (p=0.023).  
+
+Permutation test for adonis under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 999
+
+adonis2(formula = vegan ~ Treatment, data = test, method = "eu")
+          Df SumOfSqs      R2      F Pr(>F)  
+Treatment  1    33129 0.05258 1.6648  0.023 *
+Residual  30   596977 0.94742                
+Total     31   630106 1.00000     
 
 #### Heatmap of sample to sample distances
 ```{r}
@@ -259,11 +299,14 @@ DEGSeq2_PCA_plot <- ggplot(DEGSeq2_PCAdata, aes(PC1, PC2, color=treatment)) +
         #panel.grid.major = element_blank(), #Set major gridlines
         #panel.grid.minor = element_blank(), #Set minor gridlines
         axis.line = element_line(colour = "black"), #Set axes color
-        plot.background=element_blank()) #Set the plot background
+        plot.background=element_blank()) + #Set the plot background +
+  stat_ellipse()
+
 
 DEGSeq2_PCA_plot
 
 ggsave(path = "RAnalysis/Output/Final_Figures/Host/", filename = "DEGSeq2_DEG_PCA_plot_host.pdf")
+ggsave(path = "RAnalysis/Output/Final_Figures/Host/", filename = "DEGSeq2_DEG_PCA_plot_host.png")
 
 # PCA plot is of deferentially expressed genes only
 

@@ -263,141 +263,6 @@ merge_again <- merge(merge, DEG, by = "gene_id") # contains GO info and gene cou
 ```
 
 
-## Plot terms by ontology numbers 
-```{r}
-MFplot <- MF %>% mutate(term = fct_reorder(term, numDEInCat)) %>%
-  ggplot( aes(x=term, y=numDEInCat) ) +
-  geom_segment( aes(x=term ,xend=term, y=0, yend=numDEInCat), color="grey") +
-  geom_point(size=3, color="#69b3a2") +
-  coord_flip() +
-  theme(
-    panel.grid.minor.y = element_blank(),
-    panel.grid.major.y = element_blank(),
-    legend.position="none"
-  ) +
-  xlab("") +
-  ylab("") +
-  ggtitle("Molecular Function") + #add a main title
-  theme(plot.title = element_text(face = 'bold', 
-                                  size = 12, 
-                                  hjust = 0)) +
-  theme_bw() + #Set background color 
-  theme(panel.border = element_blank(), # Set border
-        panel.grid.major = element_blank(), #Set major gridlines
-        panel.grid.minor = element_blank(), #Set minor gridlines
-        axis.line = element_line(colour = "black"), #Set axes color
-        plot.background=element_blank())#Set the plot background
-MFplot
-
-
-CCplot <- CC %>% mutate(term = fct_reorder(term, numDEInCat)) %>%
-  ggplot( aes(x=term, y=numDEInCat) ) +
-  geom_segment( aes(x=term ,xend=term, y=0, yend=numDEInCat), color="grey") +
-  geom_point(size=3, color="#69b3a2") +
-  coord_flip() +
-  theme(
-    panel.grid.minor.y = element_blank(),
-    panel.grid.major.y = element_blank(),
-    legend.position="none"
-  ) +
-  xlab("") +
-  ylab("") +
-  ggtitle("Cellular Component") + #add a main title
-  theme(plot.title = element_text(face = 'bold',
-                                  size = 12,
-                                  hjust = 0)) +
-  theme_bw() + #Set background color
-  theme(panel.border = element_blank(), # Set border
-        panel.grid.major = element_blank(), #Set major gridlines
-        panel.grid.minor = element_blank(), #Set minor gridlines
-        axis.line = element_line(colour = "black"), #Set axes color
-        plot.background=element_blank())#Set the plot background
-CCplot 
-
-BPplot <- BP %>% mutate(term = fct_reorder(term, numDEInCat)) %>%
-  ggplot( aes(x=term, y=numDEInCat) ) +
-  geom_segment( aes(x=term ,xend=term, y=0, yend=numDEInCat), color="grey") +
-  geom_point(size=3, color="#69b3a2") +
-  coord_flip() +
-  theme(
-    panel.grid.minor.y = element_blank(),
-    panel.grid.major.y = element_blank(),
-    legend.position="none") +
-  xlab("") +
-  ylab("") +
-  ggtitle("Biological Process") + #add a main title
-  theme(plot.title = element_text(face = 'bold', 
-                                  size = 12, 
-                                  hjust = 0)) +
-  theme_bw() + #Set background color 
-  theme(panel.border = element_blank(), # Set border
-        panel.grid.major = element_blank(), #Set major gridlines
-        panel.grid.minor = element_blank(), #Set minor gridlines
-        axis.line = element_line(colour = "black"), #Set axes color
-        plot.background=element_blank())#Set the plot background
-BPplot # lots of BP, hard to see. Could subset df and plot by BP dfs
-
-# Save MF, CC, and BP plot in grid layout
-GOplot <- grid.arrange(MFplot, BPplot, ncol=3, clip="off")
-
-ggsave("RAnalysis/Output/Final_Figures/Host/pver_GOplot_05_FullAnnot_host.pdf", GOplot, width = 21, height = 21, units = c("in"))
-```
-
-# Combining MF, CC, and BP into one plot and order by pvalue
-```{r}
-GOplot2 <- enriched.GO.05 %>% drop_na(ontology) %>% mutate(term = fct_reorder(term, numDEInCat)) %>%
-  mutate(term = fct_reorder(term, ontology)) %>%
-  ggplot( aes(x=term, y=numDEInCat) ) +
-  geom_segment( aes(x=term ,xend=term, y=0, yend=numDEInCat), color="grey") +
-  geom_text(aes(label = over_represented_pvalue), hjust = -1, vjust = 0, size = 2) +
-  geom_point(size=3, aes(colour = ontology)) +
-  coord_flip() +
-  ylim(0,45) +
-  theme(
-    panel.grid.minor.y = element_blank(),
-    panel.grid.major.y = element_blank(),
-    legend.position="bottom"
-  ) +
-  xlab("") +
-  ylab("") +
-  theme_bw() + #Set background color 
-  theme(panel.border = element_blank(), # Set border
-        panel.grid.major = element_blank(), #Set major gridlines
-        panel.grid.minor = element_blank(), #Set minor gridlines
-        axis.line = element_line(colour = "black"), #Set axes color
-        plot.background=element_blank()) #Set the plot background #set title attributes
-GOplot2
-
-ggsave("RAnalysis/Output/Final_Figures/Host/pver_GOplot2_05_host.pdf", GOplot2, width = 28, height = 28, units = c("in"))
-
-# Combining into one plot and order by pvalue 
-GOplot_pvalue <- enriched.GO.05 %>% drop_na(ontology) %>% mutate(term = fct_reorder(term, over_represented_pvalue)) %>%
-  mutate(term = fct_reorder(term, ontology)) %>%
-  ggplot( aes(x=term, y=over_represented_pvalue) ) +
-  geom_segment( aes(x=term ,xend=term, y=0, yend=over_represented_pvalue), color="grey") +
-  geom_text(aes(label = numDEInCat), hjust = -1, vjust = 0.5, size = 3) +
-  geom_point(size=3, aes(colour = ontology)) +
-  coord_flip() +
-  ylim(0,0.05) +
-  theme(
-    panel.grid.minor.y = element_blank(),
-    panel.grid.major.y = element_blank(),
-    legend.position="bottom"
-  ) +
-  xlab("") +
-  ylab("p-value") +
-  theme_bw() + #Set background color 
-  theme(panel.border = element_blank(), # Set border
-        panel.grid.major = element_blank(), #Set major gridlines
-        panel.grid.minor = element_blank(), #Set minor gridlines
-        axis.line = element_line(colour = "black"), #Set axes color
-        plot.background=element_blank()) #Set the plot background #set title attributes
-GOplot_pvalue
-
-ggsave("RAnalysis/Output/Final_Figures/Host/pver_GOplot_pvalue_05_FullAnnot_host.pdf", GOplot_pvalue, width = 28, height = 28, units = c("in"))
-```
-
-
 ## Find GOslim terms
 
 # Run GOslim to get broader categories
@@ -693,17 +558,30 @@ ggsave(filename=paste0("RAnalysis/Output/RNA-seq/GOSeq/Host/final.BP.plot.host.p
 #remove NA from enriched upregulated data frame
 enriched.GO.05.up <- na.omit(enriched.GO.05.up)
 
-#filter out cellular component
-enriched.GO.05.up <- enriched.GO.05.up[- grep("Cellular Component", enriched.GO.05.up$ontology),]
+#select for 30 lowest p values for each group 
+BP.filt.u <- enriched.GO.05.up %>% filter(ontology == "BP")
+
+CC.filt.u <- enriched.GO.05.up %>% filter(ontology == "CC")
+
+MF.filt.u <- enriched.GO.05.up %>% filter(ontology == "MF")
+
+#select only 30 lowest pvalues and rejoin 
+BP.filt2.u <- BP.filt %>% slice_min(order_by = over_represented_pvalue, n = 30)
+
+MF.filt2.u <- MF.filt %>% slice_min(order_by = over_represented_pvalue, n = 30)
+
+#rejoin dataframes
+
+enriched.up <- rbind(MF.filt2.u, BP.filt2.u, CC.filt)
 
 # rename ontology terms
-enriched.GO.05.up <- enriched.GO.05.up %>%
+enriched.up <- enriched.up %>%
     mutate(ontology = recode(ontology, BP = 'Biological Process', MF = 'Molecular Function', CC =  'Cellular Component' ))
 
 #create upreg plot
-upreg.DEG.plot <- enriched.GO.05.up  %>%  
+upreg.DEG.plot <- enriched.up  %>%  
   mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>% 
-  mutate(ontology = factor(ontology, levels = c("Biological Process", "Molecular Function"))) %>% ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
+  mutate(ontology = factor(ontology, levels = c("Biological Process", "Molecular Function", "Cellular Component"))) %>% ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
                    geom_segment( aes(x=term ,xend=term, y=1, yend=-log10(over_represented_pvalue)), color="grey95", size = 3) +
                    geom_point(size=3, shape = 15, colour = "grey70") +
                    coord_flip() +
@@ -726,23 +604,38 @@ upreg.DEG.plot <- enriched.GO.05.up  %>%
                          plot.background=element_blank())  #Set the plot background #set title attributes
 
 
- ggsave("RAnalysis/Output/Final_Figures/Host/upreg.DEG.plot.pdf", upreg.DEG.plot , width = 12, height = 30, units = c("in"))
+ ggsave("RAnalysis/Output/Final_Figures/Host/upreg.DEG.plot.pdf", upreg.DEG.plot , width = 12, height = 20, units = c("in"))
  
  
-
- #remove NA from enriched downregulated data frame
+##make downregulated plot
+#remove NA from enriched downregulated data frame
 enriched.GO.05.down <- na.omit(enriched.GO.05.down)
 
-#filter out cellular component
-enriched.GO.05.down <- enriched.GO.05.down[- grep("Cellular Component", enriched.GO.05.down$ontology),]
+#select for 30 lowest p values for each group, first filter by ontology
+BP.filt.d <- enriched.GO.05.down %>% filter(ontology == "BP")
+
+CC.filt.d <- enriched.GO.05.down %>% filter(ontology == "CC")
+
+MF.filt.d <- enriched.GO.05.down %>% filter(ontology == "MF")
+
+#select only 30 lowest pvalues and rejoin 
+BP.filt2.d <- BP.filt.d %>% slice_min(order_by = over_represented_pvalue, n = 30)
+
+MF.filt2.d <- MF.filt.d %>% slice_min(order_by = over_represented_pvalue, n = 30)
+
+#rejoin dataframes
+
+enriched.down <- rbind(MF.filt2.d, BP.filt2.d, CC.filt.d)
+
 
 # rename ontology terms
-enriched.GO.05.down <- enriched.GO.05.down %>%
+enriched.down <- enriched.down %>%
     mutate(ontology = recode(ontology, BP = 'Biological Process', MF = 'Molecular Function', CC =  'Cellular Component' ))
 
+
 #make downreg plot
-downreg.DEG.plot <- enriched.GO.05.down  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>% 
-  mutate(ontology = factor(ontology, levels = c("Biological Process", "Molecular Function"))) %>% ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
+downreg.DEG.plot <- enriched.down  %>%  mutate(term = fct_reorder(term, -log10(over_represented_pvalue))) %>% 
+  mutate(ontology = factor(ontology, levels = c("Biological Process", "Molecular Function", "Cellular Component"))) %>% ggplot(aes(x=term, y=-log10(over_represented_pvalue))) +
                    geom_segment( aes(x=term ,xend=term, y=1, yend=-log10(over_represented_pvalue)), color="grey95", size = 3) +
                    geom_point(size=3, shape = 15, colour = "grey70") +
                    coord_flip() +
@@ -765,14 +658,14 @@ downreg.DEG.plot <- enriched.GO.05.down  %>%  mutate(term = fct_reorder(term, -l
                          plot.background=element_blank())  #Set the plot background #set title attributes
 
 
-ggsave("RAnalysis/Output/Final_Figures/Host/downreg.DEG.plot.pdf", downreg.DEG.plot , width = 12, height = 30, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/Host/downreg.DEG.plot.pdf", downreg.DEG.plot , width = 12, height = 20, units = c("in"))
 
 
 #use patchwork to combine figures and add labels
 Figure1 <- upreg.DEG.plot + downreg.DEG.plot + plot_annotation(tag_levels = 'A')
  
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/down.upreg.DEG.png"), plot=Figure1, dpi=300, width=18, height=28, units="in")
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/down.upreg.DEG.pdf"), plot=Figure1, dpi=300, width=18, height=28, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/down.upreg.DEG.png"), plot=Figure1, dpi=300, width=18, height=20, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/down.upreg.DEG.pdf"), plot=Figure1, dpi=300, width=18, height=20, units="in")
 
 ```
 
