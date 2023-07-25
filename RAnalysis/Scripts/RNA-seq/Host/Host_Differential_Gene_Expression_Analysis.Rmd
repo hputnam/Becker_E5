@@ -33,22 +33,27 @@ library("gridExtra")
 library("VennDiagram")
 library("here")
 library("plotrix")
+library("tibble")
 ```
 
 Import the data files 
 ```{r}
 #treatment information
 treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/metadata.RNAseq.csv", header = TRUE, sep = ",")
-rownames(treatmentinfo) <- treatmentinfo$sample_id
-str(treatmentinfo)
+
+treatmentinfo%>%
+  select(sample_id, block, fragment.ID, treatment, species_id)
+
 head(treatmentinfo)
 
 #gene count matrix
-gcount <- as.data.frame(read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/Poc_gene_count_matrix.csv"))
-gcount$gene_id <-  gsub("_gene_","_",gcount$gene_id)
-gcount$gene_id <-  gsub("_split_","_",gcount$gene_id)
-gcount$gene_id <-  gsub("-.*","",gcount$gene_id) #remove the extra g number after the dash
-row.names(gcount) <- gcount$gene_id
+gcount <- as.data.frame(read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/Poc_gene_count_matrix.csv", row.names="gene_id"), colClasses = double)
+
+#gcount$gene_id <-  gsub("_gene_","_",gcount$gene_id)
+#gcount$gene_id <-  gsub("_split_","_",gcount$gene_id)
+#gcount$gene_id <-  gsub("-.*","",gcount$gene_id) #remove the extra g number after the dash
+#row.names(gcount) <- gcount$gene_id
+
 dim(gcount)
 head(gcount)
 
@@ -91,11 +96,39 @@ head(gcount_filt)
 dim(gcount_filt)
 
 ```
+Display current order of metadata and gene count matrix.  
+```{r}
+treatmentinfo$sample_id
+colnames(gcount_filt)
+```
 
+These are not in the same order, re order them.  
+```{r}
+list<-colnames(gcount_filt)
+list<-as.factor(list)
+
+treatmentinfo$sample_id<-as.factor(treatmentinfo$sample_id)
+
+# Re-order the levels
+treatmentinfo$sample_id <- factor(as.character(treatmentinfo$sample_id), levels=list)
+
+# Re-order the data.frame
+treatmentinfo_ordered <- treatmentinfo[order(treatmentinfo$sample_id),]
+treatmentinfo_ordered$sample_id
+
+treatmentinfo_ordered<-treatmentinfo_ordered%>%
+  dplyr::select(sample_id, block, treatment)
+```
+
+Check the order now that it has been corrected. 
+```{r}
+treatmentinfo_ordered$sample_id
+colnames(gcount_filt)
+```
 
 ##Merge the treatment columns into a new column , group. Set group as a factor.
 ```{r}
-treatmentinfo$treatment <- factor(treatmentinfo$treatment, levels = c("control","enriched"))
+treatmentinfo_ordered$treatment <- factor(treatmentinfo_ordered$treatment, levels = c("control","enriched"))
 ```
 
 #Create a DESeqDataSet design from gene count matrix and labels. Here we set the design to look at treatment to test for any differences in gene expression across timepoints attributed to treatment.
@@ -103,7 +136,7 @@ treatmentinfo$treatment <- factor(treatmentinfo$treatment, levels = c("control",
 ```{r}
 #Set DESeq2 design
 gdds <- DESeqDataSetFromMatrix(countData = gcount_filt,
-                              colData = treatmentinfo,
+                              colData = treatmentinfo_ordered,
                               design = ~treatment)
 ```
 
@@ -125,7 +158,7 @@ Our size factors are all less than 4, so we can use VST!
 gvst <- vst(gdds, blind=FALSE) #apply a variance stabilizing transformation to minimize effects of small counts and normalize library size
 ```
 
-# Conduct PERMANOVA and PCA  
+# Conduct PERMANOVA and PCA on global expression and DEG
 
 Export data for PERMANOVA test.  
 ```{r}
@@ -133,18 +166,19 @@ test<-t(assay(gvst)) #export as matrix
 test<-as.data.frame(test)
 
 #add category columns
-test$sample_ID <-rownames(test)
-test$treatment <-treatmentinfo$treatment[match(test$sample_ID, treatmentinfo$sample_ID)]
+test$sample_id <- rownames(test)
+test$treatment <- treatmentinfo_ordered$treatment[match(test$sample_id, treatmentinfo_ordered$sample_id)]
 ```
 
 Build PERMANOVA model.  
 ```{r}
+#last column with treatment metadata test[19823] and test[19822], need to start at third to last column for the numberic error issue
 
-scaled_test <-prcomp(test[c(1:20326)], scale=TRUE, center=TRUE)
+scaled_test <-prcomp(test[c(1:19821)], scale=TRUE, center=TRUE)
 fviz_eig(scaled_test)
 
 # scale data
-vegan <- scale(test[c(1:20326)])
+vegan <- scale(test[c(1:19821)])
 
 # PerMANOVA 
 permanova<-adonis2(vegan ~ treatment, data = test, method='eu')
@@ -158,11 +192,13 @@ Terms added sequentially (first to last)
 Permutation: free
 Number of permutations: 999
 
-adonis2(formula = vegan ~ Treatment, data = test, method = "eu")
+adonis2(formula = vegan ~ treatment, data = test, method = "eu")
           Df SumOfSqs      R2      F Pr(>F)  
-Treatment  1    33129 0.05258 1.6648  0.023 *
-Residual  30   596977 0.94742                
-Total     31   630106 1.00000     
+treatment  1    32572 0.05301 1.6793  0.016 *
+Residual  30   581879 0.94699                
+Total     31   614451 1.00000                
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1  
 
 #### Heatmap of sample to sample distances
 ```{r}
@@ -199,10 +235,11 @@ ggplot(gPCAdata, aes(PC1, PC2, color=treatment)) +
         #panel.grid.major = element_blank(), #Set major gridlines
         #panel.grid.minor = element_blank(), #Set minor gridlines
         axis.line = element_line(colour = "black"), #Set axes color
-        plot.background=element_blank()) #Set the plot background
+        plot.background=element_blank()) + #Set the plot background +
+  stat_ellipse()
 
 ggsave(path = "RAnalysis/Output/Final_Figures/Host/", filename = "DEGSeq2_general_PCA_plot_host.pdf")
-
+ggsave(path = "RAnalysis/Output/Final_Figures/Host/", filename = "DEGSeq2_general_PCA_plot_host.png")
 ```
 
 ##### Run DE analysis for overall example 
@@ -315,6 +352,44 @@ ggsave(path = "RAnalysis/Output/Final_Figures/Host/", filename = "DEGSeq2_DEG_PC
 write.csv(counts(DEGSeq2_list), file="RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2_list_unique_host.csv")
 
 ```
+
+Export data for PERMANOVA test.  
+```{r}
+test1<-t(assay(DEGvst)) #export as matrix
+test1<-as.data.frame(test1)
+
+#add category columns
+test1$sample_id <- rownames(test1)
+test1$treatment <- treatmentinfo_ordered$treatment[match(test1$sample_id, treatmentinfo_ordered$sample_id)]
+```
+
+Build PERMANOVA model.  
+```{r}
+#last column with treatment metadata test[254] and test[253], need to start at third to last column for the numberic error issue
+
+scaled_test1 <-prcomp(test1[c(1:252)], scale=TRUE, center=TRUE)
+fviz_eig(scaled_test1)
+
+# scale data
+vegan <- scale(test1[c(1:252)])
+
+# PerMANOVA 
+permanova<-adonis2(vegan ~ treatment, data = test1, method='eu')
+permanova
+```
+
+Gene expression between DEGs also signiicant
+
+Permutation test for adonis under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 999
+
+adonis2(formula = vegan ~ treatment, data = test1, method = "eu")
+          Df SumOfSqs      R2      F Pr(>F)    
+treatment  1   1867.5 0.23905 9.4246  0.001 ***
+Residual  30   5944.5 0.76095                  
+Total     31   7812.0 1.00000  
 
 ## DEG summary info 
 ## Run to calculate the DEGs, and upregulated vs. downregulated genes

@@ -42,7 +42,9 @@ library(GSEABase)
 library(here)
 library(lme4)
 library(goseq)
+library(ggpubr)
 library(patchwork)
+library(rstatix)
 
 ```
 
@@ -300,6 +302,7 @@ write.csv(results.10x, "RAnalysis/Output/WGBS/meth.results.10x.csv")
 
 results.10x <- read.csv("RAnalysis/Output/WGBS/meth.results.10x.csv", row.names = 1)
 
+
 results.10x[is.na(results.10x)] <- 0
 results.10x$adj.pval.treatment <- p.adjust(results.10x$pval.treatment, method='BH') #BH is a less conservative Benjamini & Hochberg (1995) correction in which p-values are multiplied by the number of comparisons
 
@@ -332,18 +335,48 @@ ses.DMG <- aggregate(per.meth ~ treatment, data=subdf.DMG, FUN=std.error)
 means.DMG$ses <- ses.DMG$per.meth
 means.DMG$per.meth <- means.DMG$per.meth
 
-plot.DMG <- ggplot(means.DMG, aes(x=treatment, y=per.meth)) +
-  geom_bar(stat="identity", color="black",
-             position=position_dodge()) +
+# build the linear model to see if tretaments differ and check assumptions
+model  <- lm(per.meth ~ treatment, data = subdf.DMG)
+
+# Create a QQ plot of residuals
+ggqqplot(residuals(model))
+#not normal, use kruskall willis test
+
+# use Kruskal-Wallis test by rank which is a non-parametric alternative to one-way ANOVA test, which extends the two-samples Wilcoxon test in the situation where there are more than two groups. It’s recommended when the assumptions of one-way ANOVA test are not met.
+
+DMG.mod <- kruskal.test(per.meth ~ treatment, data = subdf.DMG)
+
+DMG.mod
+
+#results: Kruskal-Wallis chi-squared = 118.91, df = 1, p-value < 2.2e-16, significantly higher percent meth in DMGs in enriched treatment
+
+#make bar plot of means DMG
+plot.DMG <- ggplot(means.DMG, aes(x=treatment, y=per.meth, fill = treatment)) +
+  geom_bar(stat="identity",
+             position=position_dodge(), show.legend = FALSE) +
     geom_errorbar(aes(ymin=per.meth-ses, ymax=per.meth+ses), width=.2,
                   position=position_dodge(.9)) +
     xlab("Treatment") + #plot x axis label
     ylab("Percent Methylation in DMG") + #plot y axis label
-    #ylim(0,100)+ #set y limits to 0 and 100%
+    scale_fill_manual(values = c(control="black", enriched="cadetblue3")) +
+    scale_y_continuous(limits = c(0,12.5), expand = c(0, 0)) +
+    ggtitle("Kruskal-Wallis, p < 2.2e-16") +
     theme_bw()
+
+# #try the boxplot option here
+# plot.DMG <- ggboxplot(subdf.DMG, x = "treatment", y = "per.meth",
+#           color = "treatment")+
+#   scale_color_manual(values = c(control="black", enriched="cadetblue3")) +
+#   stat_compare_means(method = "kruskal.test") +
+#   xlab("Treatment") + #plot x axis label
+#     ylab("Percent Methylation in DMG") + #plot y axis label
+#   scale_y_continuous(limits = c(0,70), expand = c(0, 0)) +
+#   theme_bw()
 
 ggsave("RAnalysis/Output/WGBS/per.meth.10x.DMG.pdf", plot.DMG)
 ggsave("RAnalysis/Output/WGBS/per.meth.10x.DMG.png", plot.DMG)
+
+
 
 #Sanity check plotting of DMGs by treatment
 subdf.global <- MD.10x # %>%	
@@ -353,14 +386,15 @@ ses.global <- aggregate(per.meth ~ treatment, data=subdf.global, FUN=std.error)
 means.global$ses <- ses.global$per.meth
 means.global$per.meth <- means.global$per.meth
 
-plot.global <- ggplot(means.global, aes(x=treatment, y=per.meth)) +
-  geom_bar(stat="identity", color="black",
-             position=position_dodge()) +
+plot.global <- ggplot(means.global, aes(x=treatment, y=per.meth, fill = treatment)) +
+  geom_bar(stat="identity",
+             position=position_dodge(), show.legend = FALSE) +
     geom_errorbar(aes(ymin=per.meth-ses, ymax=per.meth+ses), width=.2,
                   position=position_dodge(.9)) +
     xlab("Treatment") + #plot x axis label
-    ylab("Global Percent Methylation") + #plot y axis label
-    #ylim(0,100)+ #set y limits to 0 and 100%
+    ylab("Percent Methylation in Global") + #plot y axis label
+    scale_fill_manual(values = c(control="black", enriched="cadetblue3")) +
+    scale_y_continuous(expand = expansion(mult = c(0, .1)))+
     theme_bw()
 
 ggsave("RAnalysis/Output/WGBS/per.meth.10x.global.pdf", plot.global)
@@ -372,7 +406,7 @@ deg <- read.csv("RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.results.host.csv"
 #make gene list for gene_id in deg dataframe
 gene_list<-c(deg$gene_id)
 
-#remove _gene_ in gene name
+#remove _gene_ in gene name from MD.10x
 MD.10x$gene <- gsub("_gene","", MD.10x$gene) #remove extra characters
 
 #looking at percent methylation in DEG
@@ -383,14 +417,15 @@ ses.dmg.deg <- aggregate(per.meth ~ treatment, data=subdf.dmg.deg, FUN=std.error
 means.dmg.deg$ses <- ses.dmg.deg$per.meth
 means.dmg.deg$per.meth <- means.dmg.deg$per.meth
 
-plot.dmg.deg <- ggplot(means.dmg.deg, aes(x=treatment, y=per.meth)) +
-  geom_bar(stat="identity", color="black",
-             position=position_dodge()) +
+plot.dmg.deg <- ggplot(means.dmg.deg, aes(x=treatment, y=per.meth, fill = treatment)) +
+  geom_bar(stat="identity",
+             position=position_dodge(), show.legend = FALSE) +
     geom_errorbar(aes(ymin=per.meth-ses, ymax=per.meth+ses), width=.2,
                   position=position_dodge(.9)) +
     xlab("Treatment") + #plot x axis label
     ylab("Percent Methylation in DEG") + #plot y axis label
-    #ylim(0,100)+ #set y limits to 0 and 100%
+    scale_fill_manual(values = c(control="black", enriched="cadetblue3")) +
+    scale_y_continuous(expand = expansion(mult = c(0, .1)))+
     theme_bw()
 
 ggsave("RAnalysis/Output/WGBS/per.meth.in.DEG.pdf", plot.dmg.deg)
