@@ -41,7 +41,7 @@ load('RAnalysis/Data/WGBS/methylkit/methyl.Rdata')
 
 ```{r}
 
-getMethylationStats(myobj[[15]],plot=FALSE,both.strands=FALSE)
+getMethylationStats(myobj[[12]],plot=FALSE,both.strands=FALSE)
 
 ```
 

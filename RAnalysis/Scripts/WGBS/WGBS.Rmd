@@ -90,30 +90,6 @@ Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
 GO.IDs <-unique(Gene.GO.IDs$GO.IDs) #removes duplicates from columns, compiles both lists to get all GO terms without duplicates
 ```
 
-
-#Load filtered methylation counts 5x (see RAnalysis>Data>WGBS for all files)
-```{r}
-# Converge final enrichment .bed files, separate by 5x and 10x coverage
-
-#Merge final .bed files at 5x coverage 
-meth.data.5x <- list.files(path = "RAnalysis/Data/WGBS/5x_coverage/", pattern = ".bed$", full.names=TRUE) %>%
-  purrr::set_names(.) %>% 
-  map_dfr(read.csv,.id="Sample.ID", header=FALSE, sep="\t", na.string="NA", stringsAsFactors = FALSE) %>% 
-  dplyr::select(-c(V3,V7:V14)) %>%
-  group_by(Sample.ID)
-colnames(meth.data.5x) <- c("Sample.ID", "scaffold", "position","per.meth","meth","unmeth","gene")
-meth.data.5x$gene <- gsub(";.*","",meth.data.5x$gene) #remove extra characters
-meth.data.5x$gene <- gsub("ID=","",meth.data.5x$gene) #remove extra characters
-meth.data.5x$Sample.ID <- gsub("RAnalysis/Data/WGBS/5x_coverage//","",meth.data.5x$Sample.ID) #remove extra characters
-meth.data.5x$Sample.ID <- gsub("_.*","",meth.data.5x$Sample.ID) #remove extra characters 
-#meth.data.5x$Sample.ID <- gsub("-","_",meth.data.5x$Sample.ID) #remove extra characters
-#meth.data.5x$Sample.ID <- gsub("/","",meth.data.5x$Sample.ID) #remove extra characters (backslash from sample.ID name)
-MD.5x <- merge(meth.data.5x, sample.info, by="Sample.ID") #combine sample info and 5x coverage megafile
-
-#save sample info and percent methylation
-write.csv(MD.5x, "RAnalysis/Output/WGBS/sample_all_methylated_data_5x.csv")
-```
-
 #Load filtered methylation counts 10x 
 ```{r}
 #Nyssa-stringr package, nice and clean so you can pipe and not have to rename, etc., use expression that does it all in one line regex 
@@ -136,119 +112,6 @@ MD.10x <- merge(meth.data.10x,sample.info, by="Sample.ID") #combine sample info 
 write.csv(MD.10x, "RAnalysis/Output/WGBS/sample_all_methylated_data_10x.csv")
 ```
 
-# Testing for Differentially Methylated Genes at 5X coverage
-```{r}
-# Comparison of enriched vs control nutrient treatments
-# At 5x coverage
-# Binomial GLM to test for differentially methylated genes
-sub_meth_table.5x  <- MD.5x
-sub_meth_table.5x$group <- paste0(sub_meth_table.5x$Sample.ID, sub_meth_table.5x$gene)
-
-#filter for genes with >5 methylated positions
-min.filt.5x <- count(sub_meth_table.5x, vars = c( group))
-newdata.5x <- min.filt.5x[ which(min.filt.5x$n > 4), ]
-sub_meth_table.5x <- sub_meth_table.5x[sub_meth_table.5x$group %in% newdata.5x$vars,]
-
-# create data frame to stored results
-results.5x <- data.frame()
-gs.5x <- unique(sub_meth_table.5x$gene)
-
-
-#first subset the unique dataframes and second run the GLMs
-#purr package function called map, much cleaner for for loops (how to loop over a model in the tidyverse, can have a tidy output for your anova) computational time is faster with purr and it is cleaner
-for(i in 1:length(sub_meth_table.5x$gene)){
-  
-  #subset the dataframe gene by gene
-  sub_meth_table.5x1 <- subset(sub_meth_table.5x, gene ==gs.5x[i])
-  
-  # fit glm position model
-  #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table. 
-  fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment, 
-             data=sub_meth_table.5x1, family=binomial)
-  a <- anova(fit, test="Chisq")
-  
-  # capture summary stats to data frame
-  df <- data.frame(gene = sub_meth_table.5x1[1,7],
-                   pval.treatment = a$`Pr(>Chi)`[2],
-                   #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
-                   #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
-                   stringsAsFactors = F)
-  
-  # bind rows of temporary data frame to the results data frame
-  results.5x <- rbind(results.5x, df)
-  
-}
-
-
-write.csv(results.5x, "RAnalysis/Output/WGBS/meth.results.5x.csv")
-
- # An error will be generated here for contrasts. 
-#This potential for contrasts (interactions) is included in the case one wants to examine the role of position of CpG within a gene
-#Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
-#Continuing the analysis from results line will generate the results in the absence of the contrast (interaction).
-
-results.5x <- read.csv("RAnalysis/Output/WGBS/meth.results.5x.csv", row.names = 1)
-
-results.5x[is.na(results.5x)] <- 0
-results.5x$adj.pval.treatment <- p.adjust(results.5x$pval.treatment, method='BH') #BH is a less conservative Benjamini & Hochberg (1995) correction in which p-values are multiplied by the number of comparisons
-
-#results$adj.pval.position <- p.adjust(results$pval.position, method='BH') #uncomment if you want to include position of CpG within a gene
-#result $adj.pval.treatment_x_position <- p.adjust(results$pval.treatment_x_position, method='BH') #uncomment if you want to include position of CpG within a gene interaction with treatment
-
-# Identifying DMG with significant main effect 
-DMG.sig.5x <-results.5x
-DMG.sig.5x <- DMG.sig.5x[order(DMG.sig.5x$adj.pval.treatment),]
-DMG.sig.5x <- DMG.sig.5x[which(DMG.sig.5x$adj.pval.treatment<0.05), ]
-sum(DMG.sig.5x$adj.pval.treatment < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
-
-#1019
-
-# Annotation of DMG under between treatments 
-DMG.sig.annot.5x <- left_join(DMG.sig.5x , Annot)
-write.table(DMG.sig.annot.5x, 'RAnalysis/Output/WGBS/Treatment_sig_annot.5x.tsv', sep='\t', row.names=FALSE)
-
-#Sanity check plotting of DMGs by treatment
-subdf <- MD.5x %>%	
-  filter(gene== DMG.sig.annot.5x$gene[1])
-means <- aggregate(per.meth ~ treatment, data=subdf, FUN=mean)
-ses <- aggregate(per.meth ~ treatment, data=subdf, FUN=std.error)
-means$ses <- ses$per.meth
-means$per.meth <- means$per.meth
-ggplot(means, aes(x=treatment, y=per.meth)) +
-  geom_bar(stat="identity", color="black",
-             position=position_dodge()) +
-    geom_errorbar(aes(ymin=per.meth-ses, ymax=per.meth+ses), width=.2,
-                  position=position_dodge(.9)) +
-    xlab("Treatment") + #plot x axis label
-    ylab("Percent Methylation") + #plot y axis label
-    #ylim(0,100)+ #set y limits to 0 and 100%
-    theme_bw()
-
-
-ggsave("RAnalysis/Output/WGBS/per.meth.5x.DMG.pdf")
-ggsave("RAnalysis/Output/WGBS/per.meth.5x.DMG.png")
-
-#Sanity check plotting of global DMG by treatment
-subdf <- MD.5x #%>%	
-  #filter(gene== DMG.sig.annot.5x$gene[1])
-means <- aggregate(per.meth ~ treatment, data=subdf, FUN=mean)
-ses <- aggregate(per.meth ~ treatment, data=subdf, FUN=std.error)
-means$ses <- ses$per.meth
-means$per.meth <- means$per.meth
-ggplot(means, aes(x=treatment, y=per.meth)) +
-  geom_bar(stat="identity", color="black",
-             position=position_dodge()) +
-    geom_errorbar(aes(ymin=per.meth-ses, ymax=per.meth+ses), width=.2,
-                  position=position_dodge(.9)) +
-    xlab("Treatment") + #plot x axis label
-    ylab("Percent Methylation") + #plot y axis label
-    ylim(0,3.5)+ #set y limits to 0 and 100%
-    theme_bw()
-
-ggsave("RAnalysis/Output/WGBS/per.meth.5x.global.pdf")
-ggsave("RAnalysis/Output/WGBS/per.meth.5x.global.png")
-
-```
 
 # Testing for Differentially Methylated Genes at 10X coverage
 ```{r}
@@ -404,10 +267,10 @@ ggsave("RAnalysis/Output/WGBS/per.meth.10x.global.png", plot.global)
 deg <- read.csv("RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.results.host.csv")
 
 #make gene list for gene_id in deg dataframe
-gene_list<-c(deg$gene_id)
+gene_list <-c(deg$gene_id)
 
 #remove _gene_ in gene name from MD.10x
-MD.10x$gene <- gsub("_gene","", MD.10x$gene) #remove extra characters
+#MD.10x$gene <- gsub("_gene","", MD.10x$gene) #remove extra characters
 
 #looking at percent methylation in DEG
 subdf.dmg.deg <- MD.10x %>%	
@@ -426,15 +289,72 @@ plot.dmg.deg <- ggplot(means.dmg.deg, aes(x=treatment, y=per.meth, fill = treatm
     ylab("Percent Methylation in DEG") + #plot y axis label
     scale_fill_manual(values = c(control="black", enriched="cadetblue3")) +
     scale_y_continuous(expand = expansion(mult = c(0, .1)))+
+    ggtitle("Kruskal-Wallis, p = 0.04") +
     theme_bw()
 
 ggsave("RAnalysis/Output/WGBS/per.meth.in.DEG.pdf", plot.dmg.deg)
 ggsave("RAnalysis/Output/WGBS/per.meth.in.DEG.png", plot.dmg.deg)
 
+
+# build the linear model to see if tretaments differ and check assumptions
+model  <- lm(per.meth ~ treatment, data = subdf.dmg.deg)
+
+# Create a QQ plot of residuals
+ggqqplot(residuals(model))
+#not normal, use kruskall willis test
+
+# use Kruskal-Wallis test by rank which is a non-parametric alternative to one-way ANOVA test, which extends the two-samples Wilcoxon test in the situation where there are more than two groups. It’s recommended when the assumptions of one-way ANOVA test are not met.
+
+dmg.deg.mod <- kruskal.test(per.meth ~ treatment, data = subdf.dmg.deg)
+
+dmg.deg.mod
+
+
 ```
+
+
+# Conduct PERMANOVA and PCA on global methylation and DMG
+
 
 #### Principal component plot of samples global DMG
 ```{r}
+library("factoextra")
+
+
+decathlon2.active <- subdf.DMG[1:2813, 4:9]
+
+res.pca <- prcomp(decathlon2.active, scale = TRUE)
+
+fviz_eig(res.pca)
+
+
+gPCAdata <- plotPCA(gvst, intgroup = c("treatment"), returnData=TRUE)
+percentVar <- round(100*attr(gPCAdata, "percentVar")) #plot PCA of samples with all data
+ggplot(gPCAdata, aes(PC1, PC2, color=treatment)) + 
+  geom_point(size=3) +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) +
+  scale_color_manual(values = c(control="black", enriched="cadetblue3")) +
+  coord_fixed() +
+  theme_bw() + #Set background color
+  theme(panel.border = element_blank(), # Set border
+        #panel.grid.major = element_blank(), #Set major gridlines
+        #panel.grid.minor = element_blank(), #Set minor gridlines
+        axis.line = element_line(colour = "black"), #Set axes color
+        plot.background=element_blank()) + #Set the plot background +
+  stat_ellipse()
+
+ggsave(path = "RAnalysis/Output/Final_Figures/Host/", filename = "DMG_general_PCA_plot_host.pdf")
+
+```
+
+
+
+#### Principal component plot of samples sig DMG
+```{r}
+
+subdf.DMG
+
 gPCAdata <- plotPCA(MD.10x, intgroup = c("treatment"), returnData=TRUE)
 percentVar <- round(100*attr(gPCAdata, "percentVar")) #plot PCA of samples with all data
 ggplot(gPCAdata, aes(PC1, PC2, color=treatment)) + 
@@ -646,192 +566,192 @@ write.csv(GO.enrichment.summary.10x, 'RAnalysis/Output/WGBS/GO.enrichment.summar
 
 ######
 
-## 5x GO enrichment
-```{r}
-# GO Enrichment Analysis of Treatment for 5x data
-##### GO enrichment of DMGs #####
+<!-- ## 5x GO enrichment -->
+<!-- ```{r} -->
+<!-- # GO Enrichment Analysis of Treatment for 5x data -->
+<!-- ##### GO enrichment of DMGs ##### -->
 
-DMG.trt <- as.character(DMG.sig.5x$gene) #set the enrichment test list
+<!-- DMG.trt <- as.character(DMG.sig.5x$gene) #set the enrichment test list -->
 
-#change to vectors
-ALL.vector <-c(t(Genes$gene))
-DMG.vector <-c(t(DMG.trt))
-ID.vector <- Genes$gene
-LENGTH.vector <-Genes$length
+<!-- #change to vectors -->
+<!-- ALL.vector <-c(t(Genes$gene)) -->
+<!-- DMG.vector <-c(t(DMG.trt)) -->
+<!-- ID.vector <- Genes$gene -->
+<!-- LENGTH.vector <-Genes$length -->
 
-#DMG.trt.vector <-c(t(DMG.trt)) #change to vectors
-gene.vector=as.integer(ALL.vector%in%DMG.vector) #Construct new vector with 1 for DEG and 0 for others
-names(gene.vector)=ALL.vector #set names
-DMG.pwf<-nullp(gene.vector, ID.vector, bias.data=LENGTH.vector) #weight vector by length of gene
+<!-- #DMG.trt.vector <-c(t(DMG.trt)) #change to vectors -->
+<!-- gene.vector=as.integer(ALL.vector%in%DMG.vector) #Construct new vector with 1 for DEG and 0 for others -->
+<!-- names(gene.vector)=ALL.vector #set names -->
+<!-- DMG.pwf<-nullp(gene.vector, ID.vector, bias.data=LENGTH.vector) #weight vector by length of gene -->
 
-#Find enriched GO terms, 
-GO.wall<-goseq(DMG.pwf, ID.vector, gene2cat=Gene.GO.IDs, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
+<!-- #Find enriched GO terms,  -->
+<!-- GO.wall<-goseq(DMG.pwf, ID.vector, gene2cat=Gene.GO.IDs, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE) -->
 
-GO.sig.trt <- GO.wall %>%
-  filter(over_represented_pvalue <0.05) %>%
-  arrange(., ontology)
-write.csv(GO.sig.trt , file = "RAnalysis/Output/WGBS/GO.sig.trt.5x.csv")
+<!-- GO.sig.trt <- GO.wall %>% -->
+<!--   filter(over_represented_pvalue <0.05) %>% -->
+<!--   arrange(., ontology) -->
+<!-- write.csv(GO.sig.trt , file = "RAnalysis/Output/WGBS/GO.sig.trt.5x.csv") -->
 
-#GO.sig.trt$term <- as.factor(GO.sig.trt$term)
-GO.sig.trt[is.na(GO.sig.trt)] <- "UN"
+<!-- #GO.sig.trt$term <- as.factor(GO.sig.trt$term) -->
+<!-- GO.sig.trt[is.na(GO.sig.trt)] <- "UN" -->
 
-nrow(GO.sig.trt) #261
-nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms (164)
-nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms (67)
-nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms (28)
+<!-- nrow(GO.sig.trt) #261 -->
+<!-- nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms (164) -->
+<!-- nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms (67) -->
+<!-- nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms (28) -->
 
-#check any missing GO terms manually and add as needed
-which(GO.sig.trt$ontology=="UN")
+<!-- #check any missing GO terms manually and add as needed -->
+<!-- which(GO.sig.trt$ontology=="UN") -->
 
-GO.sig.trt[260,6] <- "obsolete nucleotide phosphatase activity, acting on free nucleotides"
-GO.sig.trt[260,7] <- "MF"
+<!-- GO.sig.trt[260,6] <- "obsolete nucleotide phosphatase activity, acting on free nucleotides" -->
+<!-- GO.sig.trt[260,7] <- "MF" -->
 
-GO.sig.trt[261,6] <- "obsolete C-terminal protein-tyrosinylation"
-GO.sig.trt[261,7] <- "BP"
+<!-- GO.sig.trt[261,6] <- "obsolete C-terminal protein-tyrosinylation" -->
+<!-- GO.sig.trt[261,7] <- "BP" -->
 
-```
+<!-- ``` -->
 
-## Find GOslim terms
-## This is where you put GO terms to larger umbrella terms
+<!-- ## Find GOslim terms -->
+<!-- ## This is where you put GO terms to larger umbrella terms -->
 
-# Run GOslim to get broader categories
-```{r}
-#load in generic GO database, has all of the upperlevel categories for GO terms. Ex: regulation of cell division would be under cellular regulation
-slim <- getOBOCollection("http://current.geneontology.org/ontology/subsets/goslim_generic.obo") #get GO database
+<!-- # Run GOslim to get broader categories -->
+<!-- ```{r} -->
+<!-- #load in generic GO database, has all of the upperlevel categories for GO terms. Ex: regulation of cell division would be under cellular regulation -->
+<!-- slim <- getOBOCollection("http://current.geneontology.org/ontology/subsets/goslim_generic.obo") #get GO database -->
 
-## filtering all of BP (do MF and CC seperately)
-BP_GO <- GO.sig.trt %>%
-  filter(ontology=="BP")
-BPGO_collection <- GOCollection(BP_GO$category) #Make library of query terms
-slims_bp <- data.frame(goSlim(BPGO_collection, slim, "BP")) #Find common parent terms to slim down our list
-slims_bp$category <- row.names(slims_bp) #save rownames as category
+<!-- ## filtering all of BP (do MF and CC seperately) -->
+<!-- BP_GO <- GO.sig.trt %>% -->
+<!--   filter(ontology=="BP") -->
+<!-- BPGO_collection <- GOCollection(BP_GO$category) #Make library of query terms -->
+<!-- slims_bp <- data.frame(goSlim(BPGO_collection, slim, "BP")) #Find common parent terms to slim down our list -->
+<!-- slims_bp$category <- row.names(slims_bp) #save rownames as category -->
 
-## filtering all of MF
-MF_GO <- GO.sig.trt %>%
-  filter(ontology=="MF")
-MFGO_collection <- GOCollection(MF_GO$category) #Make library of query terms
-slims_mf <- data.frame(goSlim(MFGO_collection, slim, "MF")) #Find common parent terms to slim down our list
-slims_mf$category <- row.names(slims_mf) #save rownames as category
+<!-- ## filtering all of MF -->
+<!-- MF_GO <- GO.sig.trt %>% -->
+<!--   filter(ontology=="MF") -->
+<!-- MFGO_collection <- GOCollection(MF_GO$category) #Make library of query terms -->
+<!-- slims_mf <- data.frame(goSlim(MFGO_collection, slim, "MF")) #Find common parent terms to slim down our list -->
+<!-- slims_mf$category <- row.names(slims_mf) #save rownames as category -->
 
-## filtering all of CC
-CC_GO <- GO.sig.trt %>%
-  filter(ontology=="CC")
-CCGO_collection <- GOCollection(CC_GO$category) #Make library of query terms
-slims_cc <- data.frame(goSlim(CCGO_collection, slim, "CC")) #Find common parent terms to slim down our list
-slims_cc$category <- row.names(slims_cc) #save rownames as category
-```
+<!-- ## filtering all of CC -->
+<!-- CC_GO <- GO.sig.trt %>% -->
+<!--   filter(ontology=="CC") -->
+<!-- CCGO_collection <- GOCollection(CC_GO$category) #Make library of query terms -->
+<!-- slims_cc <- data.frame(goSlim(CCGO_collection, slim, "CC")) #Find common parent terms to slim down our list -->
+<!-- slims_cc$category <- row.names(slims_cc) #save rownames as category -->
+<!-- ``` -->
 
-# Get mapped terms, using functions from Sam White's Biostars [post](https://support.bioconductor.org/p/128407/#128409).
-```{r}
-#custom function from Sam White's, gets mapped ids for all of your query terms 
-#Write function mappedIds to get the query terms that mapped to the slim categories
-mappedIds <-
-  function(df, collection, OFFSPRING) #the command to run requires a dataframe of slim terms, like slims_MF above, your list of query terms, and the offspring from the GOCollection by goSlim
-  {
-    map <- as.list(OFFSPRING[rownames(df)]) # Subset GOcollection offspring by the rownames of your dataframe
-    mapped <- lapply(map, intersect, ids(collection)) #Find the terms that intersect between the subset made above of your query terms and the GOids from the GO collection
-    df[["go_terms"]] <- vapply(unname(mapped), paste, collapse = ";", character(1L)) #Add column "go_terms" with matching terms 
-    df #show resulting dataframe
-  }
-#Run function for MF and BP terms
-BPslim <- mappedIds(slims_bp, BPGO_collection, GOBPOFFSPRING)
-MFslim <- mappedIds(slims_mf, MFGO_collection, GOMFOFFSPRING)
-CCslim <- mappedIds(slims_cc, CCGO_collection, GOCCOFFSPRING)
-```
+<!-- # Get mapped terms, using functions from Sam White's Biostars [post](https://support.bioconductor.org/p/128407/#128409). -->
+<!-- ```{r} -->
+<!-- #custom function from Sam White's, gets mapped ids for all of your query terms  -->
+<!-- #Write function mappedIds to get the query terms that mapped to the slim categories -->
+<!-- mappedIds <- -->
+<!--   function(df, collection, OFFSPRING) #the command to run requires a dataframe of slim terms, like slims_MF above, your list of query terms, and the offspring from the GOCollection by goSlim -->
+<!--   { -->
+<!--     map <- as.list(OFFSPRING[rownames(df)]) # Subset GOcollection offspring by the rownames of your dataframe -->
+<!--     mapped <- lapply(map, intersect, ids(collection)) #Find the terms that intersect between the subset made above of your query terms and the GOids from the GO collection -->
+<!--     df[["go_terms"]] <- vapply(unname(mapped), paste, collapse = ";", character(1L)) #Add column "go_terms" with matching terms  -->
+<!--     df #show resulting dataframe -->
+<!--   } -->
+<!-- #Run function for MF and BP terms -->
+<!-- BPslim <- mappedIds(slims_bp, BPGO_collection, GOBPOFFSPRING) -->
+<!-- MFslim <- mappedIds(slims_mf, MFGO_collection, GOMFOFFSPRING) -->
+<!-- CCslim <- mappedIds(slims_cc, CCGO_collection, GOCCOFFSPRING) -->
+<!-- ``` -->
 
-# Remove duplicate matches, keeping the broader umbrella term
-```{r}
-#filtering out duplicates, keep the largest branch that has the most GO terms
+<!-- # Remove duplicate matches, keeping the broader umbrella term -->
+<!-- ```{r} -->
+<!-- #filtering out duplicates, keep the largest branch that has the most GO terms -->
 
-#BP
-BPslim <- filter(BPslim, Count>0 & Term!="biological_process") #filter out empty slims and term "biological process"
-BPsplitted <- strsplit(as.character(BPslim$go_terms), ";") #split into multiple GO ids
-BPslimX <- data.frame(Term = rep.int(BPslim$Term, sapply(BPsplitted, length)), go_term = unlist(BPsplitted)) #list all
-BPslimX <- merge(BPslimX, BPslim[,c(1,3:4)], by="Term") #Add back counts, term, and category info
-BPslimX <- unique(setDT(BPslimX)[order(go_term, -Count)], by = "go_term") #remove duplicate offspring terms, keeping only those that appear in the larger umbrella term (larger Count number)
-BPslim <- data.frame(slim_term=BPslimX$Term, slim_cat=BPslimX$category, category=BPslimX$go_term) #rename columns
-head(BPslim)
+<!-- #BP -->
+<!-- BPslim <- filter(BPslim, Count>0 & Term!="biological_process") #filter out empty slims and term "biological process" -->
+<!-- BPsplitted <- strsplit(as.character(BPslim$go_terms), ";") #split into multiple GO ids -->
+<!-- BPslimX <- data.frame(Term = rep.int(BPslim$Term, sapply(BPsplitted, length)), go_term = unlist(BPsplitted)) #list all -->
+<!-- BPslimX <- merge(BPslimX, BPslim[,c(1,3:4)], by="Term") #Add back counts, term, and category info -->
+<!-- BPslimX <- unique(setDT(BPslimX)[order(go_term, -Count)], by = "go_term") #remove duplicate offspring terms, keeping only those that appear in the larger umbrella term (larger Count number) -->
+<!-- BPslim <- data.frame(slim_term=BPslimX$Term, slim_cat=BPslimX$category, category=BPslimX$go_term) #rename columns -->
+<!-- head(BPslim) -->
 
-#MF
-MFslim <- filter(MFslim, Count>0 & Term!="molecular_function") #filter out empty slims and term "molecular function"
-MFsplitted <- strsplit(as.character(MFslim$go_terms), ";") #split into multiple GO ids
-MFslimX <- data.frame(Term = rep.int(MFslim$Term, sapply(MFsplitted, length)), go_term = unlist(MFsplitted)) #list all
-MFslimX <- merge(MFslimX, MFslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
-MFslimX <- unique(setDT(MFslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
-MFslim <- data.frame(slim_term=MFslimX$Term, slim_cat=MFslimX$category, category=MFslimX$go_term) #rename columns
-head(MFslim)
+<!-- #MF -->
+<!-- MFslim <- filter(MFslim, Count>0 & Term!="molecular_function") #filter out empty slims and term "molecular function" -->
+<!-- MFsplitted <- strsplit(as.character(MFslim$go_terms), ";") #split into multiple GO ids -->
+<!-- MFslimX <- data.frame(Term = rep.int(MFslim$Term, sapply(MFsplitted, length)), go_term = unlist(MFsplitted)) #list all -->
+<!-- MFslimX <- merge(MFslimX, MFslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info -->
+<!-- MFslimX <- unique(setDT(MFslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only -->
+<!-- MFslim <- data.frame(slim_term=MFslimX$Term, slim_cat=MFslimX$category, category=MFslimX$go_term) #rename columns -->
+<!-- head(MFslim) -->
 
-#CC
-CCslim <- filter(CCslim, Count>0 & Term!="cellular_component") #filter out empty slims and term "molecular function"
-CCsplitted <- strsplit(as.character(CCslim$go_terms), ";") #split into multiple GO ids
-CCslimX <- data.frame(Term = rep.int(CCslim$Term, sapply(CCsplitted, length)), go_term = unlist(CCsplitted)) #list all
-CCslimX <- merge(CCslimX, CCslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info
-CCslimX <- unique(setDT(CCslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only
-CCslim <- data.frame(slim_term=CCslimX$Term, slim_cat=CCslimX$category, category=CCslimX$go_term) #rename columns
-head(CCslim)
+<!-- #CC -->
+<!-- CCslim <- filter(CCslim, Count>0 & Term!="cellular_component") #filter out empty slims and term "molecular function" -->
+<!-- CCsplitted <- strsplit(as.character(CCslim$go_terms), ";") #split into multiple GO ids -->
+<!-- CCslimX <- data.frame(Term = rep.int(CCslim$Term, sapply(CCsplitted, length)), go_term = unlist(CCsplitted)) #list all -->
+<!-- CCslimX <- merge(CCslimX, CCslim[,c(1,3:4)], by="Term")  #Add back counts, term, and category info -->
+<!-- CCslimX <- unique(setDT(CCslimX)[order(go_term, -Count)], by = "go_term")  #remove duplicate offspring terms, keeping only -->
+<!-- CCslim <- data.frame(slim_term=CCslimX$Term, slim_cat=CCslimX$category, category=CCslimX$go_term) #rename columns -->
+<!-- head(CCslim) -->
 
-```
+<!-- ``` -->
 
-# Save slim info with GO enrichment info for heatmap dataframes.
-```{r}
-GO.BP <- right_join(BPslim, filter(GO.sig.trt, ontology=="BP"), by="category") #add back GO enrichment info for each offspring term
-GO.MF <- right_join(MFslim, filter(GO.sig.trt, ontology=="MF"), by="category") #add back GO enrichment info for each offspring term
-GO.CC <- right_join(CCslim, filter(GO.sig.trt, ontology=="CC"), by="category") #add back GO enrichment info for each offspring term
-```
+<!-- # Save slim info with GO enrichment info for heatmap dataframes. -->
+<!-- ```{r} -->
+<!-- GO.BP <- right_join(BPslim, filter(GO.sig.trt, ontology=="BP"), by="category") #add back GO enrichment info for each offspring term -->
+<!-- GO.MF <- right_join(MFslim, filter(GO.sig.trt, ontology=="MF"), by="category") #add back GO enrichment info for each offspring term -->
+<!-- GO.CC <- right_join(CCslim, filter(GO.sig.trt, ontology=="CC"), by="category") #add back GO enrichment info for each offspring term -->
+<!-- ``` -->
 
 
-## Make heatmap
-```{r}
-BPplot <- GO.BP %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
-    ggplot(aes(x = ontology, y = term)) + 
-    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
-      scale_y_discrete(position = "right") +
-      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
-      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
-      strip.text.x = element_text(size = 12, face = "bold"),
-      axis.title = element_blank(),
-      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =     
-      element_text(size = 11))
-MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>% 
-    ggplot(aes(x = ontology, y = term)) + 
-    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
-      scale_y_discrete(position = "right") +
-      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
-      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-      strip.text.y.left = element_text(angle=0, size = 11, face = "bold"),
-      strip.text.x = element_text(size = 12, face = "bold"),
-      axis.title = element_blank(),
-      axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =
-      element_text(size = 11))
-fig5 <- BPplot + MFplot
-ggsave("RAnalysis/Output/WGBS/DMG_heatmap_GO_terms.5x.pdf", fig5, width = 20, height = 20, units = c("in"))
+<!-- ## Make heatmap -->
+<!-- ```{r} -->
+<!-- BPplot <- GO.BP %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>% -->
+<!--     ggplot(aes(x = ontology, y = term)) +  -->
+<!--     geom_tile(aes(fill=over_represented_pvalue, width = 1)) +  -->
+<!--       scale_y_discrete(position = "right") + -->
+<!--       facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+ -->
+<!--       theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), -->
+<!--       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), -->
+<!--       strip.text.y.left = element_text(angle=0, size = 11, face = "bold"), -->
+<!--       strip.text.x = element_text(size = 12, face = "bold"), -->
+<!--       axis.title = element_blank(), -->
+<!--       axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text =      -->
+<!--       element_text(size = 11)) -->
+<!-- MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%  -->
+<!--     ggplot(aes(x = ontology, y = term)) +  -->
+<!--     geom_tile(aes(fill=over_represented_pvalue, width = 1)) +  -->
+<!--       scale_y_discrete(position = "right") + -->
+<!--       facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+ -->
+<!--       theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), -->
+<!--       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), -->
+<!--       strip.text.y.left = element_text(angle=0, size = 11, face = "bold"), -->
+<!--       strip.text.x = element_text(size = 12, face = "bold"), -->
+<!--       axis.title = element_blank(), -->
+<!--       axis.text = element_text(size = 12), legend.title = element_text(size = 12), legend.text = -->
+<!--       element_text(size = 11)) -->
+<!-- fig5 <- BPplot + MFplot -->
+<!-- ggsave("RAnalysis/Output/WGBS/DMG_heatmap_GO_terms.5x.pdf", fig5, width = 20, height = 20, units = c("in")) -->
 
-```
+<!-- ``` -->
 
-## Make supplemental table summarizing GO enrichment
-```{r}
-GO.enrichment.summary.5x <- bind_rows(GO.BP, GO.MF, GO.CC)
+<!-- ## Make supplemental table summarizing GO enrichment -->
+<!-- ```{r} -->
+<!-- GO.enrichment.summary.5x <- bind_rows(GO.BP, GO.MF, GO.CC) -->
 
-#add gene_IDs. To get gene_IDs we will merge with the GO.terms DF.
-GOgenes <- data.frame(gene_id=Gene.GO.IDs$gene, category=Gene.GO.IDs$GO.IDs) 
-GOgenes$gene_id <- as.character(GOgenes$gene_id) #make gene ID a character so we can collapse our many near-identical columns
+<!-- #add gene_IDs. To get gene_IDs we will merge with the GO.terms DF. -->
+<!-- GOgenes <- data.frame(gene_id=Gene.GO.IDs$gene, category=Gene.GO.IDs$GO.IDs)  -->
+<!-- GOgenes$gene_id <- as.character(GOgenes$gene_id) #make gene ID a character so we can collapse our many near-identical columns -->
 
-GO.enrichment.summary.5x  <- left_join(GO.enrichment.summary.5x, GOgenes, by="category" ) #join the DFs
+<!-- GO.enrichment.summary.5x  <- left_join(GO.enrichment.summary.5x, GOgenes, by="category" ) #join the DFs -->
 
-#adjust p-values 
-GO.enrichment.summary.5x$bh_adjust <-  p.adjust(GO.enrichment.summary.5x$over_represented_pvalue, method="BH")
+<!-- #adjust p-values  -->
+<!-- GO.enrichment.summary.5x$bh_adjust <-  p.adjust(GO.enrichment.summary.5x$over_represented_pvalue, method="BH") -->
 
-GO.enrichment.summary.5x <- GO.enrichment.summary.5x %>% #collapse and have gene IDs for a particular term in a single row as a comma-sep list. 
-  group_by(slim_term, slim_cat, category, over_represented_pvalue, under_represented_pvalue, numDEInCat, numInCat, term, ontology, bh_adjust) %>%
-  summarise(genes = toString(gene_id)) %>% #rename collapsed gene_ID column "gene"
-  ungroup()
+<!-- GO.enrichment.summary.5x <- GO.enrichment.summary.5x %>% #collapse and have gene IDs for a particular term in a single row as a comma-sep list.  -->
+<!--   group_by(slim_term, slim_cat, category, over_represented_pvalue, under_represented_pvalue, numDEInCat, numInCat, term, ontology, bh_adjust) %>% -->
+<!--   summarise(genes = toString(gene_id)) %>% #rename collapsed gene_ID column "gene" -->
+<!--   ungroup() -->
 
-head(GO.enrichment.summary.5x)
-write.csv(GO.enrichment.summary.5x, 'RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.5x.csv') 
-```
+<!-- head(GO.enrichment.summary.5x) -->
+<!-- write.csv(GO.enrichment.summary.5x, 'RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.5x.csv')  -->
+<!-- ``` -->
 
 
 
