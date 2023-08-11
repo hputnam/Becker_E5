@@ -66,14 +66,14 @@ Load metadata
 ```{r}
 #### Data ####
 # Read in metadata
-meta.data <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header=T, sep=",", na.string="NA", stringsAsFactors = F) #read in info
+meta.data <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/metadata.RNAseq.csv", header=T, sep=",", na.string="NA", stringsAsFactors = F) #read in info
 colnames(meta.data) <- c("colonyID","treatment","block","Sample_ID")
 ID <- meta.data$Sample_ID
 ```
 
 Processing expression data
 ```{r}
-counts <- read.csv("RAnalysis/Data/RNA-seq/Host/Poc_gene_count_matrix.csv", header = TRUE, row.names = 1) #read in genes count matrix
+counts <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/Poc_gene_count_matrix.csv", header = TRUE, row.names = 1) #read in genes count matrix
 colnames(counts) <- str_sub(colnames(counts), 1, 3) #remove everything after the first _ to just have the sample names
 # Order columns by sample name
 colnames(counts) <- c("C17","C18","C19","C20","C21","C22","C23","C24","C25","C26","C27","C28","C29","C30","C31","C32","E10","E11","E12","E13","E14","E15","E16","E1","E2","E3", "E4", "E5", "E6", "E7", "E8", "E9")
