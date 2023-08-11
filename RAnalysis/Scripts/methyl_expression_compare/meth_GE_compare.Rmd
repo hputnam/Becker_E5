@@ -3,6 +3,8 @@ title: "METH_GE_COMPARE"
 author: "Danielle M. Becker"
 date: "20220720"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 #### Gene Expression and DNA Methylation comparison ####
@@ -19,6 +21,7 @@ library(edgeR)
 library(factoextra)
 library(cowplot)
 library(wesanderson)
+library(ggpmisc)
 library(viridis)
 library(adegenet)
 library(ggplot2)
@@ -123,6 +126,8 @@ meth.test <- data_frame(meth)
 
 ## Create a summary of methylation for each gene ##
 mean_meth <- rowMeans(meth)
+
+meta.data <- na.omit(meta.data)
 
 # create list for sample IDs from metadata and select from that list with filtering, pipe, row means
 list_E <- filter(meta.data, treatment == "enriched") #filter only enriched data from metadata
@@ -266,8 +271,7 @@ df$log_gene <- log(df$gene_mean_express+1)
 df$per_meth <- df$mean_meth * 100
 
 #plot of global express x meth
-
-meth.express.compare <- ggplot(df,aes(x=per_meth, y=log_gene,)) + 
+meth.express.compare <- ggplot(df, aes(x=per_meth, y=log_gene,)) + 
     geom_point() + ylim(0,2) + 
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
@@ -275,9 +279,7 @@ meth.express.compare <- ggplot(df,aes(x=per_meth, y=log_gene,)) +
   stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
     theme_cowplot();meth.express.compare
 
-
 ### Figure Mean Methylation vs Gene Expression###
-
 ggsave(meth.express.compare, filename="RAnalysis/Output/Final_Figures/Host/global_ME_meth_correlation.png", height = 7, width = 10)
 
 ```
@@ -333,6 +335,55 @@ meth_meanexpress
 ggsave(meth_meanexpress, filename="RAnalysis/Output/Final_Figures/Host/treatments_ME_meth_correlation.png", height = 7, width = 15)
 
 ```
+
+#ANCOVA for mean expression and %meth for both treatments
+```{r}
+#make ancova dataframe
+#first have to change data frames from long to wide, need to separate per.meth in one column and log_gene in one column and treatments into another
+per.meth.C <- df %>% select(gene_id, per_meth_C) 
+per.meth.C$treatment <- "control" #make column with treatment
+names(per.meth.C)[2] ="per_meth" #rename per.meth.c to per.meth 
+
+per.meth.E <- df %>% select(gene_id, per_meth_E) 
+per.meth.E$treatment <- "enriched"
+names(per.meth.E)[2] ="per_meth"
+
+log.gene.C <- df %>% select(gene_id, log_gene_C) 
+log.gene.C$treatment <- "control"
+names(log.gene.C)[2] ="log_gene"
+
+log.gene.E <- df %>% select(gene_id, log_gene_E) 
+log.gene.E$treatment <- "enriched"
+names(log.gene.E)[2] ="log_gene"
+
+#rbind enriched and control data frames for per.meth and log.gene 
+per.meth <- rbind(per.meth.C, per.meth.E)
+log.gene <- rbind(log.gene.C, log.gene.E)
+
+#combine treatment separated and per.meth and log.gene dataframes for ancova 
+ancova <- left_join(per.meth, log.gene)
+
+```
+
+#Make multiple regression and analysis
+
+```{r}
+#make multiple regression plot with two lies for treatments
+mult.reg <- ggplot(ancova, aes(x=per_meth, y=log_gene, color = treatment)) + 
+      geom_point(color = "black") + geom_smooth(method="lm",se = FALSE) + 
+      labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+      stat_poly_line() +
+      stat_poly_eq(use_label(c("eq", "R2")), label.x = "right", label.y = "bottom", rr.digits = 3, size = 5) +
+      theme_cowplot();mult.reg
+
+ggsave(mult.reg, filename="RAnalysis/Output/Final_Figures/Host/mult.reg.correlation.png", height = 10, width = 15)
+ggsave(mult.reg, filename="RAnalysis/Output/Final_Figures/Host/mult.reg.correlation.pdf", height = 10, width = 15)
+
+```
+
+
+
+
 
 ```{r}
 ## Mean Methylation vs Gene Expression following Javi et al
