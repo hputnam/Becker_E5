@@ -204,13 +204,13 @@ subset_express_C <- expression[, colnames(expression)%in%list_C] #subset data fr
 
 mean_express_C <- rowMeans(subset_express_C) #take mean per gene ID
 
-# Coefficient of Variation for enriched gene expression
-sd_express_E <- rowSds(subset_express_E)
-cv_express_E <- sd_express_E/mean_express_E
-
 # Coefficient of Variation for control gene expression
 sd_express_C <- rowSds(subset_express_C)
 cv_express_C <- sd_express_C/mean_express_C
+
+# Coefficient of Variation for enriched gene expression
+sd_express_E <- rowSds(subset_express_E)
+cv_express_E <- sd_express_E/mean_express_E
 
 # Coefficient of Variation among treatments
 meanAmongTrt_express <- cbind(mean_express_E,mean_express_C)
@@ -280,7 +280,7 @@ meth.express.compare <- ggplot(df, aes(x=per_meth, y=log_gene,)) +
     theme_cowplot();meth.express.compare
 
 ### Figure Mean Methylation vs Gene Expression###
-ggsave(meth.express.compare, filename="RAnalysis/Output/Final_Figures/Host/global_ME_meth_correlation.png", height = 7, width = 10)
+ggsave(meth.express.compare, filename="RAnalysis/Output/Final_Figures/Host/global_express_meth_correlation.png", height = 7, width = 10)
 
 ```
 
@@ -336,9 +336,9 @@ ggsave(meth_meanexpress, filename="RAnalysis/Output/Final_Figures/Host/treatment
 
 ```
 
-#ANCOVA for mean expression and %meth for both treatments
+#Multiple regression for mean expression and %meth for both treatments
 ```{r}
-#make ancova dataframe
+#make multiple regression dataframe
 #first have to change data frames from long to wide, need to separate per.meth in one column and log_gene in one column and treatments into another
 per.meth.C <- df %>% select(gene_id, per_meth_C) 
 per.meth.C$treatment <- "control" #make column with treatment
@@ -361,7 +361,7 @@ per.meth <- rbind(per.meth.C, per.meth.E)
 log.gene <- rbind(log.gene.C, log.gene.E)
 
 #combine treatment separated and per.meth and log.gene dataframes for ancova 
-ancova <- left_join(per.meth, log.gene)
+mult.reg <- left_join(per.meth, log.gene)
 
 ```
 
@@ -369,7 +369,7 @@ ancova <- left_join(per.meth, log.gene)
 
 ```{r}
 #make multiple regression plot with two lies for treatments
-mult.reg <- ggplot(ancova, aes(x=per_meth, y=log_gene, color = treatment)) + 
+mult.reg <- ggplot(mult.reg, aes(x=per_meth, y=log_gene, color = treatment)) + 
       geom_point(color = "black") + geom_smooth(method="lm",se = FALSE) + 
       labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
       stat_poly_line() +
@@ -379,14 +379,43 @@ mult.reg <- ggplot(ancova, aes(x=per_meth, y=log_gene, color = treatment)) +
 ggsave(mult.reg, filename="RAnalysis/Output/Final_Figures/Host/mult.reg.correlation.png", height = 10, width = 15)
 ggsave(mult.reg, filename="RAnalysis/Output/Final_Figures/Host/mult.reg.correlation.pdf", height = 10, width = 15)
 
+#use cocor to compare correlations
+require(cocor) # load package
+cocor.indep.groups(r1.jk=+0.021, r2.hm=+0.022, n1=30, n2=30, alternative="two.sided", alpha=0.05, conf.level=0.95, null.value=0)
+
 ```
 
+Results of a comparison of two correlations based on independent groups
+
+Comparison between r1.jk = 0.021 and r2.hm = 0.022
+Difference: r1.jk - r2.hm = -0.001
+Group sizes: n1 = 30, n2 = 30
+Null hypothesis: r1.jk is equal to r2.hm
+Alternative hypothesis: r1.jk is not equal to r2.hm (two-sided)
+Alpha: 0.05
+
+fisher1925: Fisher's z (1925)
+  z = -0.0037, p-value = 0.9971
+  Null hypothesis retained
+
+zou2007: Zou's (2007) confidence interval
+  95% confidence interval for r1.jk - r2.hm: -0.5102 0.5084
+  Null hypothesis retained (Interval includes 0)
 
 
 
 
 ```{r}
 ## Mean Methylation vs Gene Expression following Javi et al
+
+#df$density <- get_density(df$gene_mean_express, df$mean_meth*100, n = 100)
+mean_GbMvsGE <- ggplot(df,aes(x=gene_mean_express,y=mean_meth*100)) + 
+    geom_point() + ylim(0,100) + 
+    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x="Gene Expression (log2-cpm)",y="DNA Methylation (%)") +
+  stat_cor(method = "kendall", digits = 3, label.x = 10, label.y = 90 ) +
+    theme_cowplot();mean_GbMvsGE
 
 df$density <- get_density(df$gene_mean_express_E, df$mean_meth_E*100, n = 100)
 mean_GbMvsGE_enriched <- ggplot(df,aes(x=gene_mean_express_E,y=mean_meth_E*100)) + 
@@ -407,7 +436,15 @@ mean_GbMvsGE_control <- ggplot(df,aes(x=gene_mean_express_C, y=mean_meth_C*100))
     theme_cowplot();mean_GbMvsGE_control
 
 ## Mean Methylation vs Gene Expression CV (log)
-df$density <- get_density(log(df$gene_cv_express_E), df$mean_meth_E*100, n = 100)
+#df$density <- get_density(log(df$gene_cv_express_E), df$mean_meth_E*100, n = 100)
+meanGbMvsGEcv <- ggplot(df,aes(log(df$gene_cv_express_E),y=mean_meth*100)) + 
+    geom_point() + ylim(0,100) + scale_color_viridis() +
+    geom_smooth(method=lm,colour="orange",size=2) +
+    labs(x=bquote("Gene Expression"~CV[Ind]~"(log)"),y="DNA Methylation (%)") +
+  stat_cor(method = "kendall", digits = 3, label.x = -0.5, label.y = 90 ) +
+    theme_cowplot();meanGbMvsGEcv
+
+df$density <- get_density(log(df$gene_cv_express_E+1), df$mean_meth_E*100, n = 100)
 meanGbMvsGEcv_enriched <- ggplot(df,aes(log(x=gene_cv_express_E),y=mean_meth_E*100)) + 
     geom_point(aes(color = density)) + ylim(0,100) + scale_color_viridis() +
     geom_smooth(method=lm,colour="orange",size=2) +
@@ -415,7 +452,7 @@ meanGbMvsGEcv_enriched <- ggplot(df,aes(log(x=gene_cv_express_E),y=mean_meth_E*1
   stat_cor(method = "kendall", digits = 3, label.x = -0.5, label.y = 90 ) +
     theme_cowplot();meanGbMvsGEcv_enriched
 
-df$density <- get_density(log(df$gene_cv_express_C+1), df$mean_meth_C*100, n = 100)
+df$density <- get_density(log(df$gene_cv_express_C), df$mean_meth_C*100, n = 100)
 meanGbMvsGEcv_control <- ggplot(df,aes(log(x=gene_cv_express_C+1),y=mean_meth_C*100)) + 
     geom_point(aes(color = density)) + ylim(0,100) + scale_color_viridis() +
     geom_smooth(method=lm,colour="orange",size=2) +
@@ -430,8 +467,151 @@ control_plots <- plot_grid(mean_GbMvsGE_control, meanGbMvsGEcv_control, labels=c
 fig_GE_meth <- plot_grid(enriched_plots, control_plots)
 ggsave(fig_GE_meth, filename="RAnalysis/Output/Final_Figures/Host/GbM_GE_correlation.png", height = 10, width = 15)
 
+#save global cpm correlation
+ggsave(mean_GbMvsGE, filename="RAnalysis/Output/Final_Figures/Host/global_cpm_correlation.png", height = 10, width = 15)
+
+#save global cv correlation
+ggsave(meanGbMvsGEcv, filename="RAnalysis/Output/Final_Figures/Host/global_cv_correlation.png", height = 10, width = 15)
+```
+
+#make correlation plots comparing enriched and control for cpm 
+```{r}
+#make multiple regression dataframe
+#first have to change data frames from long to wide, need to separate per.meth in one column and log_gene in one column and treatments into another
+gene.mean.express.E <- df %>% select(gene_id, gene_mean_express_E) 
+gene.mean.express.E$treatment <- "enriched" #make column with treatment
+names(gene.mean.express.E)[2] ="mean_express" #rename per.meth.c to per.meth 
+
+mean.meth.E <- df %>% select(gene_id, mean_meth_E) 
+mean.meth.E$treatment <- "enriched"
+names(mean.meth.E)[2] ="mean_meth"
+
+gene.mean.express.C <- df %>% select(gene_id, gene_mean_express_C) 
+gene.mean.express.C$treatment <- "control"
+names(gene.mean.express.C)[2] ="mean_express"
+
+mean.meth.C <- df %>% select(gene_id, mean_meth_C) 
+mean.meth.C$treatment <- "control"
+names(mean.meth.C)[2] ="mean_meth"
+
+#rbind enriched and control data frames for per.meth and log.gene 
+mean.meth <- rbind(mean.meth.C, mean.meth.E)
+cpm.gene <- rbind(gene.mean.express.E, gene.mean.express.C)
+
+#combine treatment separated and per.meth and log.gene dataframes for ancova 
+mult.reg.cpm <- left_join(mean.meth, cpm.gene)
 
 ```
+
+#Make multiple regression and analysis
+```{r}
+
+#make multiple regression plot with two lies for treatments
+cpm.cor <- ggplot(mult.reg.cpm, aes(x=mean_express, y=mean_meth*100, color = treatment)) + 
+      geom_point(color = "black") + geom_smooth(method="lm",se = FALSE) + 
+      labs(x="Gene Expression (log2-cpm)",y="DNA Methylation (%)") +
+      stat_poly_line() +
+      stat_poly_eq(use_label(c("eq", "R2")), label.x = "right", label.y = "top", rr.digits = 3, size = 5) +
+      theme_cowplot();cpm.cor
+
+ggsave(mult.reg, filename="RAnalysis/Output/Final_Figures/Host/treatment.cpm.correlation.png", height = 10, width = 15)
+ggsave(mult.reg, filename="RAnalysis/Output/Final_Figures/Host/treatment.cpm.correlation.pdf", height = 10, width = 15)
+
+#use cocor to compare correlations
+require(cocor) # load package
+cocor.indep.groups(r1.jk=+0.030, r2.hm=+0.028, n1=30, n2=30, alternative="two.sided", alpha=0.05, conf.level=0.95, null.value=0)
+
+```
+  Results of a comparison of two correlations based on independent groups
+
+Comparison between r1.jk = 0.03 and r2.hm = 0.028
+Difference: r1.jk - r2.hm = 0.002
+Group sizes: n1 = 30, n2 = 30
+Null hypothesis: r1.jk is equal to r2.hm
+Alternative hypothesis: r1.jk is not equal to r2.hm (two-sided)
+Alpha: 0.05
+
+fisher1925: Fisher's z (1925)
+  z = 0.0074, p-value = 0.9941
+  Null hypothesis retained
+
+
+#make correlation plots comparing enriched and control for cv
+```{r}
+#make multiple regression dataframe
+#first have to change data frames from long to wide, need to separate per.meth in one column and log_gene in one column and treatments into another
+gene.cv.express.E <- df %>% select(gene_id, gene_cv_express_E) 
+gene.cv.express.E$treatment <- "enriched" #make column with treatment
+names(gene.cv.express.E)[2] ="cv_express" #rename per.meth.c to per.meth 
+
+mean.meth.E <- df %>% select(gene_id, mean_meth_E) 
+mean.meth.E$treatment <- "enriched"
+names(mean.meth.E)[2] ="mean_meth"
+
+gene.cv.express.C <- df %>% select(gene_id, gene_cv_express_C) 
+gene.cv.express.C$treatment <- "control"
+names(gene.cv.express.C)[2] ="cv_express"
+
+mean.meth.C <- df %>% select(gene_id, mean_meth_C) 
+mean.meth.C$treatment <- "control"
+names(mean.meth.C)[2] ="mean_meth"
+
+#rbind enriched and control data frames for per.meth and log.gene 
+mean.meth.cv <- rbind(mean.meth.C, mean.meth.E)
+cv.gene <- rbind(gene.cv.express.E, gene.cv.express.C)
+
+#combine treatment separated and per.meth and log.gene dataframes for ancova 
+mult.reg.cv <- left_join(mean.meth.cv, cv.gene)
+
+```
+
+#Make multiple regression and analysis cv
+```{r}
+
+#make multiple regression plot with two lies for treatments
+cv.cor <- ggplot(mult.reg.cv, aes(log(x=cv_express), y=mean_meth*100, color = treatment)) + 
+      geom_point(color = "black") + geom_smooth(method="lm",se = FALSE) + 
+      labs(x=bquote("Gene Expression"~CV[Ind]~"(log)"),y="DNA Methylation (%)") +
+      #xlim(-5,1.8) +
+      stat_poly_line() +
+      #scale_x_continuous(breaks =seq (-4.5, 1.5, by = 0.5)) +
+      stat_poly_eq(use_label(c("eq", "R2")), label.x = "right", label.y = "top", rr.digits = 3, size = 5) +
+      theme_cowplot();cv.cor
+
+ggsave(cv.cor, filename="RAnalysis/Output/Final_Figures/Host/treatment.cv.correlation.png", height = 10, width = 15)
+ggsave(cv.cor, filename="RAnalysis/Output/Final_Figures/Host/treatment.cv.correlation.pdf", height = 10, width = 15)
+
+#use cocor to compare correlations
+require(cocor) # load package
+cocor.indep.groups(r1.jk=+0.037, r2.hm=+0.029, n1=30, n2=30, alternative="two.sided", alpha=0.05, conf.level=0.95, null.value=0)
+
+```
+
+Results of a comparison of two correlations based on independent groups
+
+Comparison between r1.jk = 0.037 and r2.hm = 0.029
+Difference: r1.jk - r2.hm = 0.008
+Group sizes: n1 = 30, n2 = 30
+Null hypothesis: r1.jk is equal to r2.hm
+Alternative hypothesis: r1.jk is not equal to r2.hm (two-sided)
+Alpha: 0.05
+
+fisher1925: Fisher's z (1925)
+  z = 0.0294, p-value = 0.9765
+  Null hypothesis retained
+
+zou2007: Zou's (2007) confidence interval
+  95% confidence interval for r1.jk - r2.hm: -0.5018 0.5163
+  Null hypothesis retained (Interval includes 0)
+
+
+
+
+
+
+
+
+
 
 
 Differential methylation/gene expression correlation
