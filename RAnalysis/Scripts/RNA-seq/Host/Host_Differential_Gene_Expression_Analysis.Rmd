@@ -17,6 +17,7 @@ Load libraries
 ```{r, message=FALSE, warning=FALSE}
 library("genefilter")
 library("car")
+library("devtools")
 library("DESeq2")
 library("factoextra")
 library("MuMIn")
@@ -33,7 +34,10 @@ library("gridExtra")
 library("VennDiagram")
 library("here")
 library("plotrix")
+library("Glimma")
+library("edgeR")
 library("tibble")
+library("ggpubr")
 ```
 
 Import the data files 
@@ -42,7 +46,7 @@ Import the data files
 treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/metadata.RNAseq.csv", header = TRUE, sep = ",")
 
 treatmentinfo%>%
-  select(sample_id, block, fragment.ID, treatment, species_id)
+  select(sample_id, block, fragment.ID, treatment)
 
 head(treatmentinfo)
 
@@ -79,7 +83,7 @@ all(rownames(treatmentinfo) %in% colnames(gcount)) # must come out TRUE
 ```{r}
 #pOverA: Specifying the minimum count for a proportion of samples for each gene. Here, we are using a pOverA of 0.5, 10. This is because we have 32 samples with a minimum of n=1 sample per fragment and half in enriched and half in control. Therefore, we will accept genes that are present in 16/32 = 0.5 of the samples because we may expect different expression by treatment We are further setting the minimum count of genes to 10, such that 50% of the samples must have a gene count of >10 in order for the gene to remain in the data set.  
 
-filt <- filterfun(pOverA(0.50,10))
+filt <- filterfun(pOverA(0.90,10))
 
 #create filter for the counts data
 gfilt <- genefilter(gcount, filt)
@@ -181,7 +185,7 @@ fviz_eig(scaled_test)
 vegan <- scale(test[c(1:19821)])
 
 # PerMANOVA 
-permanova<-adonis2(vegan ~ treatment, data = test, method='eu')
+permanova <- vegan::adonis2(vegan ~ treatment, data = test, method='eu')
 permanova
 ```
 
@@ -263,11 +267,7 @@ sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #How many adjusted p-values were le
 
 #256
 
-#### DESeq2, the function plotMA shows the log2 fold changes attributable to a given variable over the mean of normalized counts for all the samples in the DESeqDataSet.
-
-MA_PLOT <- plotMA(DEGSeq2.results, ylim=c(-2,2))
-
-
+DEGSeq2.results <- as.data.frame(DEGSeq2.results)
 #create data frame with only DESeq2 DEG's with < 0.05 significance 
 
 DEGSeq2.sig.results <- subset(DEGSeq2.results, padj < 0.05)
@@ -276,6 +276,38 @@ DEGSeq2.sig.results$gene_id <-rownames(DEGSeq2.sig.results)
 write.csv(DEGSeq2.sig.results, 'RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.results.host.csv')  
 
 ```
+
+# Make MA plot from Glimma
+```{r}
+#### The MA plot is a visualisation that plots the log-fold-change between experimental groups (M) against the mean expression across all the samples (A) for each gene. The Glimma MA plot contains two main components: a plot of summary statistics across all genes that have been tested, and a plot of gene expression from individual samples for a given gene
+
+MA_plot <- ggmaplot(DEGSeq2.results, main = expression("Control" %->% "Enriched"),
+         fdr = 0.05, fc = 1, size = 1,
+            palette = c("#B31B21", "#1465AC", "darkgray"),
+         genenames = as.vector(DEGSeq2.results$names),
+   font.label = c("bold", 16),
+   font.legend = c("bold", 12),
+   font.main = c("bold", 14),
+         ggtheme = ggplot2::theme_minimal(),
+         top = 0, label.select = c("BUB1", "CD83"))
+
+```
+
+
+# Use ggvolc to visualize DEG up and down regulated genes
+```{r}
+# then you can install the dev version of the ltc
+devtools::install_github("loukesio/ggvolc")
+# and load it
+library(ggvolc)
+
+ggvolc(DEGSeq2.results, size_var = "log2FoldChange", add_seg = TRUE)
+
+```
+
+
+
+
 ## Identify unique genes from DEGs from treatments 
 ```{r}
 dim(DEGSeq2.sig.results) # 256 x 7

@@ -212,6 +212,12 @@ cv_express_C <- sd_express_C/mean_express_C
 sd_express_E <- rowSds(subset_express_E)
 cv_express_E <- sd_express_E/mean_express_E
 
+# Standard Error for control gene expression
+se_express_C <- sd_express_C/sqrt(length((subset_express_C)))
+
+# Standard Error for enriched gene expression
+se_express_E <- sd_express_E/sqrt(length((subset_express_E)))
+
 # Coefficient of Variation among treatments
 meanAmongTrt_express <- cbind(mean_express_E,mean_express_C)
 sd_meanAmongTrt_express <- rowSds(meanAmongTrt_express)
@@ -222,7 +228,7 @@ cv_mean_AmongTrt_express <- sd_meanAmongTrt_express/mean_meanAmongTrt_express
 diff_Trt_express <- mean_express_E-mean_express_C
 
 # Create matrix of all gene expression summary stats
-gene_summary <- cbind(mean_express,mean_express_E,mean_express_C,cv_express_E,cv_express_C,cv_mean_AmongTrt_express,
+gene_summary <- cbind(mean_express,mean_express_E,mean_express_C, se_express_C, se_express_E, cv_express_E,cv_express_C,cv_mean_AmongTrt_express,
                       diff_Trt_express)
 gene_summary[is.na(gene_summary)]<-0
 colnames(gene_summary) <- paste0("gene_",colnames(gene_summary))
@@ -283,6 +289,63 @@ meth.express.compare <- ggplot(df, aes(x=per_meth, y=log_gene,)) +
 ggsave(meth.express.compare, filename="RAnalysis/Output/Final_Figures/Host/global_express_meth_correlation.png", height = 7, width = 10)
 
 ```
+
+#make mean expression between treatments barplot
+```{r}
+#first have to change data frames from long to wide, need to separate per.meth in one column and log_gene in one column and treatments into another
+express.E <- df %>% select(gene_id, gene_mean_express_E) 
+express.E$treatment <- "enriched" #make column with treatment
+names(express.E)[2] ="expression" #rename to expression
+
+express.C <- df %>% select(gene_id, gene_mean_express_C) 
+express.C$treatment <- "control" #make column with treatment
+names(express.C)[2] ="expression" #rename to expression 
+ 
+#combine to data frames to make plot
+express <- rbind(express.C, express.E)
+
+#calculate mean and std errors
+means.express <- aggregate(expression ~ treatment, data=express, FUN=mean)
+ses.express <- aggregate(expression ~ treatment, data=express, FUN=std.error)
+means.express$ses <- ses.express$expression
+means.express$expression <- means.express$expression
+
+#make bar plot of mean expression between treatment
+plot.express <- ggplot(express, aes(x=treatment, y=expression, fill = treatment)) +
+  geom_bar(stat="identity",
+             position=position_dodge(), show.legend = FALSE) +
+    #geom_errorbar(aes(ymin=expression-se, ymax=expression+se), width=.2,
+                  #position=position_dodge(.9)) +
+    xlab("Treatment") + #plot x axis label
+    ylab("Mean Expression") + #plot y axis label
+    scale_fill_manual(values = c(control="black", enriched="cadetblue3")) +
+    scale_y_continuous(limits = c(0,12.5), expand = c(0, 0)) +
+    ggtitle("Kruskal-Wallis, p < 2.2e-16") +
+    theme_bw();plot.express
+
+### Figure Mean Methylation vs Gene Expression###
+ggsave(plot.express, filename="RAnalysis/Output/Final_Figures/Host/express.treatment.png", height = 7, width = 10)
+
+# build the linear model to see if tretaments differ and check assumptions
+model  <- lm(expression ~ treatment, data = express)
+
+# Create a QQ plot of residuals
+ggqqplot(residuals(model))
+#not normal, use kruskall willis test
+
+# use Kruskal-Wallis test by rank which is a non-parametric alternative to one-way ANOVA test, which extends the two-samples Wilcoxon test in the situation where there are more than two groups. It’s recommended when the assumptions of one-way ANOVA test are not met.
+
+express.mod <- kruskal.test(expression ~ treatment, data = express)
+
+express.mod
+
+#results: Kruskal-Wallis chi-squared = 118.91, df = 1, p-value < 2.2e-16, significantly higher percent meth in DMGs in enriched treatment
+
+```
+
+
+
+
 
 
 #compare global mean meth vs express for control and enriched
