@@ -83,7 +83,7 @@ all(rownames(treatmentinfo) %in% colnames(gcount)) # must come out TRUE
 ```{r}
 #pOverA: Specifying the minimum count for a proportion of samples for each gene. Here, we are using a pOverA of 0.5, 10. This is because we have 32 samples with a minimum of n=1 sample per fragment and half in enriched and half in control. Therefore, we will accept genes that are present in 16/32 = 0.5 of the samples because we may expect different expression by treatment We are further setting the minimum count of genes to 10, such that 50% of the samples must have a gene count of >10 in order for the gene to remain in the data set.  
 
-filt <- filterfun(pOverA(0.90,10))
+filt <- filterfun(pOverA(0.50,10))
 
 #create filter for the counts data
 gfilt <- genefilter(gcount, filt)
