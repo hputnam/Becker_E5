@@ -5,26 +5,37 @@ date: "2023-07-21"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+Use the Bray-Curtis Dissimilarity to measure the dissimilarity between two tretament groups with differing species of Pocillopora grandis and Pocillopora meandrina
+
+#load libraries
+```{r}
+library("tidyverse")
+library("dplyr")
+library("vegan")
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+#load dataframe of species distribution in treatments
+```{r}
+species <- read.csv("RAnalysis/Data/species.compare/species.distribution.csv")
 ```
 
-## Including Plots
+```{r}
+# Run a PERMANOVA
 
-You can also embed plots, for example:
+#Parametric test for differences between independent groups for multiple continuous dependent variables.
+species.matrix<- as.matrix(species[,2:3]) # select response variables for matrix
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+#Quantify pairwise compositional dissimilarity between sites based on species occurrences using Bray-Curtis dissimilarity, abundance weighted 
+species.dist<-vegdist(species.matrix, method='bray')
+species.dist #0.0625, sites are close to identical
+
+#PERMANOVA
+species.div<-adonis2(species.dist~as.factor(species$treatment), data=species, permutations=9999)
+species.div
+
+#?? 'nperm' >= set of all permutations: complete enumeration.
+#Set of permutations < 'minperm'. Generating entire set.
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
