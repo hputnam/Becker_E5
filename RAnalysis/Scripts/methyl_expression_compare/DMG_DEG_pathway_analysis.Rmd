@@ -3,6 +3,8 @@ title: "DEG_DMG_pathway_analysis"
 author: "daniellembecker"
 date: "2023-01-20"
 output: html_document
+editor_options: 
+  chunk_output_type: inline
 ---
 
 
@@ -27,6 +29,7 @@ library("pheatmap")
 library("magrittr")
 library("rtracklayer")
 library("GenomicRanges")
+library("png")
 library("GSEABase")
 library("GOSim")
 library("VennDiagram")
@@ -155,11 +158,12 @@ GO.plot.DMG.complete <-  ggplot(DMG.complete, aes(x = ontology, y = term)) +
           axis.title.y = element_blank())
 
  
-ggsave("RAnalysis/Output/Final_Figures/Host/DMG.complete.slimterms.pdf", GO.plot.DMG.complete, width = 20, height = 49.5, units = c("in"))
-ggsave("RAnalysis/Output/Final_Figures/Host/DMG.complete.slimterms.png", GO.plot.DMG.complete, width = 20, height = 49.5, units = c("in"))
+ggsave("RAnalysis/Output/WGBS/DMG.complete.slimterms.pdf", GO.plot.DMG.complete, width = 20, height = 49.5, units = c("in"))
+ggsave("RAnalysis/Output/WGBS/DMG.complete.slimterms.png", GO.plot.DMG.complete, width = 20, height = 49.5, units = c("in"))
 
 
 ```
+
 
 
 
@@ -206,6 +210,225 @@ ggsave("RAnalysis/Output/Final_Figures/Host/DEG.complete.slimterms.pdf", GO.plot
 
 
 ```
+
+
+#load png image of DEG PCA and DMG PCA to combine for each figure
+```{r}
+DEG.PCA <- readPNG("RAnalysis/Output/Final_Figures/Host/DEGSeq2_DEG_PCA_plot_host.png")
+PCA.DEG <- rasterGrob(DEG.PCA, interpolate=TRUE)
+
+DMG.PCA <- readPNG("RAnalysis/Output/Final_Figures/Host/DMG_PCA_plot_host.png")
+PCA.DMG <- rasterGrob(DMG.PCA, interpolate=TRUE)
+
+```
+
+#make DEG plot figure 2 manuscript
+```{r}
+
+#filter for numincat sum per term and remove CC ontology for dataframe before making plot BP
+filter.DEG.BP <-DEG.complete %>%
+  filter(ontology %in% c("BP"))
+
+filt.sum.DEG.BP <- filter.DEG.BP %>% group_by(slim_term) %>% 
+  summarise(sum_num=sum(numInCat))
+
+filt.mean.DEG.BP <- filter.DEG.BP %>% group_by(slim_term) %>% 
+  summarise(pvalue=mean(bh_adjust))
+
+subset.DEG.BP <- left_join(filt.mean.DEG.BP, filt.sum.DEG.BP)
+
+subset.DEG.BP <- subset.DEG.BP %>%
+  mutate(ontology = "Biological Process")
+
+GO.plot.DEG.BP <-  ggplot(subset.DEG.BP, aes(x = ontology, y = slim_term)) + 
+    geom_point(aes(size=sum_num, fill=pvalue, colour=pvalue)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,800))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE), switch="y")+
+    ggtitle("")+
+    theme_bw() + 
+    #scale_y_discrete(limits=rev) +
+    theme(strip.text.y.left = element_text(angle = 0),
+          panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 30, face="bold"),
+          axis.text.x = element_text(size = 30, face="bold"),
+          axis.text.y=element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.title.x = element_text(size = 30, face="bold"),
+          legend.text=element_text(size=30, face="bold"),
+          title=element_text(size=30, face="bold"),
+          plot.title = element_text(hjust = 0, face="bold"),
+          axis.title.y = element_blank())
+
+ggsave("RAnalysis/Output/RNA-seq/DEG/Host/DEG.BP.png", GO.plot.DEG.BP, width = 20, height = 40, units = c("in"))
+ggsave("RAnalysis/Output/RNA-seq/DEG/Host/DEG.BP.pdf", GO.plot.DEG.BP, width = 20, height = 20, units = c("in"))
+
+
+#filter for numincat sum per term and remove CC ontology for dataframe before making plot BP
+filter.DEG.MF <-DEG.complete %>%
+  filter(ontology %in% c("MF"))
+
+filt.sum.DEG.MF <- filter.DEG.MF%>% group_by(slim_term) %>% 
+  summarise(sum_num=sum(numInCat))
+
+filt.mean.DEG.MF <- filter.DEG.MF %>% group_by(slim_term) %>% 
+  summarise(pvalue=mean(bh_adjust))
+
+subset.DEG.MF <- left_join(filt.mean.DEG.MF, filt.sum.DEG.MF)
+
+subset.DEG.MF <- subset.DEG.MF %>%
+  mutate(ontology = "Molecular Function")
+
+GO.plot.DEG.MF <-  ggplot(subset.DEG.MF, aes(x = ontology, y = slim_term)) + 
+    geom_point(aes(size=sum_num, fill=pvalue, colour=pvalue)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,1455))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE), switch="y")+
+    ggtitle("")+
+    theme_bw() + 
+    #scale_y_discrete(limits=rev) +
+    theme(strip.text.y.left = element_text(angle = 0),
+          panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 30, face="bold"),
+          axis.text.x = element_text(size = 30, face="bold"),
+          axis.text.y=element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.title.x = element_text(size = 30, face="bold"),
+          legend.text=element_text(size=30, face="bold"),
+          title=element_text(size=30, face="bold"),
+          plot.title = element_text(hjust = 0, face="bold"),
+          axis.title.y = element_blank())
+
+ggsave("RAnalysis/Output/RNA-seq/DEG/Host/DEG.MF.png", GO.plot.DEG.MF, width = 10, height = 10, units = c("in"))
+ggsave("RAnalysis/Output/RNA-seq/DEG/Host/DEG.MF.pdf", GO.plot.DEG.MF, width = 10, height = 10, units = c("in"))
+
+```
+
+#make DMG figure 3 for manuscript 
+```{r}
+
+#filter for numincat sum per term and remove CC ontology for dataframe before making plot BP
+filter.DMG.BP <-DMG.complete %>%
+  filter(ontology %in% c("BP"))
+
+filt.sum.BP <- filter.DMG.BP %>% group_by(slim_term) %>% 
+  summarise(sum_num=sum(numInCat))
+
+filt.mean.BP <- filter.DMG.BP %>% group_by(slim_term) %>% 
+  summarise(pvalue=mean(bh_adjust))
+
+subset.BP <- left_join(filt.mean.BP, filt.sum.BP)
+
+subset.BP <- subset.BP %>%
+  mutate(ontology = "Biological Process")
+
+GO.plot.DMG.BP <-  ggplot(subset.BP, aes(x = ontology, y = slim_term)) + 
+    geom_point(aes(size=sum_num, fill=pvalue, colour=pvalue)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,1528))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE), switch="y")+
+    ggtitle("")+
+    theme_bw() + 
+    #scale_y_discrete(limits=rev) +
+    theme(strip.text.y.left = element_text(angle = 0),
+          panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 30, face="bold"),
+          axis.text.x = element_text(size = 30, face="bold"),
+          axis.text.y=element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.title.x = element_text(size = 30, face="bold"),
+          legend.text=element_text(size=30, face="bold"),
+          title=element_text(size=30, face="bold"),
+          plot.title = element_text(hjust = 0, face="bold"),
+          axis.title.y = element_blank())
+
+ggsave("RAnalysis/Output/WGBS/DMG.BP.png", GO.plot.DMG.BP, width = 20, height = 35, units = c("in"))
+ggsave("RAnalysis/Output/WGBS/DMG.BP.pdf", GO.plot.DMG.BP, width = 20, height = 20, units = c("in"))
+
+
+#filter for numincat sum per term and remove CC ontology for dataframe before making plot BP
+filter.DMG.MF <-DMG.complete %>%
+  filter(ontology %in% c("MF"))
+
+filt.sum.MF <- filter.DMG.MF%>% group_by(slim_term) %>% 
+  summarise(sum_num=sum(numInCat))
+
+filt.mean.MF <- filter.DMG.MF %>% group_by(slim_term) %>% 
+  summarise(pvalue=mean(bh_adjust))
+
+subset.MF <- left_join(filt.mean.MF, filt.sum.MF)
+
+subset.MF <- subset.MF %>%
+  mutate(ontology = "Molecular Function")
+
+GO.plot.DMG.MF <-  ggplot(subset.MF, aes(x = ontology, y = slim_term)) + 
+    geom_point(aes(fill=pvalue, colour=pvalue, size=sum_num)) + 
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,5600))+
+    xlab("")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE), switch="y")+
+    ggtitle("")+
+    theme_bw() + 
+    #scale_y_discrete(limits=rev) +
+    theme(strip.text.y.left = element_text(angle = 0),
+          panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 30, face="bold"),
+          axis.text.x = element_text(size = 30, face="bold"),
+          axis.text.y=element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.title.x = element_text(size = 30, face="bold"),
+          legend.text=element_text(size=30, face="bold"),
+          title=element_text(size=30, face="bold"),
+          plot.title = element_text(hjust = 0, face="bold"),
+          axis.title.y = element_blank())
+
+ggsave("RAnalysis/Output/WGBS/DMG.MF.png", GO.plot.DMG.MF, width = 10, height = 10, units = c("in"))
+ggsave("RAnalysis/Output/WGBS/DMG.MF.pdf", GO.plot.DMG.MF, width = 10, height = 10, units = c("in"))
+
+
+
+```
+
+#use patchwork to make figure 2 and 3 wiht PCA as a, BP as B and MF as C for DEG and DMG
+
+```{r}
+
+bottom_row.DEG <- plot_grid(GO.plot.DEG.BP, GO.plot.DEG.MF, labels = c('B', 'C'), label_size = 60)
+Figure2 <- plot_grid(PCA.DEG, bottom_row.DEG, labels = c('A', ''), label_size = 60, ncol = 1) 
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DEG.png"), plot=Figure2, dpi=300,width=50, height=60, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DEG.pdf"), plot=Figure2, dpi=300, width=50, height=60, units="in", limitsize = FALSE)
+
+bottom_row.DMG <- plot_grid(GO.plot.DMG.BP, GO.plot.DMG.MF, labels = c('B', 'C'), label_size = 60)
+Figure3 <- plot_grid(PCA.DMG, bottom_row.DMG, labels = c('A', ''), label_size = 60, ncol = 1)
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DMG.png"), plot=Figure3, dpi=300,width=50, height=60, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DMG.pdf"), plot=Figure3, dpi=300, width=50, height=60, units="in", limitsize = FALSE)
+```
+
 
 
 
@@ -267,6 +490,13 @@ GO.plot.BP.DEG.DMG <-  ggplot(BP.df, aes(x = type, y = term)) +
 ggsave("RAnalysis/Output/Final_Figures/Host/GO.BP.DEG.DMG.pdf", GO.plot.BP.DEG.DMG , width = 35, height = 49, units = c("in"))
 
 ```
+
+
+
+
+
+
+
 
 #make final DMG DEG molecular function comparison plot
 ```{r}
@@ -997,7 +1227,7 @@ cell.dat <- rbind(cell.DEG,cell.DMG)
   #plot significantly enriched GO terms by Slim Category faceted by slim term 
   cell.GO.plot <-  ggplot(cell.dat, aes(x = type, y = term)) + 
     geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
-    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,20))+
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,40))+
     scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
     scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
     facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 40, multi_line = TRUE))+
@@ -1025,19 +1255,63 @@ ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/ce
 ```
 
 
+#methithionie pathway
+```{r}
+
+methionine <- c("methionine", "methionyl", "methionine", "methyl", "SAM", "aden")
+
+methionine.DEG <-DEG.complete%>%
+      filter(grepl(paste(methionine, collapse="|"), paste(slim_term, term))) 
+
+methionine.DMG <- DMG.complete %>% 
+      filter(grepl(paste(methionine, collapse="|"), paste(slim_term, term)))
+
+methionine.dat <- rbind(methionine.DEG,methionine.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+methionine.GO.plot <-  ggplot(methionine.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,300))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 40, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Methionine Pathway") +
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/methionine.DMG.DEG.png"), plot=methionine.GO.plot, dpi=300, width=18, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/methionine.DMG.DEG.pdf"), plot=methionine.GO.plot, dpi=300, width=18, height=10, units="in")
+
+```
+
 #use patchwork to combine figures and add labels
 
 ```{r}
-Figure2 <- nutrient.GO.plot + nitrogen.GO.plot + carb.GO.plot + plot_annotation(tag_levels = 'A')
-Figure3 <- glucose.GO.plot + glutamate.GO.plot + oxy.GO.plot + plot_annotation(tag_levels = 'A')
-Figure4 <- heat.GO.plot + amino.GO.plot + protein.GO.plot + cell.GO.plot + plot_annotation(tag_levels = 'A')
+
+Figure4 <- glucose.GO.plot + glutamate.GO.plot + oxy.GO.plot + plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 50))
+Figure5 <- nutrient.GO.plot + nitrogen.GO.plot + carb.GO.plot + heat.GO.plot + amino.GO.plot + protein.GO.plot + cell.GO.plot + methionine.GO.plot + plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 50))
+#Figure5 <- heat.GO.plot + amino.GO.plot + protein.GO.plot + cell.GO.plot + plot_annotation(tag_levels = 'A')
  
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/nitrogen.carb_pathways.png"), plot=Figure2, dpi=300, width=40, height=15, units="in")
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/nitrogen.carb_pathways.pdf"), plot=Figure2, dpi=300, width=40, height=15, units="in")
+#ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/nitrogen.carb_pathways.png"), plot=Figure3, dpi=300, width=40, height=15, units="in")
+#ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/nitrogen.carb_pathways.pdf"), plot=Figure3, dpi=300, width=40, height=15, units="in")
 
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/glut.oxy.pathways.png"), plot=Figure3, dpi=300, width=40, height=15, units="in")
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/glut.oxy.pathways.pdf"), plot=Figure3, dpi=300, width=40, height=15, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/glut.oxy.pathways.png"), plot=Figure4, dpi=300, width=40, height=15, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/glut.oxy.pathways.pdf"), plot=Figure4, dpi=300, width=40, height=15, units="in")
 
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/heat.protein.pathways.png"), plot=Figure4, dpi=300, width=45, height=45, units="in")
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/heat.protein.pathways.pdf"), plot=Figure4, dpi=300, width=45, height=45, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/full.fig.png"), plot=Figure5, dpi=300, width=60, height=55, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/full.fig.pdf"), plot=Figure5, dpi=300, width=60, height=55, units="in", limitsize = FALSE)
 ```

@@ -35,7 +35,6 @@ species.div
 
 #?? 'nperm' >= set of all permutations: complete enumeration.
 #Set of permutations < 'minperm'. Generating entire set.
-
 ```
 
 
