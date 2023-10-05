@@ -1189,7 +1189,7 @@ glutamate.dat <- rbind(glutamate.DEG,glutamate.DMG)
     scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
     facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 30, multi_line = TRUE))+
     xlab("Analysis")+
-    ggtitle("Glutamate Metabolism")+
+    ggtitle("Glutamine Synthetase and Glutamate Synthase Pathway")+
     theme_bw() + 
     theme(panel.border = element_blank(), 
           panel.grid.major = element_blank(),
