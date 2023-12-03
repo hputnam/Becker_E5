@@ -428,9 +428,10 @@ Total     31   7812.0 1.00000
 ```{r}
 length(unique(DEGSeq2.sig.results$gene_id)) # 256 unique DEGs
 down <- DEGSeq2.sig.results %>% filter(log2FoldChange < 0) 
-length(unique(down$gene_id)) # 172 unique DEGs downregulated
+length(unique(down$gene_id)) # 84 unique DEGs downregulated
 up <- DEGSeq2.sig.results %>% filter(log2FoldChange > 0)
-length(unique(up$gene_id)) # 84 unique DEGs upregulated
+length(unique(up$gene_id)) # 172 unique DEGs upregulated
+
 ```
 
 ```{r}

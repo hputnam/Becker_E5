@@ -36,6 +36,8 @@ library(data.table)
 library(RColorBrewer)
 if ("colorRamps" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install('colorRamps')
 library(colorRamps)
+if ("limma" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install('limma')
+library(limma)
 library(GSEABase)
 library(here)
 library(lme4)
@@ -192,7 +194,7 @@ write.table(DMG.sig.annot.10x, 'RAnalysis/Output/WGBS/Treatment_sig_annot.10x.ts
 ```{r}
 #Sanity check plotting of DMGs by treatment
 subdf.DMG <- MD.10x  %>%	
-  filter(gene== DMG.sig.annot.10x$gene[2])
+  filter(gene == DMG.sig.annot.10x$gene[2])
 means.DMG <- aggregate(per.meth ~ treatment, data=subdf.DMG, FUN=mean)
 ses.DMG <- aggregate(per.meth ~ treatment, data=subdf.DMG, FUN=std.error)
 means.DMG$ses <- ses.DMG$per.meth
@@ -311,6 +313,48 @@ dmg.deg.mod
 
 
 ```
+
+#Calculate hyper- and hypo- methylation from data using limma package in significant DMGs
+
+```{r}
+#set up dataframe for limma analysis
+# Assume you have a data frame 'methylation_data' with columns: Gene, Condition1, Condition2
+# 'Gene' column contains gene names, 'Condition1' and 'Condition2' contain methylation values
+
+#select certain columns
+methylation_data <- MD.10x %>%
+  filter(gene %in% DMG.sig.annot.10x$gene)
+
+# Data wrangling to calculate the mean percent methylation for each gene
+aggregated_data <- methylation_data %>%
+  group_by(gene, treatment) %>%
+  summarize(percent.meth = mean(per.meth, na.rm = TRUE))
+
+# Specify the name of the control treatment group
+control_group <- "control"
+
+# Filter data for the control group
+control_data <- aggregated_data %>%
+  filter(treatment == control_group) %>%
+  select(gene, ControlMean = percent.meth)
+
+# Merge with the original data to get the mean percent methylation for each gene and treatment
+merged_data <- merge(aggregated_data, control_data, by = "gene", all.x = TRUE)
+
+# Calculate the mean difference for each gene and treatment compared to the control
+merged_data$MeanDifference <- merged_data$percent.meth - merged_data$ControlMean
+
+# Identify hyper and hypomethylated genes
+# Adjust the threshold based on your specific criteria
+hyper_genes <- merged_data$gene[merged_data$MeanDifference > 0]
+hypo_genes <- merged_data$gene[merged_data$MeanDifference < 0]
+
+# Count the number of hyper and hypomethylated genes
+num_hyper_genes <- length(hyper_genes) #203
+num_hypo_genes <- length(hypo_genes) #165
+
+```
+
 
 
 # Conduct PERMANOVA and PCA on global methylation and DMG
