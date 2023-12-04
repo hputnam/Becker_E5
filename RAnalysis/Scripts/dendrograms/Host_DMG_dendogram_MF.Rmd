@@ -190,19 +190,19 @@ sum_set_sizes <- geneGroups1 %>%
 dotplot <- left_join(mean_scores, sum_set_sizes)
 
 #read in dotplot data
-clusters <- read_csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/dendogram/DEG_dotplot_MF.csv", col_names = TRUE)
+clusters <- read_csv("RAnalysis/Data/WGBS/dendogram/DMG_dotplot_MF.csv", col_names = TRUE)
 
 
-gg3 = ggplot (clusters, aes(x = comparison, y = term_name, size = set_size)) + 
+gg3 = ggplot (clusters, aes(x = comparison, y = term, size = set_size)) + 
             geom_count (aes(color = percentDEInCat)) + 
             scale_color_viridis(na.value=NA, option = "inferno") +
-            scale_size(limits = c(5, 1452)) +  # Set the limits here
+            scale_size(limits = c(4, 5600)) +  # Set the limits here
             labs(color = "%DEGs", size = "Set Size") +
             theme(panel.background = element_blank())
 
 print(gg3)
 
-ggsave("RAnalysis/Output/Dendograms/clusters_dotplot_MF.png",
+ggsave("RAnalysis/Output/Dendograms/clusters_dotplot_DMG_MF.png",
        dpi = 300, 
        width = 5,
        height = 5)
@@ -214,22 +214,22 @@ ggsave("RAnalysis/Output/Dendograms/clusters_dotplot_MF.png",
 ```{r}
 #load png image of DEG PCA
 
-DEG.PCA <- readPNG("RAnalysis/Output/Final_Figures/Host/DEGSeq2_DEG_PCA_plot_host.png")
-PCA.DEG <- rasterGrob(DEG.PCA, interpolate=TRUE)
+DMG.PCA <- readPNG("RAnalysis/Output/Final_Figures/Host/DMG_PCA_plot_host.png")
+PCA.DMG <- rasterGrob(DEG.PCA, interpolate=TRUE)
 
 #load images of BP DEG dendogram and MF DEG dendogram
-dendo.BP <- readPNG("RAnalysis/Output/Dendograms/DEG_biological_processes.png")
+dendo.BP <- readPNG("RAnalysis/Output/Dendograms/DMG_biological_processes.png")
 dendo.BP2 <- rasterGrob(dendo.BP, interpolate=TRUE)
 
 #load images of MF DEG dendogram
-dendo.MF <- readPNG("RAnalysis/Output/Dendograms/DEG_molecular_functions.png")
+dendo.MF <- readPNG("RAnalysis/Output/Dendograms/DMG_molecular_functions.png")
 dendo.MF2 <- rasterGrob(dendo.MF, interpolate=TRUE)
 
-bottom_row.DEG <- plot_grid(dendo.BP2, dendo.MF2, label_size = 60)
-Figure1 <- plot_grid(PCA.DEG, bottom_row.DEG, labels = c('A', ''), label_size = 60, ncol = 1) 
+bottom_row.DMG <- plot_grid(dendo.BP2, dendo.MF2, label_size = 60)
+Figure1 <- plot_grid(PCA.DMG, bottom_row.DEG, labels = c('A', ''), label_size = 60, ncol = 1) 
 
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/dendogram_DEG.png"), plot=Figure1, dpi=300,width=50, height=50, units="in", limitsize = FALSE)
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/dendogram_DEG.pdf"), plot=Figure1, dpi=300, width=50, height=50, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/dendogram_DMG.png"), plot=Figure1, dpi=300,width=50, height=50, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/dendogram_DMG.pdf"), plot=Figure1, dpi=300, width=50, height=50, units="in", limitsize = FALSE)
 
 ```
 
