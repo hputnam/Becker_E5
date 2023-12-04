@@ -1,0 +1,13 @@
+﻿term,comparison,percentDEInCat,set_size,cluster
+binding,Enriched_vs_Control,5.721796,5600,1
+cargo receptor activity,Enriched_vs_Control,-4.385965,114,2
+catalytic activity,Enriched_vs_Control,7.267011,3366,3
+cation binding,Enriched_vs_Control,-1.941176,1700,4
+DNA helicase activity,Enriched_vs_Control,25,4,1
+hydrolase activity,Enriched_vs_Control,39.999643,530,1
+ligase activity,Enriched_vs_Control,16.666667,12,4
+nucleic acid binding,Enriched_vs_Control,2.430847,1193,1
+RNA binding,Enriched_vs_Control,8.695652,23,2
+signaling receptor binding,Enriched_vs_Control,-10.526316,19,5
+transferase activity,Enriched_vs_Control,43.445717,611,1
+transporter activity,Enriched_vs_Control,48.615725,55,3

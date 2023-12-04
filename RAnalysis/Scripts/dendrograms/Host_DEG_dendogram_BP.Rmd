@@ -1,7 +1,7 @@
 ---
 title: "dendogram"
 author: "daniellembecker"
-date: "10/5/2021"
+date: "12/01/23"
 output: html_document
 ---
 
@@ -25,6 +25,7 @@ library(treeio)
 library(ggtree)
 library(stringr)
 library(readr)
+library(phyloseq)
 ```
 
 #input data
@@ -149,13 +150,14 @@ cutr_tightClusters$label_upper <- str_replace(cutr_tightClusters$label_upper, "D
 # Replace "Mrna" with "mRNA" in the label_upper column
 cutr_tightClusters$label_upper <- str_replace(cutr_tightClusters$label_upper, "Mrna", "mRNA")
 
-# make clusters on tree and organize
-gg1 = ggtree(hc, layout = 'rectangular') %<+% cutr_tightClusters + #edits layout of tree
-  geom_tippoint(aes(color = as.factor(cluster)), shape = "triangle", size = 2) + #adds triangles and adjusts size
-  scale_colour_manual(values = colors1) + #distinguishes colors of clusters with data
-  geom_tiplab(aes(label = label_upper), offset = 0.1, size = 4) + #references the label_upper column to name tree nodes
-  xlim(-3, 3) #sets x limites on plot
-  
+
+# Create your ggtree plot
+gg1 <- ggtree(hc, layout = 'rectangular') %<+% cutr_tightClusters +
+  geom_tippoint(aes(color = as.factor(cluster)), shape = "triangle", size = 2) +
+  scale_colour_manual(values = colors1) +
+  geom_tiplab(aes(label = label_upper), offset = 0.1, size = 4) +
+  xlim(-3, 3)
+
   pdf(paste0(outidx[i],'_tree_BP.pdf'))
   print(gg1)
   dev.off()
