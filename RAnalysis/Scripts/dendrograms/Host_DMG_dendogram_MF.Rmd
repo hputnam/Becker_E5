@@ -197,14 +197,14 @@ gg3 = ggplot (clusters, aes(x = comparison, y = term, size = set_size)) +
             geom_count (aes(color = percentDEInCat)) + 
             scale_color_viridis(na.value=NA, option = "inferno") +
             scale_size(limits = c(4, 5600)) +  # Set the limits here
-            labs(color = "%DEGs", size = "Set Size") +
+            labs(color = "%DMGs", size = "Set Size") +
             theme(panel.background = element_blank())
 
 print(gg3)
 
 ggsave("RAnalysis/Output/Dendograms/clusters_dotplot_DMG_MF.png",
        dpi = 300, 
-       width = 5,
+       width = 8,
        height = 5)
 
 ```
@@ -212,7 +212,7 @@ ggsave("RAnalysis/Output/Dendograms/clusters_dotplot_DMG_MF.png",
 
 #make figure one for manuscript
 ```{r}
-#load png image of DEG PCA
+#load png image of DMG PCA
 
 DMG.PCA <- readPNG("RAnalysis/Output/Final_Figures/Host/DMG_PCA_plot_host.png")
 PCA.DMG <- rasterGrob(DEG.PCA, interpolate=TRUE)
@@ -226,7 +226,7 @@ dendo.MF <- readPNG("RAnalysis/Output/Dendograms/DMG_molecular_functions.png")
 dendo.MF2 <- rasterGrob(dendo.MF, interpolate=TRUE)
 
 bottom_row.DMG <- plot_grid(dendo.BP2, dendo.MF2, label_size = 60)
-Figure1 <- plot_grid(PCA.DMG, bottom_row.DEG, labels = c('A', ''), label_size = 60, ncol = 1) 
+Figure1 <- plot_grid(PCA.DMG, bottom_row.DMG, labels = c('A', ''), label_size = 60, ncol = 1) 
 
 ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/dendogram_DMG.png"), plot=Figure1, dpi=300,width=50, height=50, units="in", limitsize = FALSE)
 ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/dendogram_DMG.pdf"), plot=Figure1, dpi=300, width=50, height=50, units="in", limitsize = FALSE)

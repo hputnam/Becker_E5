@@ -576,7 +576,7 @@ ggsave("RAnalysis/Output/Final_Figures/Host/GO.CC.DEG.DMG.pdf", GO.plot.CC.DEG.D
 ```{r}
 #filter by any category that contained the word, could do anything that has the word nitrogen, stress, and heat 
 
-vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "glutamate", "glutathione", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport", "DNA")
+vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport", "DNA")
 
 phenotype.pathways.DEG <-DEG.complete%>%
       filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
@@ -700,13 +700,6 @@ shapiro.test(df$mean_meth) # <0.05
 #both variables are less then 0.05 indicating data do not follow normal distribution
 
 #use kendall test for correlation, Kendall’s is more robust and generally the preferred method between spearman and kendall
-meth.express.specific <- ggplot(df, aes(x=per_meth, y=log_gene)) + 
-    geom_point() + ylim(0,3) + xlim(0,15) +
-    geom_smooth(method=lm, colour="orange",size=2,na.rm = TRUE) +
-    stat_cor(method = "kendall", label.x = 60, label.y = 0.5 ) +
-    scale_color_viridis() +
-    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-    theme_cowplot();meth.express.specific
 
 meth.express.specific <- ggplot(df,aes(x=per_meth, y=log_gene,)) + 
     geom_point() + 
@@ -715,6 +708,7 @@ meth.express.specific <- ggplot(df,aes(x=per_meth, y=log_gene,)) +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
   stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
     theme_cowplot();meth.express.specific
+
 
 
 ### Figure Mean Methylation vs Gene Expression###
