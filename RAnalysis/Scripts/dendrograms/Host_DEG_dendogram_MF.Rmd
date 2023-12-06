@@ -213,10 +213,6 @@ ggsave("RAnalysis/Output/Dendograms/clusters_dotplot_MF.png",
 
 #make figure one for manuscript
 ```{r}
-#load png image of DEG PCA
-
-DEG.PCA <- readPNG("RAnalysis/Output/Final_Figures/Host/DEGSeq2_DEG_PCA_plot_host.png")
-PCA.DEG <- rasterGrob(DEG.PCA, interpolate=TRUE)
 
 #load images of BP DEG dendogram and MF DEG dendogram
 dendo.BP <- readPNG("RAnalysis/Output/Dendograms/DEG_biological_processes.png")
@@ -226,11 +222,10 @@ dendo.BP2 <- rasterGrob(dendo.BP, interpolate=TRUE)
 dendo.MF <- readPNG("RAnalysis/Output/Dendograms/DEG_molecular_functions.png")
 dendo.MF2 <- rasterGrob(dendo.MF, interpolate=TRUE)
 
-bottom_row.DEG <- plot_grid(dendo.BP2, dendo.MF2, label_size = 60)
-Figure1 <- plot_grid(PCA.DEG, bottom_row.DEG, labels = c('A', ''), label_size = 60, ncol = 1) 
+Figure3 <- plot_grid(dendo.BP2, dendo.MF2, labels = c('A', 'B'), label_size = 14)
 
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/dendogram_DEG.png"), plot=Figure1, dpi=300,width=50, height=50, units="in", limitsize = FALSE)
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/dendogram_DEG.pdf"), plot=Figure1, dpi=300, width=50, height=50, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/dendogram_DEG.png"), plot=Figure3, dpi=300,width=12, height=5, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/dendogram_DEG.pdf"), plot=Figure3, dpi=300, width=12, height=5, units="in", limitsize = FALSE)
 
 ```
 
