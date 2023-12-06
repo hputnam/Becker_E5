@@ -46,6 +46,9 @@ library(goseq)
 library(ggpubr)
 library(patchwork)
 library(rstatix)
+library(stringr)
+library(readr)
+library(png)
 
 ```
 
@@ -433,39 +436,58 @@ log2fold_change_df <- data.frame(Gene = gene_names, Log2FoldChange = log2fold_ch
 
 #rename gene column
 log2fold_change_df <- log2fold_change_df %>%
-  rename(gene = Gene)
+  dplyr::rename(gene = Gene)
 
 # Merge with the methylation data frame
 final_df <- left_join(results.10x, log2fold_change_df, by = "gene")
 
 #rename gene column
 final_df <- final_df %>%
-  rename(log2FoldChange = Log2FoldChange)
+ dplyr::rename(log2FoldChange = Log2FoldChange)
 
 final_df <- final_df %>%
-  rename(padj = adj.pval.treatment)
+  dplyr::rename(padj = adj.pval.treatment)
 
 final_df <- final_df %>%
-  rename(pvalue = pval.treatment)
+  dplyr::rename(pvalue = pval.treatment)
 
-# then you can install the dev version of a new package to create volcano plots for DMG data
-devtools::install_github("loukesio/ggvolc")
-# and load the package before use
-library(ggvolc)
+# Create a new column for -log10(padj), noticed outliers in data
+final_df $log_padj <- -log10(final_df $padj)
 
-ggvolc(final_df, size_var = "log2FoldChange", add_seg = TRUE)
+# Remove rows where log_padj is greater than 10
+final_df <- final_df[final_df$log_padj <= 100, ]
 
-df <- final_df %>%
-  dplyr::select(gene, log2FoldChange, padj)
+# Define criteria for hypermethylation, hypomethylation
 
-# Set "gene" column as row names
-rownames(df) <- df$gene
+final_df$methylation_status <- ifelse(final_df$padj > 0.05, "Not Significant",
+                                       ifelse(final_df$log2FoldChange > 0, "Hypermethylated",
+                                              ifelse(final_df$log2FoldChange < 0, "Hypomethylated", "Not Classified")))
 
-# Remove the "gene" column from the data frame
-df <- df[, -which(names(df) == "gene")]
+# Set up the color palette for hyper, hypo, and non-significant genes
+colors <- c("Hypermethylated" = "red", "Hypomethylated" = "blue", "Not Significant" = "black")
 
+# Create the volcano plot using ggplot2
+DMG.volcano <- ggplot(final_df, aes(x = log2FoldChange, y = -log10(padj), color = methylation_status)) +
+  geom_point(alpha = 0.7, size = 2) +
+  scale_color_manual(values = colors, name = "Methylation Status (padj < 0.05)", 
+                     breaks = c("Hypermethylated", "Hypomethylated", "Not Significant"),
+                     labels = c("Hypermethylated", "Hypomethylated", "Not Significant"),
+                     drop = FALSE) +  # Include all specified breaks in the legend
+  labs(title = "", x = "log2FoldChange", y = "-log10(adjusted p-value)") +
+  theme_bw() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black"); DMG.volcano
 
+ggsave("RAnalysis/Output/WGBS/DMG.volcano.pdf", DMG.volcano, width = 8, height = 6, units = c("in"))
+  
+#load png image of DMG PCA
 
+DMG.PCA <- readPNG("RAnalysis/Output/Final_Figures/Host/DMG_PCA_plot_host.png")
+PCA.DMG <- rasterGrob(DMG.PCA, interpolate=TRUE)
+
+Figure2 <- plot_grid(PCA.DMG, DMG.volcano, labels = c('A', 'B'), label_size = 14)
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DMG.PCA.volcano.png"), plot=Figure2, dpi=300, width=10, height=5, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DMG.PCA.volcano.pdf"), plot=Figure2, dpi=300, width=10, height=5, units="in", limitsize = FALSE)
 
 ```
 

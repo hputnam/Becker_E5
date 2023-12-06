@@ -4,6 +4,8 @@ author: "echille"
 edited by: "daniellembecker"
 date: "20230126"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Molecular Underpinnings Chronic Nutrient Enrichment Project
@@ -83,7 +85,7 @@ all(rownames(treatmentinfo) %in% colnames(gcount)) # must come out TRUE
 ```{r}
 #pOverA: Specifying the minimum count for a proportion of samples for each gene. Here, we are using a pOverA of 0.5, 10. This is because we have 32 samples with a minimum of n=1 sample per fragment and half in enriched and half in control. Therefore, we will accept genes that are present in 16/32 = 0.5 of the samples because we may expect different expression by treatment We are further setting the minimum count of genes to 10, such that 50% of the samples must have a gene count of >10 in order for the gene to remain in the data set.  
 
-filt <- filterfun(pOverA(0.50,10))
+filt <- filterfun(pOverA(0.90,10))
 
 #create filter for the counts data
 gfilt <- genefilter(gcount, filt)
@@ -296,12 +298,48 @@ MA_plot <- ggmaplot(DEGSeq2.results, main = expression("Control" %->% "Enriched"
 
 # Use ggvolc to visualize DEG up and down regulated genes
 ```{r}
-# then you can install the dev version of the ltc
-devtools::install_github("loukesio/ggvolc")
-# and load it
-library(ggvolc)
 
-ggvolc(DEGSeq2.results, size_var = "log2FoldChange", add_seg = TRUE)
+# Define criteria for upregulation and downregulation
+
+#rename for moving forward
+volcano <-DEGSeq2.results
+
+# Create a new column for -log10(padj), noticed outliers in data
+volcano$log_padj <- -log10(volcano$padj)
+
+# Remove rows where log_padj is greater than 15
+volcano <- volcano[volcano$log_padj <= 15, ]
+
+volcano$gene_expression_status <- ifelse(volcano$padj > 0.05, "Not Significant",
+                                       ifelse(volcano$log2FoldChange > 0, "Upregulated",
+                                              ifelse(volcano$log2FoldChange < 0, "Downregulated", "Not Classified")))
+
+# Set up the color palette for hyper, hypo, and non-significant genes
+colors <- c("Upregulated" = "red", "Downregulated" = "blue", "Not Significant" = "black")
+
+# Create the volcano plot using ggplot2
+DEG.volcano <- ggplot(volcano, aes(x = log2FoldChange, y = -log10(padj), color = gene_expression_status)) +
+  geom_point(alpha = 0.7, size = 2) +
+  scale_color_manual(values = colors, name = "Gene Expression Status (padj < 0.05)", 
+                     breaks = c("Upregulated", "Downregulated", "Not Significant"),
+                     labels = c("Upregulated (84)", "Downregulated (172)", "Not Significant"),
+                     drop = FALSE) +  # Include all specified breaks in the legend
+  labs(title = "", x = "log2FoldChange", y = "-log10(adjusted p-value)") +
+  theme_bw() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black"); DEG.volcano
+
+ggsave("RAnalysis/Output/RNA-seq/DEG/DEG.volcano.pdf", DEG.volcano, width = 8, height = 5, units = c("in"))
+
+#load png image of DMG PCA
+
+DEG.PCA <- readPNG("RAnalysis/Output/Final_Figures/Host/DEGSeq2_DEG_PCA_plot_host.png")
+PCA.DEG <- rasterGrob(DEG.PCA, interpolate=TRUE)
+
+Figure3 <- plot_grid(PCA.DEG, DEG.volcano, labels = c('A', 'B'), label_size = 14)
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DEG.PCA.volcano.png"), plot=Figure3, dpi=300, width=12, height=5, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DEG.PCA.volcano.pdf"), plot=Figure3, dpi=300, width=12, height=5, units="in", limitsize = FALSE)
+
 
 ```
 
