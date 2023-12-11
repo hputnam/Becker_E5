@@ -1,44 +1,34 @@
 ﻿term,comparison,percentDEInCat,set_size,cluster
 anatomical structure development,Enriched_vs_Control,27.666667,31,1
-behavior,Enriched_vs_Control,-50,2,2
-biological process involved in intraspecies interaction between organisms,Enriched_vs_Control,50,2,3
 carbohydrate derivative metabolic process,Enriched_vs_Control,17.261905,25,4
 carboxylic acid metabolic process,Enriched_vs_Control,33.333333,3,5
 cell adhesion,Enriched_vs_Control,-18.817808,95,6
-cell cycle process,Enriched_vs_Control,33.333333,3,7
 cell differentiation,Enriched_vs_Control,25,4,8
 cell motility,Enriched_vs_Control,16.703216,54,2
 cellular component organization,Enriched_vs_Control,-50,4,6
 cellular metabolic process,Enriched_vs_Control,51.960784,103,9
-cellular nitrogen compound,Enriched_vs_Control,33.333333,3,3
+cellular nitrogen compound,Enriched_vs_Control,33.333333,5,3
 cytoplasmic translation,Enriched_vs_Control,-66.666667,4,7
 DNA biosynthetic process,Enriched_vs_Control,7.294833,329,10
 DNA metabolic process,Enriched_vs_Control,4.887218,266,10
 DNA repair,Enriched_vs_Control,49.444444,180,11
 DNA replication,Enriched_vs_Control,22.342995,30,11
 generation of precursor metabolites,Enriched_vs_Control,25,4,12
-homeostatic process,Enriched_vs_Control,33.333333,3,8
-intracellular protein transport,Enriched_vs_Control,100,1,13
 lipid metabolic process,Enriched_vs_Control,37.5,6,14
-membrane organization,Enriched_vs_Control,33.333333,3,15
 mitotic cell cycle,Enriched_vs_Control,-12.5,16,3
 muscle system process,Enriched_vs_Control,-25,4,16
 nucleic acid metabolic process,Enriched_vs_Control,10.03992,1527,10
-positive regulation of cellular pH,Enriched_vs_Control,33.333333,3,9
 positive regulation of translation,Enriched_vs_Control,33.522727,30,2
-protein maturation,Enriched_vs_Control,33.333333,3,1
 protein modification process,Enriched_vs_Control,45.570571,152,2
-regulation of catalytic activity,Enriched_vs_Control,50,2,17
-regulation of gene expression,Enriched_vs_Control,100,1,7
+regulation of catalytic activity,Enriched_vs_Control,50,6,17
+regulation of gene expression,Enriched_vs_Control,100,4,7
 regulation of phospholipase activity,Enriched_vs_Control,9.090909,22,2
 regulation of transcription,Enriched_vs_Control,15.151515,33,18
 reproductive process,Enriched_vs_Control,-38.333333,14,11
 response to nitrogen compound,Enriched_vs_Control,50,4,7
-response to nutrient levels,Enriched_vs_Control,100,1,7
+response to nutrient levels,Enriched_vs_Control,100,6,7
 response to stress,Enriched_vs_Control,66.666667,4,13
-response to virus,Enriched_vs_Control,-33.333333,3,19
 signaling,Enriched_vs_Control,34.313725,109,9
-transmembrane transport,Enriched_vs_Control,33.333333,3,8
 transport,Enriched_vs_Control,53.623188,279,18
 RNA mediated transposition,Enriched_vs_Control,18.181818,11,10
 viral process,Enriched_vs_Control,-19.047619,21,20
