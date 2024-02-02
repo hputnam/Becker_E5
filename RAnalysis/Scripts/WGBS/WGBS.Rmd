@@ -54,7 +54,7 @@ library(png)
 
 #Downloaded all final .bed files for 5x and 10x from bluewaves to desktop: scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*_enrichment.bed /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/WGBS
 
-###Samples 19, 16, and 2 have low data coverage (see WGBS workflow in Bioinformatics>WGBS>WGBS workflow for further information), not moving forward with these samples in statistical steps
+###Samples E8 had low data coverage (see WGBS workflow in Bioinformatics>WGBS>WGBS workflow for further information), not moving forward with these samples in statistical steps
 
 Methylation Analysis
 ## Loading genomic and annotation
