@@ -49,7 +49,8 @@ library(rstatix)
 library(stringr)
 library(readr)
 library(png)
-
+library(grid)
+library(cowplot)
 ```
 
 #Downloaded all final .bed files for 5x and 10x from bluewaves to desktop: scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*_enrichment.bed /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/WGBS
@@ -407,7 +408,7 @@ ggplot(gPCAdata, aes(PC1, PC2, color=treatment)) +
   geom_point(size=3) +
   xlab(paste0("PC1: ",percentVar[1],"% variance")) +
   ylab(paste0("PC2: ",percentVar[2],"% variance")) +
-  scale_color_manual(values = c(control="black", enriched="cadetblue3")) +
+  scale_color_manual(values = c(control="black", enriched="grey")) +
   coord_fixed() +
   theme_bw() + #Set background color
   theme(panel.border = element_blank(), # Set border
@@ -469,7 +470,7 @@ colors <- c("Hypermethylated" = "red", "Hypomethylated" = "blue", "Not Significa
 # Create the volcano plot using ggplot2
 DMG.volcano <- ggplot(final_df, aes(x = log2FoldChange, y = -log10(padj), color = methylation_status)) +
   geom_point(alpha = 0.7, size = 2) +
-  scale_color_manual(values = colors, name = "Methylation Status (padj < 0.05)", 
+  scale_color_manual(values = colors, name = "Methylation Status", 
                      breaks = c("Hypermethylated", "Hypomethylated", "Not Significant"),
                      labels = c("Hypermethylated (203)", "Hypomethylated (165)", "Not Significant"),
                      drop = FALSE) +  # Include all specified breaks in the legend
@@ -482,18 +483,20 @@ ggsave("RAnalysis/Output/WGBS/DMG.volcano.pdf", DMG.volcano, width = 8, height =
 #load png image of DMG PCA
 
 DMG.PCA <- readPNG("RAnalysis/Output/Final_Figures/Host/DMG_PCA_plot_host.png")
+
 PCA.DMG <- rasterGrob(DMG.PCA, interpolate=TRUE)
 
-Figure2 <- plot_grid(PCA.DMG, DMG.volcano, labels = c('A', 'B'), label_size = 14)
+Figure2 <- plot_grid( DMG.volcano, DMG_PCA_plot, labels = c('A', 'B'), label_size = 14)
 
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DMG.PCA.volcano.png"), plot=Figure2, dpi=300, width=10, height=5, units="in", limitsize = FALSE)
-ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DMG.PCA.volcano.pdf"), plot=Figure2, dpi=300, width=10, height=5, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DMG.PCA.volcano.png"), plot=Figure2, dpi=300, width=12, height=5, units="in", limitsize = FALSE)
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DMG.PCA.volcano.pdf"), plot=Figure2, dpi=300, width=12, height=5, units="in", limitsize = FALSE)
 
 ```
 
 
 
-# Conduct PERMANOVA and PCA on global expression 
+# Conduct PERMANOVA and PCA on differential expression 
 
 Export data for PERMANOVA test.  
 ```{r}
@@ -564,7 +567,7 @@ print(assay(DMGvst)) # look at vst-transformed gene count data
 mat <- assay(DMGvst)#[DEG.results.all, ] # make an expression object
 mat <- mat - rowMeans(mat) #difference in expression compared to average across all samples
 dim(mat)
-ann_colors <- list(treatment= c(control="black", enriched="cadetblue3"))
+ann_colors <- list(treatment= c(control="black", enriched="grey"))
 df_DMG <- as.data.frame(colData(DMGvst)[c("treatment")]) #make dataframe for column naming and associated treatment
 DMG_heatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TRUE, annotation_col=df_DMG, annotation_colors = ann_colors,
                             clustering_distance_rows="euclidean", clustering_method = "average",
@@ -580,6 +583,8 @@ png(file = "RAnalysis/Output/Final_Figures/Host/DMG_heatmap_host.png")
 DMG_heatmap
 dev.off()
 
+#make label size for plot below
+label_size <- 16
 
 # PCA plot of diff-expressed genes 
 DMG_PCAdata <- plotPCA(DMGvst, intgroup = c("treatment"), returnData=TRUE)
@@ -588,21 +593,29 @@ DMG_PCA_plot <- ggplot(DMG_PCAdata, aes(PC1, PC2, color=treatment)) +
   geom_point(size=3) +
   xlab(paste0("PC1: ",percentVar_pca[1],"% variance")) +
   ylab(paste0("PC2: ",percentVar_pca[2],"% variance")) +
-  scale_color_manual(values = c(control="black", enriched="cadetblue3")) +
+  scale_color_manual(values = c(control="black", enriched="grey")) +
   coord_fixed() +
   theme_bw() + #Set background color
-  theme(panel.border = element_blank(), # Set border
-        #panel.grid.major = element_blank(), #Set major gridlines
-        #panel.grid.minor = element_blank(), #Set minor gridlines
-        axis.line = element_line(colour = "black"), #Set axes color
-        plot.background=element_blank()) + #Set the plot background +
+  theme(
+    panel.border = element_blank(),
+    axis.line = element_line(colour = "black"),
+    plot.background = element_blank(),
+    # Increase the size of axis text
+    axis.text = element_text(size = label_size),
+    # Increase the size of x and y axis titles
+    axis.title = element_text(size = label_size),
+    # Increase the size of legend text
+    legend.text = element_text(size = label_size),
+    # Increase the size of legend title
+    legend.title = element_text(size = label_size)
+  ) +#Set the plot background +
   stat_ellipse()
 
 DMG_PCA_plot
 
-ggsave(path = "RAnalysis/Output/Final_Figures/Host/", filename = "DMG_PCA_plot_host.pdf")
-ggsave(path = "RAnalysis/Output/Final_Figures/Host/", filename = "DMG_PCA_plot_host.png")
- 
+ggsave("RAnalysis/Output/Final_Figures/Host/DMG_PCA_plot_plot_host.png", DMG_PCA_plot, width = 10, height = 10, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/Host/DMG_PCA_plot_host.pdf", DMG_PCA_plot, width = 10, height = 10, units = c("in"))
+
 ```
 
 # Conduct PERMANOVA and DMG
