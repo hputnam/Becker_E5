@@ -1,0 +1,36 @@
+---
+title: "BS-SNPer.filter"
+author: "daniellembecker"
+date: "2024-03-11"
+output: html_document
+---
+
+# Filtering SNPs found from BS-SNper, following this workflow: https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2024-02-12-Testing-BS-SNPer-Molec-Underpinnings-WGBS.md
+
+# Using .vcf output file from BS-SNPer to filter SNPs found in 10x .bed files made following this workflow: https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2022-12-10-P.verrucosa-WGBS-Workflow-Host.md and combined with this script: https://github.com/hputnam/Becker_E5/blob/master/RAnalysis/Scripts/WGBS/WGBS.Rmd
+
+# Load libraries 
+
+```{r}
+library(dplyr)
+```
+
+# Load data
+
+```{r}
+# load merged .bed files at 10x coverage
+# this file has sampleID and methylation information
+
+bed.10x <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
+
+# Read the SNP positions from the VCF file
+vcf_data <- read.delim("RAnalysis/Data/WGBS/BS-SNPer/SNP-results.vcf", header = FALSE, stringsAsFactors = FALSE)
+snp_positions <- vcf_data %>%
+  filter(V4 == "snp" & V8 >= 10) %>%
+  select(V1, V2)
+
+
+```
+
+
+

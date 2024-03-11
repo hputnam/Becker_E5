@@ -99,7 +99,7 @@ GO.IDs <-unique(Gene.GO.IDs$GO.IDs) #removes duplicates from columns, compiles b
 ```{r}
 #Nyssa-stringr package, nice and clean so you can pipe and not have to rename, etc., use expression that does it all in one line regex 
 #Merge final .bed files at 10x coverage
-meth.data.10x <- list.files(path = "RAnalysis/Data/WGBS/10x_coverage/", pattern = ".bed$", full.names=TRUE) %>%
+meth.data.10x <- list.files(path = "RAnalysis/Data/WGBS/10x_methcounts/", pattern = ".bed$", full.names=TRUE) %>%
   purrr::set_names(.) %>% 
   map_dfr(read.csv,.id="Sample.ID", header=FALSE, sep="\t", na.string="NA", stringsAsFactors = FALSE) %>% 
   dplyr::select(-c(V3,V7:V14)) %>%
@@ -107,7 +107,7 @@ meth.data.10x <- list.files(path = "RAnalysis/Data/WGBS/10x_coverage/", pattern 
 colnames(meth.data.10x) <- c("Sample.ID", "scaffold", "position","per.meth","meth","unmeth","gene")
 meth.data.10x$gene <- gsub(";.*","",meth.data.10x$gene) #remove extra characters
 meth.data.10x$gene <- gsub("ID=","",meth.data.10x$gene) #remove extra characters
-meth.data.10x$Sample.ID <- gsub("RAnalysis/Data/WGBS/10x_coverage//","",meth.data.10x$Sample.ID) #remove extra characters
+meth.data.10x$Sample.ID <- gsub("RAnalysis/Data/WGBS/10x_methcounts//","",meth.data.10x$Sample.ID) #remove extra characters
 meth.data.10x$Sample.ID <- gsub("_.*","",meth.data.10x$Sample.ID) #remove extra characters 
 #meth.data.10x$Sample.ID <- gsub("-","_",meth.data.10x$Sample.ID) #remove extra characters
 #meth.data.10x$Sample.ID <- gsub("/","",meth.data.10x$Sample.ID) #remove extra characters (backslash from sample.ID name)
