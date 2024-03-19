@@ -29,15 +29,35 @@ snp_data <- read.table("RAnalysis/Data/WGBS/BS-SNPer/CT-SNPs.tab", header = FALS
 # Rename columns
 colnames(snp_data) <- c("scaffold", "position", "placeholder", "ref.allele", "alter.allele", "quality.score", "filter.status", "add.info", "genotype", "related.info")
 
-# Filter SNP positions from the .bed file
-filtered_bed_data <- bed_data[bed_data$scaffold %in% snp_data$scaffold & bed_data$position %in% snp_data$position, ]
+# Make new column with unique scaffold and position identifier for both data frames to merge and  filter SNPs from snp_data
 
-# Write the filtered data to a new .bed file
-write.table(filtered_bed_data, "RAnalysis/Data/WGBS/BS-SNPer/filtered_bed_SNP_file.bed", sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+bed_data$scaff.pos <- paste(bed_data$scaffold, bed_data$position, sep = "-")
 
+snp_data$scaff.pos <- paste(snp_data$scaffold, snp_data$position, sep = "-")
+
+# Using various approaches to see if there is data in either data frame that matches, which would elude to there being SNPs to filter in the bed_data frame
+
+# Try merge function to merge any data found in scaff.pos colummn in another dataframe
+merge_data <- merge(bed_data, snp_data, by = "scaff.pos")
+
+# Try anti join in each data frame to see which data was not included or would not be filtered, each data frame is unique
+anti_data <- snp_data %>%
+  anti_join(bed_data, by = "scaff.pos")
+
+test <- anti_join(bed_data, snp_data, by=c("scaffold", "position"))
+
+# Check for shared values
+shared_values <- intersect(snp_data$scaff.pos, bed_data$scaff.pos)
+
+# Check for unique values in df1
+unique_df1 <- setdiff(snp_data$scaff.pos, bed_data$scaff.pos)
+
+# There seems to be no SNPs in my current bed file data frame........this may be due to the fact that the original .bam files used in BS-SNPer were not yet filtered, unlike our current .bed files that went through filtering steps in our bioinformatic workflow. This could mean any possible SNPs were filtered out.
 
 
 ```
+
+
 
 
 
