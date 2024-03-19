@@ -87,8 +87,8 @@ anti.join.dat <- bed2 %>%
 # 1155895 unique data in my bed2 files, this matches that there are 512 SNPs in my bed data frame
 
 # Use anti.join.dat as the filtered bed data file moving forward 
-
-filtered.bed
+# Write the filtered data to a new .bed file
+write.table(anti.join.dat, "RAnalysis/Data/WGBS/BS-SNPer/filtered_bed_SNP_file.bed", sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
 ```
 
 
