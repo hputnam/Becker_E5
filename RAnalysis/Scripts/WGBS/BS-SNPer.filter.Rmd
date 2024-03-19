@@ -13,6 +13,7 @@ output: html_document
 
 ```{r}
 library(dplyr)
+library(tidyverse)
 ```
 
 # Load data
@@ -57,6 +58,38 @@ unique_df1 <- setdiff(snp_data$scaff.pos, bed_data$scaff.pos)
 
 ```
 
+
+# Try filtering approach with original .vcf output file from BS-SNPer
+```{r}
+
+# read in CT-SNP.vcf following Stevens approach: https://github.com/hputnam/Geoduck_Meth/blob/master/code/15-filtering-ct-snps.Rmd
+
+ct <- read.csv("../../CT-SNP.vcf", header = FALSE, sep = "\t")
+
+# make new column combining scaffold and position like above 
+ct2 <- ct %>% 
+  mutate(loci = paste0(V1, "_", V2))
+
+# make new column combining scaffold and position like above 
+bed2 <- bed_data %>%
+  mutate(loci = paste0(scaffold, "_", position))
+
+# join data frames based on matching values in loci column
+inner.join.dat <- inner_join(bed2, ct2, by = "loci")
+
+#512 SNPs that match my bed files dataframe
+
+#  find rows in the first data frame that do not have a match in the second data frame based on loci column
+
+anti.join.dat <- bed2 %>%
+  anti_join(ct2, by = "loci")
+
+# 1155895 unique data in my bed2 files, this matches that there are 512 SNPs in my bed data frame
+
+# Use anti.join.dat as the filtered bed data file moving forward 
+
+filtered.bed
+```
 
 
 
