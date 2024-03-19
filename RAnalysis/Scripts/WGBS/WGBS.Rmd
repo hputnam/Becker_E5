@@ -97,7 +97,6 @@ GO.IDs <-unique(Gene.GO.IDs$GO.IDs) #removes duplicates from columns, compiles b
 
 #Load filtered methylation counts 10x 
 ```{r}
-#Nyssa-stringr package, nice and clean so you can pipe and not have to rename, etc., use expression that does it all in one line regex 
 #Merge final .bed files at 10x coverage
 meth.data.10x <- list.files(path = "RAnalysis/Data/WGBS/10x_methcounts/", pattern = ".bed$", full.names=TRUE) %>%
   purrr::set_names(.) %>% 
@@ -116,9 +115,21 @@ MD.10x <- merge(meth.data.10x,sample.info, by="Sample.ID") #combine sample info 
 #save sample info and percent methylation
 saveRDS(MD.10x, "RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata")
 
-MD.10x <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
+MD.10x.original <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
+
+head(MD.10x.original)
+```
+
+# Filter out any SNPs that could impact our methylation data and use updated and filtered data frame for next steps
+```{r}
+# Filtering SNPs found from BS-SNper, following this workflow: https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2024-02-12-Testing-BS-SNPer-Molec-Underpinnings-WGBS.md and this script: https://github.com/hputnam/Becker_E5/blob/master/RAnalysis/Scripts/WGBS/BS-SNPer.filter.Rmd
+
+# Use the new MD.10x file that has now been filtered for SNPs
+
+MD.10x <- readRDS("RAnalysis/Data/WGBS/BS-SNPer/filtered_bed_SNP_file.Rdata") #read in info
 
 head(MD.10x)
+
 ```
 
 
@@ -141,34 +152,34 @@ gs.10x <- unique(sub_meth_table.10x$gene)
 
 
 #all code below is commented out because only need to run this for the initial step
-# #first subset the unique dataframes and second run the GLMs
-# #purr package function called map, much cleaner for for loops (how to loop over a model in the tidyverse, can have a tidy output for your anova) computational time is faster with purr and it is cleaner
-# for(i in 1:length(sub_meth_table.10x$gene)){
+#first subset the unique dataframes and second run the GLMs
 # 
-#   #subset the dataframe gene by gene
-#   sub_meth_table.10x1 <- subset(sub_meth_table.10x, gene ==gs.10x[i])
+#  for(i in 1:length(sub_meth_table.10x$gene)){
+#  
+#    #subset the dataframe gene by gene
+#    sub_meth_table.10x1 <- subset(sub_meth_table.10x, gene ==gs.10x[i])
 # 
 #   # fit glm position model
 #   #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
-#   fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment,
-#              data=sub_meth_table.10x1, family=binomial)
-#   a <- anova(fit, test="Chisq")
-# 
-#   # capture summary stats to data frame
-#   df <- data.frame(gene = sub_meth_table.10x1[1,7],
-#                    pval.treatment = a$`Pr(>Chi)`[2],
-#                    #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
-#                    #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
+#    fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment,
+#               data=sub_meth_table.10x1, family=binomial)
+#    a <- anova(fit, test="Chisq")
+#  
+#    # capture summary stats to data frame
+#    df <- data.frame(gene = sub_meth_table.10x1[1,7],
+#                     pval.treatment = a$`Pr(>Chi)`[2],
+#                     #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
+#                     #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
 #                    stringsAsFactors = F)
-# 
-#   # bind rows of temporary data frame to the results data frame
-#   results.10x <- rbind(results.10x, df)
-# 
-# }
-# 
-# write.csv(results.10x, "RAnalysis/Output/WGBS/meth.results.10x.csv")
+#  
+#    # bind rows of temporary data frame to the results data frame
+#    results.10x <- rbind(results.10x, df)
+#  
+#  }
+ 
+ write.csv(results.10x, "RAnalysis/Output/WGBS/meth.results.10x.csv")
 
- # An error will be generated here for contrasts. 
+# An error will be generated here for contrasts. 
 #This potential for contrasts (interactions) is included in the case one wants to examine the role of position of CpG within a gene
 #Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
 #Continuing the analysis from results line will generate the results in the absence of the contrast (interaction).
@@ -188,7 +199,7 @@ DMG.sig.10x <- DMG.sig.10x[order(DMG.sig.10x$adj.pval.treatment),]
 DMG.sig.10x <- DMG.sig.10x[which(DMG.sig.10x$adj.pval.treatment<0.05), ]
 sum(DMG.sig.10x$adj.pval.treatment < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
 
-#368
+#365
 
 # Annotation of DMG under between treatments 
 DMG.sig.annot.10x <- left_join(DMG.sig.10x , Annot, by="gene")
@@ -221,7 +232,7 @@ DMG.mod <- kruskal.test(per.meth ~ treatment, data = subdf.DMG)
 
 DMG.mod
 
-#results: Kruskal-Wallis chi-squared = 118.91, df = 1, p-value < 2.2e-16, significantly higher percent meth in DMGs in enriched treatment
+#results: Kruskal-Wallis chi-squared = 141.29, df = 1, p-value < 2.2e-16, significantly higher percent meth in DMGs in enriched treatment
 
 #make bar plot of means DMG
 plot.DMG <- ggplot(means.DMG, aes(x=treatment, y=per.meth, fill = treatment)) +
@@ -234,21 +245,11 @@ plot.DMG <- ggplot(means.DMG, aes(x=treatment, y=per.meth, fill = treatment)) +
     scale_fill_manual(values = c(control="black", enriched="cadetblue3")) +
     scale_y_continuous(limits = c(0,12.5), expand = c(0, 0)) +
     ggtitle("Kruskal-Wallis, p < 2.2e-16") +
-    theme_bw()
+    theme_bw();plot.DMG
 
-# #try the boxplot option here
-# plot.DMG <- ggboxplot(subdf.DMG, x = "treatment", y = "per.meth",
-#           color = "treatment")+
-#   scale_color_manual(values = c(control="black", enriched="cadetblue3")) +
-#   stat_compare_means(method = "kruskal.test") +
-#   xlab("Treatment") + #plot x axis label
-#     ylab("Percent Methylation in DMG") + #plot y axis label
-#   scale_y_continuous(limits = c(0,70), expand = c(0, 0)) +
-#   theme_bw()
 
 ggsave("RAnalysis/Output/WGBS/per.meth.10x.DMG.pdf", plot.DMG)
 ggsave("RAnalysis/Output/WGBS/per.meth.10x.DMG.png", plot.DMG)
-
 
 
 #Sanity check plotting of DMGs by treatment
@@ -268,7 +269,7 @@ plot.global <- ggplot(means.global, aes(x=treatment, y=per.meth, fill = treatmen
     ylab("Percent Methylation in Global") + #plot y axis label
     scale_fill_manual(values = c(control="black", enriched="cadetblue3")) +
     scale_y_continuous(expand = expansion(mult = c(0, .1)))+
-    theme_bw()
+    theme_bw();plot.global
 
 ggsave("RAnalysis/Output/WGBS/per.meth.10x.global.pdf", plot.global)
 ggsave("RAnalysis/Output/WGBS/per.meth.10x.global.png", plot.global)
@@ -300,7 +301,7 @@ plot.dmg.deg <- ggplot(means.dmg.deg, aes(x=treatment, y=per.meth, fill = treatm
     scale_fill_manual(values = c(control="black", enriched="cadetblue3")) +
     scale_y_continuous(expand = expansion(mult = c(0, .1)))+
     ggtitle("Kruskal-Wallis, p = 0.04") +
-    theme_bw()
+    theme_bw(); plot.dmg.deg
 
 ggsave("RAnalysis/Output/WGBS/per.meth.in.DEG.pdf", plot.dmg.deg)
 ggsave("RAnalysis/Output/WGBS/per.meth.in.DEG.png", plot.dmg.deg)
@@ -358,8 +359,8 @@ hyper_genes <- merged_data$gene[merged_data$MeanDifference > 0]
 hypo_genes <- merged_data$gene[merged_data$MeanDifference < 0]
 
 # Count the number of hyper and hypomethylated genes
-num_hyper_genes <- length(hyper_genes) #203
-num_hypo_genes <- length(hypo_genes) #165
+num_hyper_genes <- length(hyper_genes) #198
+num_hypo_genes <- length(hypo_genes) #167
 
 ```
 
@@ -472,7 +473,7 @@ DMG.volcano <- ggplot(final_df, aes(x = log2FoldChange, y = -log10(padj), color 
   geom_point(alpha = 0.7, size = 2) +
   scale_color_manual(values = colors, name = "Methylation Status", 
                      breaks = c("Hypermethylated", "Hypomethylated", "Not Significant"),
-                     labels = c("Hypermethylated (203)", "Hypomethylated (165)", "Not Significant"),
+                     labels = c("Hypermethylated (198)", "Hypomethylated (167)", "Not Significant"),
                      drop = FALSE) +  # Include all specified breaks in the legend
   labs(title = "", x = "log2FoldChange", y = "-log10(adjusted p-value)") +
   theme_bw() +
