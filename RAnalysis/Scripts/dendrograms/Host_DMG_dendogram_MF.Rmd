@@ -197,7 +197,7 @@ gg3 = ggplot (clusters, aes(x = comparison, y = term, size = set_size)) +
             geom_count (aes(color = percentDEInCat)) + 
             scale_color_viridis(na.value=NA, option = "inferno") +
             scale_size(limits = c(4, 5600)) +  # Set the limits here
-            labs(color = "%DMGs", size = "Set Size") +
+            labs(color = "%DMGs", size = "Number of Genes") +
             theme(panel.background = element_blank())
 
 print(gg3)
