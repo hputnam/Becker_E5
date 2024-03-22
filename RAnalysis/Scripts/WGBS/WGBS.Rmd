@@ -115,9 +115,9 @@ MD.10x <- merge(meth.data.10x,sample.info, by="Sample.ID") #combine sample info 
 #save sample info and percent methylation
 saveRDS(MD.10x, "RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata")
 
-MD.10x.original <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
+#MD.10x.original <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.original.Rdata") #read in info
 
-head(MD.10x.original)
+#head(MD.10x.original)
 ```
 
 # Filter out any SNPs that could impact our methylation data and use updated and filtered data frame for next steps
@@ -384,8 +384,14 @@ rownames(countData) <- countdata[,1]
 #make all column values integers 
 countData <- countData %>% mutate_if(is.numeric, as.integer)
 
-#filter out sample 2, 19 and 16 from sample_info data frame becuase they are not being used due to deduplication errors
+#filter out sample 2, 19 and 16 from sample_info and colData data frame because they are not being used due to deduplication errors
 samp.info <- sample.info[!row.names(sample.info) %in% c(8,11,12),]
+
+# Define the columns to remove
+columns_to_remove <- c("PV_2", "PV_19", "PV_16")  # Adjust with the column names you want to remove
+
+# Remove columns from colData
+countData <- countData[, !colnames(countData) %in% columns_to_remove]
 
 ##Merge the treatment columns into a new column , group. Set group as a factor.
 samp.info$treatment <- factor(samp.info$treatment, levels = c("control","enriched"))
@@ -487,7 +493,7 @@ DMG.PCA <- readPNG("RAnalysis/Output/Final_Figures/Host/DMG_PCA_plot_host.png")
 
 PCA.DMG <- rasterGrob(DMG.PCA, interpolate=TRUE)
 
-Figure2 <- plot_grid( DMG.volcano, DMG_PCA_plot, labels = c('A', 'B'), label_size = 14)
+Figure2 <- plot_grid( DMG.volcano, PCA.DMG, labels = c('A', 'B'), label_size = 14)
 
 ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DMG.PCA.volcano.png"), plot=Figure2, dpi=300, width=12, height=5, units="in", limitsize = FALSE)
 
@@ -614,7 +620,7 @@ DMG_PCA_plot <- ggplot(DMG_PCAdata, aes(PC1, PC2, color=treatment)) +
 
 DMG_PCA_plot
 
-ggsave("RAnalysis/Output/Final_Figures/Host/DMG_PCA_plot_plot_host.png", DMG_PCA_plot, width = 10, height = 10, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/Host/DMG_PCA_plot_host.png", DMG_PCA_plot, width = 5, height = 5, units = c("in"))
 ggsave("RAnalysis/Output/Final_Figures/Host/DMG_PCA_plot_host.pdf", DMG_PCA_plot, width = 10, height = 10, units = c("in"))
 
 ```
@@ -686,10 +692,10 @@ write.csv(GO.sig.trt , file = "RAnalysis/Output/WGBS/GO.sig.trt.10x.csv")
 #GO.sig.trt$term <- as.factor(GO.sig.trt$term)
 GO.sig.trt[is.na(GO.sig.trt)] <- "UN"
 
-nrow(GO.sig.trt) #118
-nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms (75)
-nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms (37)
-nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms (6)
+nrow(GO.sig.trt) #187
+nrow(filter(GO.sig.trt, ontology=="BP")) #number sig BP terms (113)
+nrow(filter(GO.sig.trt, ontology=="MF")) #number sig MF terms (51)
+nrow(filter(GO.sig.trt, ontology=="CC")) #number sig CC terms (20)
 
 #check any missing GO terms manually and add as needed
 which(GO.sig.trt$ontology=="UN")
