@@ -43,14 +43,15 @@ bed2 <- bed_data %>%
 # join data frames based on matching values in loci column
 inner.join.dat <- inner_join(bed2, ct2, by = "loci")
 
-#512 SNPs that match my bed files dataframe
+#1711 SNPs that match my bed files dataframe
+#for unique SNPs
 
 #  find rows in the first data frame that do not have a match in the second data frame based on loci column
 
 anti.join.dat <- bed2 %>%
   anti_join(ct2, by = "loci")
 
-# 1155895 unique data in my bed2 files, this matches that there are 512 SNPs in my bed data frame
+# 1118762 unique data in my bed2 files, this matches that there are 512 SNPs in my bed data frame
 
 # Use anti.join.dat as the filtered bed data file moving forward 
 # Write the filtered data to a new .bed file save as R object as it is too large

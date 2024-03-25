@@ -153,29 +153,29 @@ gs.10x <- unique(sub_meth_table.10x$gene)
 
 #all code below is commented out because only need to run this for the initial step
 #first subset the unique dataframes and second run the GLMs
-# 
-#  for(i in 1:length(sub_meth_table.10x$gene)){
-#  
-#    #subset the dataframe gene by gene
-#    sub_meth_table.10x1 <- subset(sub_meth_table.10x, gene ==gs.10x[i])
-# 
-#   # fit glm position model
-#   #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
-#    fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment,
-#               data=sub_meth_table.10x1, family=binomial)
-#    a <- anova(fit, test="Chisq")
-#  
-#    # capture summary stats to data frame
-#    df <- data.frame(gene = sub_meth_table.10x1[1,7],
-#                     pval.treatment = a$`Pr(>Chi)`[2],
-#                     #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
-#                     #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
-#                    stringsAsFactors = F)
-#  
-#    # bind rows of temporary data frame to the results data frame
-#    results.10x <- rbind(results.10x, df)
-#  
-#  }
+
+ for(i in 1:length(sub_meth_table.10x$gene)){
+
+   #subset the dataframe gene by gene
+   sub_meth_table.10x1 <- subset(sub_meth_table.10x, gene ==gs.10x[i])
+
+  # fit glm position model
+  #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
+   fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment,
+              data=sub_meth_table.10x1, family=binomial)
+   a <- anova(fit, test="Chisq")
+
+   # capture summary stats to data frame
+   df <- data.frame(gene = sub_meth_table.10x1[1,7],
+                    pval.treatment = a$`Pr(>Chi)`[2],
+                    #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
+                    #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
+                   stringsAsFactors = F)
+
+   # bind rows of temporary data frame to the results data frame
+   results.10x <- rbind(results.10x, df)
+
+ }
  
  write.csv(results.10x, "RAnalysis/Output/WGBS/meth.results.10x.csv")
 
@@ -185,8 +185,6 @@ gs.10x <- unique(sub_meth_table.10x$gene)
 #Continuing the analysis from results line will generate the results in the absence of the contrast (interaction).
 
 results.10x <- read.csv("RAnalysis/Output/WGBS/meth.results.10x.csv", row.names = 1)
-
-
 results.10x[is.na(results.10x)] <- 0
 results.10x$adj.pval.treatment <- p.adjust(results.10x$pval.treatment, method='BH') #BH is a less conservative Benjamini & Hochberg (1995) correction in which p-values are multiplied by the number of comparisons
 
@@ -199,7 +197,7 @@ DMG.sig.10x <- DMG.sig.10x[order(DMG.sig.10x$adj.pval.treatment),]
 DMG.sig.10x <- DMG.sig.10x[which(DMG.sig.10x$adj.pval.treatment<0.05), ]
 sum(DMG.sig.10x$adj.pval.treatment < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
 
-#365
+#367
 
 # Annotation of DMG under between treatments 
 DMG.sig.annot.10x <- left_join(DMG.sig.10x , Annot, by="gene")
@@ -359,8 +357,8 @@ hyper_genes <- merged_data$gene[merged_data$MeanDifference > 0]
 hypo_genes <- merged_data$gene[merged_data$MeanDifference < 0]
 
 # Count the number of hyper and hypomethylated genes
-num_hyper_genes <- length(hyper_genes) #198
-num_hypo_genes <- length(hypo_genes) #167
+num_hyper_genes <- length(hyper_genes) #203
+num_hypo_genes <- length(hypo_genes) #164
 
 ```
 
@@ -479,7 +477,7 @@ DMG.volcano <- ggplot(final_df, aes(x = log2FoldChange, y = -log10(padj), color 
   geom_point(alpha = 0.7, size = 2) +
   scale_color_manual(values = colors, name = "Methylation Status", 
                      breaks = c("Hypermethylated", "Hypomethylated", "Not Significant"),
-                     labels = c("Hypermethylated (198)", "Hypomethylated (167)", "Not Significant"),
+                     labels = c("Hypermethylated (203)", "Hypomethylated (164)", "Not Significant"),
                      drop = FALSE) +  # Include all specified breaks in the legend
   labs(title = "", x = "log2FoldChange", y = "-log10(adjusted p-value)") +
   theme_bw() +
