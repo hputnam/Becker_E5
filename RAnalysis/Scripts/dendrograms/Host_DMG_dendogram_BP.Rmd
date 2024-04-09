@@ -97,9 +97,8 @@ pairwise_dists=function(ids,dist_mat_){
 
 
 
-colors1=c('black','blue','brown','burlywood4','cadetblue','chartreuse4','chocolate3','chocolate4','coral3',
-          'blue4','blueviolet','brown1','darkgoldenrod4','deepskyblue4','firebrick4','darkslategrey','purple','red',
-          'green','gray',rainbow(n=100))  #colors for the dendrogram clusters
+colors1 <- c('lightskyblue', 'dodgerblue', 'steelblue', 'royalblue', 'navyblue', 'forestgreen', 'limegreen', 'seagreen', 'olivedrab', 'darkolivegreen', 'indianred', 'darkseagreen', 'mediumpurple', 'slategray', 'darkslateblue', 'darkred', 'red', 'maroon', 'darkslategrey', 
+             'purple', rainbow(n=100))  #colors for the dendrogram clusters
 max1=20   #you can try different numbers and choose the best clustering 
 ```
 
@@ -151,9 +150,9 @@ cutr_tightClusters$label_upper <- str_replace(cutr_tightClusters$label_upper, "M
 
 # make clusters on tree and organize
 gg1 = ggtree(hc, layout = 'rectangular') %<+% cutr_tightClusters + #edits layout of tree
-  geom_tippoint(aes(color = as.factor(cluster)), shape = "triangle", size = 2) + #adds triangles and adjusts size
+  geom_tippoint(aes(color = as.factor(cluster)), shape = "triangle", size = 8) + #adds triangles and adjusts size
   scale_colour_manual(values = colors1) + #distinguishes colors of clusters with data
-  geom_tiplab(aes(label = label_upper), offset = 0.1, size = 4) + #references the label_upper column to name tree nodes
+  geom_tiplab(aes(label = label_upper), offset = 0.3, size = 6) + #references the label_upper column to name tree nodes
   xlim(-3, 3) #sets x limites on plot
   
   pdf(paste0(outidx[i],'_tree_BP.pdf'))
@@ -162,16 +161,26 @@ gg1 = ggtree(hc, layout = 'rectangular') %<+% cutr_tightClusters + #edits layout
   
   scores1 = as.data.frame(dcast(geneGroups1[,.(term,score,experiment)], term ~ experiment,value.var='score',mean),stringsAsFactors=F)
   scores2 = scores1[,c(1:ncol(scores1))]
-  scores2 = as.data.frame(scores2)
-  scores2 <- select(scores2, -c("term"))
-  rownames(scores2) = scores1[,1]
-  gg2 = gheatmap(gg1, scores2, offset=1.75, width=0.1, font.size= 5) 
-  gg2 = gg2 + viridis::scale_fill_viridis(na.value=NA, option = "inferno")
-  pdf(paste0(outidx[i],'_tree_scores_BP.pdf'),width=21, height = 15)
-  print(gg2)
-  dev.off() 
   
+# Convert scores1 to data frame
+scores2 <- as.data.frame(scores1[, c(1:ncol(scores1))])
 
+# Remove the "term" column
+scores2 <- select(scores2, -c("term"))
+
+# Set row names of scores2
+rownames(scores2) <- scores1[, 1]
+
+# Create the heatmap
+gg2 <- gheatmap(gg1, scores2, offset = 2.1, width = 0.1, font.size = 8)
+
+# Apply custom gradient to the heatmap
+gg2 <- gg2 + viridis::scale_fill_viridis(na.value=NA, option = "inferno")
+
+# Output to PDF
+pdf(paste0(outidx[i], '_tree_scores_BP.pdf'), width = 21, height = 15)
+print(gg2)
+dev.off()
 
 ```
 
@@ -201,7 +210,7 @@ gg3 = ggplot (clusters, aes(x = comparison, y = term, size = set_size)) +
             geom_count (aes(color = percentDEInCat)) + 
             scale_color_viridis(na.value=NA, option = "inferno") +
             scale_size(limits = c(1, 1527)) +  # Set the limits here
-            labs(color = "%DMGs", size = "Set Size") +
+            labs(color = "%DMGs", size = "Number of Genes") +
             theme(panel.background = element_blank())
 
 print(gg3)
