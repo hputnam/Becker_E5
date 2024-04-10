@@ -101,8 +101,7 @@ pairwise_dists=function(ids,dist_mat_){
 
 
 
-colors1 <- c('lightskyblue', 'dodgerblue', 'steelblue', 'royalblue', 'navyblue', 'forestgreen', 'limegreen', 'seagreen', 'olivedrab', 'darkolivegreen', 'indianred', 'darkseagreen', 'mediumpurple', 'slategray', 'darkslateblue', 'darkred', 'red', 'maroon', 'darkslategrey', 
-             'purple', rainbow(n=100))   #colors for the dendrogram clusters
+colors1 <- c('lightskyblue', 'dodgerblue', 'steelblue', 'royalblue', 'limegreen', 'seagreen', 'darkolivegreen', 'indianred', 'slategray', 'darkred', 'mediumblue', 'forestgreen', 'turquoise', 'gold', 'orchid', 'deeppink', "darkkhaki", "coral", "red", "pink",   rainbow(n=100))
 max1=5  #you can try different numbers and choose the best clustering 
 ```
 

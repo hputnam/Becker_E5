@@ -98,9 +98,7 @@ pairwise_dists=function(ids,dist_mat_){
 
 
 
-colors1=c('black','blue','brown','burlywood4','cadetblue','chartreuse4','chocolate3','chocolate4','coral3',
-          'blue4','blueviolet','brown1','darkgoldenrod4','deepskyblue4','firebrick4','darkslategrey','purple','red',
-          'green','gray',rainbow(n=100))  #colors for the dendrogram clusters
+colors1 <- c('lightskyblue', 'dodgerblue', 'steelblue', 'royalblue', 'limegreen', 'seagreen', 'darkolivegreen', 'indianred', 'slategray', 'darkred', 'mediumblue', 'forestgreen', 'turquoise', 'gold', 'orchid', 'deeppink', "darkkhaki", "coral", "red", "pink",   rainbow(n=100))
 max1=15   #you can try different numbers and choose the best clustering 
 ```
 
@@ -153,22 +151,24 @@ cutr_tightClusters$label_upper <- str_replace(cutr_tightClusters$label_upper, "M
 
 # Create your ggtree plot
 gg1 <- ggtree(hc, layout = 'rectangular') %<+% cutr_tightClusters +
-  geom_tippoint(aes(color = as.factor(cluster)), shape = "triangle", size = 2) +
+  geom_tippoint(aes(color = as.factor(cluster)), shape = "triangle", size = 8) +
   scale_colour_manual(values = colors1) +
-  geom_tiplab(aes(label = label_upper), offset = 0.1, size = 4) +
+  geom_tiplab(aes(label = label_upper), offset = 0.1, size = 6) +
   xlim(-3, 3)
 
   pdf(paste0(outidx[i],'_tree_BP.pdf'))
   print(gg1)
   dev.off()
   
+
+  
   scores1 = as.data.frame(dcast(geneGroups1[,.(term,score,experiment)], term ~ experiment,value.var='score',mean),stringsAsFactors=F)
   scores2 = scores1[,c(1:ncol(scores1))]
   scores2 = as.data.frame(scores2)
   scores2 <- select(scores2, -c("term"))
   rownames(scores2) = scores1[,1]
-  gg2 = gheatmap(gg1, scores2, offset=1.75, width=0.1, font.size= 5) 
-  gg2 = gg2 + viridis::scale_fill_viridis(na.value=NA, option = "inferno")
+  gg2 = gheatmap(gg1, scores2, offset=2.5, width=0.1, font.size= 5) 
+  gg2 = gg2 + viridis::scale_fill_viridis(na.value=NA, option = "magma")
   pdf(paste0(outidx[i],'_tree_scores_BP.pdf'),width=14, height = 15)
   print(gg2)
   dev.off() 
@@ -198,17 +198,27 @@ dotplot <- left_join(mean_scores, sum_set_sizes)
 #read in dotplot data
 clusters <- read_csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/dendogram/DEG_dotplot_BP.csv", col_names = TRUE)
 
+# Convert term_name to factor
+clusters$term_name <- factor(clusters$term_name)
 
-gg3 = ggplot (clusters, aes(x = comparison, y = term_name, size = set_size)) + 
-            geom_count (aes(color = percentDEInCat)) + 
-            scale_color_viridis(na.value=NA, option = "inferno") +
-            scale_size(limits = c(1, 789)) +  # Set the limits here
-            labs(color = "%DEGs", size = "Set Size") +
-            theme(panel.background = element_blank())
+# Define the desired order of term names
+term_order <- c("Biological regulation", "Biological process involved in interspecies interaction", "Cell cycle process", "Cellular amino acid metabolic process", "Microtubule-based movement", "Muscle system process", "Peroxisome organization", "Protein modification process", "Reproduction", "Telomere organization", "Vitamin metabolic process", "Immune system process", "Carboxylic acid metabolic process", "Protein localization", "Cytoskeleton organization", "Nitrogen compound metabolic process", "Sulfur compound metabolic process", "Detoxification", "Protein maturation",  "mRNA metabolic process", "DNA repair", "DNA-templated transcription", "Lipid metabolic process", "Glutamine transport", "Cytolysis", "Cellular process", "Protein folding", "Intracellular protein transport", "Cell motility", "Catalytic activity", "Positive regulation of phospholipase activity", "Transport", "Transmembrane transport", "Protein-containing complex assembly", "Nervous system process", "DNA replication", "Anatomical structure development", "Protein catabolic process", "Vesicle-mediated transport", "Regulation of lipid storage", "Multicellular organismal process", "Cell differentiation", "Regulation of transport", "Regulation of macromolecule metabolic process", "Regulation of reactive oxygen", "Cellular component organization or biogenesis", "Regulation of cellular process", "Regulation of biological process", "Carbohydrate metabolic process", "Signaling", "Response to nitrogen compound", "Response to stimulus", "Response to nutrient levels", "Response to stress", "Modulation by symbiont of host process", "Reproductive process", "Programmed cell death", "Carbohydrate derivative metabolic process")
+
+# Reorder the term_name factor levels
+clusters <- clusters %>%
+  mutate(term_name = factor(term_name, levels = rev(term_order)))
+
+# Create plot with reordered terms
+gg3 = ggplot(clusters, aes(x = comparison, y = term_name, size = set_size)) + 
+  geom_count(aes(color = percentDEInCat)) +
+  scale_color_viridis(na.value = NA, option = "inferno") +
+  scale_size(limits = c(1, 789)) +
+  labs(color = "%DEGs", size = "Number of Genes") +
+  theme(panel.background = element_blank())
 
 print(gg3)
 
-ggsave("RAnalysis/Output/Dendograms/clusters_dotplot_BP.png",
+ggsave("RAnalysis/Output/Dendograms/clusters_dotplot_DEG_BP.png",
        dpi = 300, 
        width = 10,
        height = 10)
