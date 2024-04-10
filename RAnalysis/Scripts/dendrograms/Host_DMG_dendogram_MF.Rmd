@@ -190,7 +190,17 @@ dotplot <- left_join(mean_scores, sum_set_sizes)
 #read in dotplot data
 clusters <- read_csv("RAnalysis/Data/WGBS/dendogram/DMG_dotplot_MF.csv", col_names = TRUE)
 
+# Convert term_name to factor
+clusters$term_name <- factor(clusters$term_name)
 
+# Define the desired order of term names
+term_order <- c()
+
+# Reorder the term_name factor levels
+clusters <- clusters %>%
+  mutate(term_name = factor(term_name, levels = rev(term_order)))
+
+# Create plot with reordered terms
 gg3 = ggplot (clusters, aes(x = comparison, y = term, size = set_size)) + 
             geom_count (aes(color = percentDEInCat)) + 
             scale_color_viridis(na.value=NA, option = "inferno") +

@@ -171,7 +171,7 @@ scores2 <- select(scores2, -c("term"))
 rownames(scores2) <- scores1[, 1]
 
 # Create the heatmap
-gg2 <- gheatmap(gg1, scores2, offset = 2.1, width = 0.1, font.size = 8)
+gg2 <- gheatmap(gg1, scores2, offset = 2.5, width = 0.1, font.size = 8)
 
 # Apply custom gradient to the heatmap
 gg2 <- gg2 + viridis::scale_fill_viridis(na.value=NA, option = "inferno")
@@ -204,7 +204,17 @@ dotplot <- left_join(mean_scores, sum_set_sizes)
 #read in dotplot data
 clusters <- read_csv("RAnalysis/Data/WGBS/dendogram/DMG_dotplot_BP.csv", col_names = TRUE)
 
+# Convert term_name to factor
+clusters$term <- factor(clusters$term)
 
+# Define the desired order of term names
+term_order <- c("Carboxylic acid metabolic process", "Carbohydrate derivative metabolic process", "Intracellular protein transport", "Lipid metabolic process", "Muscle system process", "Regulation of cellular process", "Organelle localization", "Cell adhesion", "Protein maturation", "Cellular localization", "Regulation of catalytic activity", "Carbohydrate metabolic process", "Cytoskeleton organization", "Nucleic acid metabolic process", "DNA metabolic process", "Nitrogen compound metabolic process", "DNA biosynthetic process", "DNA replication", "DNA repair", "Telomere organization", "Cellular homeostasis", "Cell differentiation", "Transmembrane transport", "Transport", "DNA-templated transcription", "Cellular nitrogen compound", "Biological process involved in interspecies interaction", "Microtubule-based movement", "Mitotic cell cycle", "Regulation of gene expression", "Cell cycle process", "Response to nutrient levels", "Cytoplasmic translation", "Response to nitrogen compound", "Viral process", "Response to stress", "Response to virus", "Immune system process", "Positive regulation of translation", "Cell motility", "Regulation of phospholipase activity", "Protein modification process", "Protein metabolic process", "Behavior", "Wound healing", "Cellular component organization", "Membrane organization", "Signaling", "Reproductive process", "Cellular metabolic process", "Positive regulation of cellular pH", "Anatomical structure development")
+
+# Reorder the term_name factor levels
+clusters <- clusters %>%
+  mutate(term = factor(term, levels = rev(term_order)))
+
+# Create plot with reordered terms
 gg3 = ggplot (clusters, aes(x = comparison, y = term, size = set_size)) + 
             geom_count (aes(color = percentDEInCat)) + 
             scale_color_viridis(na.value=NA, option = "inferno") +

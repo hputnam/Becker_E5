@@ -1,76 +1,62 @@
-﻿term_name,comparison,percentDEInCat,set_size,cluster
-Anatomical structure development,Enriched_vs_Control,40.482466,789,1
-Binding,Enriched_vs_Control,30.802019,170,2
-Biological process involved in interspecies interaction between organisms,Enriched_vs_Control,-33.333333,3,3
-Biological regulation,Enriched_vs_Control,-20,5,4
-Carbohydrate derivative metabolic process,Enriched_vs_Control,35,7,5
-Carbohydrate metabolic process,Enriched_vs_Control,22.5,9,6
-Carboxylic acid metabolic process,Enriched_vs_Control,33.333333,6,3
-Catalytic activity,Enriched_vs_Control,41.436679,761,7
-Cell cycle process,Enriched_vs_Control,50,2,3
-Cell differentiation,Enriched_vs_Control,40,5,2
-Cell motility,Enriched_vs_Control,26.111111,12,8
-Cellular amino acid metabolic process,Enriched_vs_Control,45.833333,16,7
-Cellular anatomical entity,Enriched_vs_Control,-30.717949,208,6
-Cellular component organization or biogenesis,Enriched_vs_Control,-20,5,6
-Cellular process,Enriched_vs_Control,8.333333,24,9
-Cytolysis,Enriched_vs_Control,5.555556,36,9
-Cytoskeleton organization,Enriched_vs_Control,-6.060606,33,10
-Detoxification,Enriched_vs_Control,40,5,11
-DNA binding,Enriched_vs_Control,11.162791,306,12
-DNA repair,Enriched_vs_Control,37.5,6,4
-DNA replication,Enriched_vs_Control,33.333333,3,1
-DNA-templated transcription,Enriched_vs_Control,33.333333,12,4
-Extracellular region,Enriched_vs_Control,100,3,2
-Glutamate synthase (NADH) activity,Enriched_vs_Control,6.666667,60,13
-Glutamate synthase activity,Enriched_vs_Control,6.586632,203,13
-Glutamine synthetase activity,Enriched_vs_Control,18.78453,181,14
-Glutamine transport,Enriched_vs_Control,5.714286,35,15
-Heat shock protein binding,Enriched_vs_Control,6.25,80,16
-Immune system process,Enriched_vs_Control,26.111111,12,3
-Intracellular protein transport,Enriched_vs_Control,100,1,17
-Lipid binding,Enriched_vs_Control,-20,5,6
-Lipid metabolic process,Enriched_vs_Control,36.724582,72,15
-Microtubule-based movement,Enriched_vs_Control,43.75,10,16
-Modulation by symbiont of host process,Enriched_vs_Control,50,2,13
-Molecular function regulator activity,Enriched_vs_Control,35.357143,23,17
-Molecular transducer activity,Enriched_vs_Control,14.285714,14,18
-mRNA metabolic process,Enriched_vs_Control,25,4,4
-Multicellular organismal process,Enriched_vs_Control,26.041667,22,2
-Muscle system process,Enriched_vs_Control,63.333333,10,12
-Nervous system process,Enriched_vs_Control,8.695652,23,19
-Nitrogen compound metabolic process,Enriched_vs_Control,74.751553,102,20
-Organelle,Enriched_vs_Control,32.258268,525,1
-Peroxisome organization,Enriched_vs_Control,20,5,3
-Plasma membrane,Enriched_vs_Control,53.846154,27,18
-Positive regulation of phospholipase activity,Enriched_vs_Control,50,2,8
-Programmed cell death,Enriched_vs_Control,100,1,5
-Protein binding,Enriched_vs_Control,62.845304,1452,4
-Protein catabolic process,Enriched_vs_Control,15.384615,13,1
-Protein containing complex,Enriched_vs_Control,100,1,10
-Protein folding,Enriched_vs_Control,50,2,17
-Protein localization,Enriched_vs_Control,66.666667,4,10
-Protein maturation,Enriched_vs_Control,7.407407,27,11
-Protein modification process,Enriched_vs_Control,25.416667,39,8
-Protein-containing complex assembly,Enriched_vs_Control,18.831699,62,19
-Regulation of biological process,Enriched_vs_Control,30.957393,68,18
-Regulation of cellular process,Enriched_vs_Control,54.166667,11,6
-Regulation of lipid storage,Enriched_vs_Control,33.333333,6,2
-Regulation of macromolecule metabolic process,Enriched_vs_Control,9.896062,475,20
-Regulation of reactive oxygen,Enriched_vs_Control,25,4,6
-Regulation of transport,Enriched_vs_Control,33.333333,3,6
-Reproduction,Enriched_vs_Control,28.125,34,3
-Reproductive process,Enriched_vs_Control,20.654762,41,3
-Response to nitrogen compound,Enriched_vs_Control,80,8,4
-Response to nutrient levels,Enriched_vs_Control,35.555556,34,18
-Response to stimulus,Enriched_vs_Control,42.554266,219,18
-Response to stress,Enriched_vs_Control,3.66645,203,13
-RNA binding,Enriched_vs_Control,20,5,3
-Signaling,Enriched_vs_Control,-32.10288,467,6
-Sulfur compound metabolic process,Enriched_vs_Control,38.871795,53,11
-Telomere organization,Enriched_vs_Control,-20,10,3
-Transmembrane transport,Enriched_vs_Control,21.251609,97,19
-Transport,Enriched_vs_Control,21.802033,417,2
-Transporter activity,Enriched_vs_Control,18.592779,521,14
-Vesicle-mediated transport,Enriched_vs_Control,-33.256579,225,2
-Vitamin metabolic process,Enriched_vs_Control,-100,1,7
+﻿term_name,comparison,percentDEInCat,set_size
+Anatomical structure development,Enriched_vs_Control,5.52884025,416
+Behavior,Enriched_vs_Control,50,2
+Biological process involved in interspecies interaction,Enriched_vs_Control,50,2
+Carbohydrate derivative metabolic process,Enriched_vs_Control,12,25
+Carbohydrate metabolic process,Enriched_vs_Control,20,5
+Carboxylic acid metabolic process,Enriched_vs_Control,33.3333333,3
+Cell cycle process,Enriched_vs_Control,33.3333333,3
+Cell differentiation,Enriched_vs_Control,25,4
+Cell adhesion,Enriched_vs_Control,6.31578947,95
+Cell motility,Enriched_vs_Control,9.25925926,54
+Cellular component organization,Enriched_vs_Control,5.08474576,236
+Cellular homeostasis,Enriched_vs_Control,33.3333333,3
+Cellular localization,Enriched_vs_Control,12.5,8
+Cellular metabolic process,Enriched_vs_Control,5.35714286,112
+Cellular nitrogen compound,Enriched_vs_Control,33.3333333,3
+Cytoplasmic translation,Enriched_vs_Control,33.3333333,9
+Cytoskeleton organization,Enriched_vs_Control,-18.1818182,11
+DNA biosynthetic process,Enriched_vs_Control,7.29483283,329
+DNA metabolic process,Enriched_vs_Control,4.88721805,266
+DNA repair,Enriched_vs_Control,49.4444444,180
+DNA replication,Enriched_vs_Control,13.5135135,37
+DNA-templated transcription,Enriched_vs_Control,16.6666667,36
+Immune system process,Enriched_vs_Control,9.09090909,33
+Intracellular protein transport,Enriched_vs_Control,22.2222222,9
+Lipid metabolic process,Enriched_vs_Control,50,2
+Microtubule-based movement,Enriched_vs_Control,16.6666667,6
+Membrane organization,Enriched_vs_Control,20,10
+Mitotic cell cycle,Enriched_vs_Control,12.5,16
+Muscle system process,Enriched_vs_Control,25,4
+Nitrogen compound metabolic process,Enriched_vs_Control,6.68693009,329
+Nucleic acid metabolic process,Enriched_vs_Control,10.1506221,1527
+Organelle localization,Enriched_vs_Control,25,4
+Positive regulation of cellular pH,Enriched_vs_Control,33.3333333,3
+Positive regulation of translation,Enriched_vs_Control,15.3846154,26
+Protein maturation,Enriched_vs_Control,33.3333333,3
+Protein metabolic process,Enriched_vs_Control,1.84581976,921
+Protein modification process,Enriched_vs_Control,3.97350993,151
+Regulation of catalytic activity,Enriched_vs_Control,50,2
+Regulation of cellular process,Enriched_vs_Control,14.2857143,14
+Regulation of gene expression,Enriched_vs_Control,100,8
+Regulation of phospholipase activity,Enriched_vs_Control,9.09090909,22
+Reproductive process,Enriched_vs_Control,44.444444,9
+Response to nitrogen compound,Enriched_vs_Control,50,4
+Response to nutrient levels,Enriched_vs_Control,100,4
+Response to stress,Enriched_vs_Control,33.3333333,6
+Response to virus,Enriched_vs_Control,33.3333333,3
+Signaling,Enriched_vs_Control,6.62650602,332
+Telomere organization,Enriched_vs_Control,25,4
+Transmembrane transport,Enriched_vs_Control,7.5,40
+Transport,Enriched_vs_Control,11.5789474,285
+Viral process,Enriched_vs_Control,19.2307692,26
+Wound healing,Enriched_vs_Control,4,75
+Transferase activity,Enriched_vs_Control,100,2
+Binding,Enriched_vs_Control,4.7146402,5642
+Cargo receptor activity,Enriched_vs_Control,4.38596491,114
+Catalytic activity,Enriched_vs_Control,4.58040789,1142
+Cation binding,Enriched_vs_Control,1.88235294,1700
+Nucleic acid binding,Enriched_vs_Control,2.43084661,1193
+Signaling receptor binding,Enriched_vs_Control,10.5263158,19
+Translation regulator activity,Enriched_vs_Control,8.69565217,23
+Transporter activity,Enriched_vs_Control,14.9425287,87
