@@ -5,7 +5,7 @@ date: "2024-03-11"
 output: html_document
 ---
 
-# Filtering SNPs found from BS-SNper, following this workflow: https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2024-02-12-Testing-BS-SNPer-Molec-Underpinnings-WGBS.md
+# Filtering SNPs found from BS-SNper, following this workflow: https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2024-02-12-BS-SNPer-Molec-Underpinnings-WGBS.md
 
 # Using .tab output file and CT-SNP specific .vcf file from BS-SNPer to filter SNPs found in 10x .bed files made following this workflow: https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2022-12-10-P.verrucosa-WGBS-Workflow-Host.md and combined with this script: https://github.com/hputnam/Becker_E5/blob/master/RAnalysis/Scripts/WGBS/WGBS.Rmd
 
