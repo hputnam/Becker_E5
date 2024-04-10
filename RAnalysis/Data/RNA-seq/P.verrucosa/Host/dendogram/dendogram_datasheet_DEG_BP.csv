@@ -49,7 +49,7 @@ enriched_vs_control,50,2,anatomical structure development,gene_g3838; gene_g8295
 enriched_vs_control,5.263157895,38,anatomical structure development,gene_g488; gene_g629; gene_g1156; gene_g1157; gene_g1198; gene_g3163; gene_g3544; gene_g4180; gene_g4448; gene_g4449; gene_g4723; gene_g4726; gene_g4727; gene_g4729; gene_g5118; gene_g5929; gene_g6609; gene_g6862; gene_g7018; gene_g9902; gene_g10763; gene_g10921; gene_g12961; gene_g13864; gene_g14115; gene_g14243; gene_g14315; gene_g14903; gene_g15960; gene_g17233; gene_g17602; gene_g20439; gene_g23646; gene_g25621; gene_g25622; gene_g26260; gene_g26751; gene_g26789; gene_252_5de57afd
 enriched_vs_control,33.33333333,3,anatomical structure development,gene_g11619; gene_g15713; gene_g15923
 enriched_vs_control,33.33333333,3,anatomical structure development,gene_g14243; gene_g16312; gene_g25935
-enriched_vs_control,33.33333333,3,biological process involved in interspecies interaction between organisms,gene_g14886; gene_g14887; gene_g21987
+enriched_vs_control,33.33333333,3,biological process involved in interspecies interaction,gene_g14886; gene_g14887; gene_g21987
 enriched_vs_control,20,5,biological regulation,gene_g7950; gene_g8120; gene_g9017; gene_g12512; gene_g23101
 enriched_vs_control,20,5,carbohydrate derivative metabolic process,gene_g542; gene_g849; gene_g15167; gene_g18012; gene_g20305
 enriched_vs_control,50,2,carbohydrate derivative metabolic process,gene_g13135; gene_g19246

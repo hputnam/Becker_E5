@@ -13,6 +13,7 @@ output: html_document
 ```{r}
 library(ggplot2)
 library(dendextend)
+library(forcats)
 library(plyr)
 library(circlize)
 library(cowplot)
@@ -101,9 +102,7 @@ pairwise_dists=function(ids,dist_mat_){
 
 
 
-colors1=c('black','blue','brown','burlywood4','cadetblue','chartreuse4','chocolate3','chocolate4','coral3',
-          'blue4','blueviolet','brown1','darkgoldenrod4','deepskyblue4','firebrick4','darkslategrey','purple','red',
-          'green','gray',rainbow(n=100))  #colors for the dendrogram clusters
+colors1 <- c('lightskyblue', 'dodgerblue', 'steelblue', 'royalblue', 'limegreen', 'seagreen', 'darkolivegreen', 'indianred', 'slategray', 'darkred', 'red', 'maroon', 'darkslategrey', rainbow(n=100))   #colors for the dendrogram clusters
 max1=7   #you can try different numbers and choose the best clustering 
 ```
 
@@ -149,9 +148,9 @@ cutr_tightClusters$label_upper <- tools::toTitleCase(rownames(cutr_tightClusters
 
 # make clusters on tree and organize
 gg1 = ggtree(hc, layout = 'rectangular') %<+% cutr_tightClusters + #edits layout of tree
-  geom_tippoint(aes(color = as.factor(cluster)), shape = "triangle", size = 2) + #adds triangles and adjusts size
+  geom_tippoint(aes(color = as.factor(cluster)), shape = "triangle", size = 8) + #adds triangles and adjusts size
   scale_colour_manual(values = colors1) + #distinguishes colors of clusters with data
-  geom_tiplab(aes(label = label_upper), offset = 0.1, size = 4) + #references the label_upper column to name tree nodes
+  geom_tiplab(aes(label = label_upper), offset = 0.1, size = 6) + #references the label_upper column to name tree nodes
   xlim(-3, 3) #sets x limites on plot
   
   pdf(paste0(outidx[i],'_tree_MF.pdf'))
@@ -163,7 +162,7 @@ gg1 = ggtree(hc, layout = 'rectangular') %<+% cutr_tightClusters + #edits layout
   scores2 = as.data.frame(scores2)
   scores2 <- select(scores2, -c("term"))
   rownames(scores2) = scores1[,1]
-  gg2 = gheatmap(gg1, scores2, offset=1.75, width=0.1, font.size= 5) 
+  gg2 = gheatmap(gg1, scores2, offset=2.5, width=0.1, font.size= 5) 
   gg2 = gg2 + viridis::scale_fill_viridis(na.value=NA, option = "inferno")
   pdf(paste0(outidx[i],'_tree_scores_MF.pdf'),width=12, height = 8)
   print(gg2)
@@ -193,17 +192,31 @@ dotplot <- left_join(mean_scores, sum_set_sizes)
 #read in dotplot data
 clusters <- read_csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/dendogram/DEG_dotplot_MF.csv", col_names = TRUE)
 
+# Convert term_name to factor
+clusters$term_name <- factor(clusters$term_name)
 
-gg3 = ggplot (clusters, aes(x = comparison, y = term_name, size = set_size)) + 
-            geom_count (aes(color = percentDEInCat)) + 
-            scale_color_viridis(na.value=NA, option = "inferno") +
-            scale_size(limits = c(5, 1452)) +  # Set the limits here
-            labs(color = "%DEGs", size = "Set Size") +
-            theme(panel.background = element_blank())
+# Define the desired order of term names
+term_order <- c(
+  "Transport", "Protein binding", "Heat shock protein binding", 
+  "Lipid binding", "Catalytic activity", "RNA binding", 
+  "Glutamate synthase activity", "Molecular function regulator activity", "DNA binding", "Molecular transducer activity", "Binding", 
+  "Transporter activity", "Glutamine synthetase activity")
+
+# Reorder the term_name factor levels
+clusters <- clusters %>%
+  mutate(term_name = factor(term_name, levels = rev(term_order)))
+
+# Create plot with reordered terms
+gg3 = ggplot(clusters, aes(x = comparison, y = term_name, size = set_size)) + 
+  geom_count(aes(color = percentDEInCat)) +
+  scale_color_viridis(na.value = NA, option = "inferno") +
+  scale_size(limits = c(5, 1452)) +
+  labs(color = "%DEGs", size = "Number of Genes") +
+  theme(panel.background = element_blank())
 
 print(gg3)
 
-ggsave("RAnalysis/Output/Dendograms/clusters_dotplot_MF.png",
+ggsave("RAnalysis/Output/Dendograms/clusters_dotplot_DEG_MF.png",
        dpi = 300, 
        width = 5,
        height = 5)

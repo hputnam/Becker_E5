@@ -1,6 +1,6 @@
 ﻿term_name,comparison,percentDEInCat,set_size,cluster
 Anatomical structure development,Enriched_vs_Control,40.482466,789,1
-Biological process involved in interspecies interaction between organisms,Enriched_vs_Control,-33.333333,3,2
+Biological process involved in interspecies interaction ,Enriched_vs_Control,-33.333333,3,2
 Biological regulation,Enriched_vs_Control,-20,5,2
 Carbohydrate derivative metabolic process,Enriched_vs_Control,35,7,3
 Carbohydrate metabolic process,Enriched_vs_Control,22.5,9,4
