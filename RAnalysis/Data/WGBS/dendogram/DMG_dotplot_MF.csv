@@ -1,10 +1,10 @@
 ﻿term,comparison,percentDEInCat,set_size,cluster
 Binding,Enriched_vs_Control,4.7146402,5642,1
-Cargo receptor activity,Enriched_vs_Control,-4.385965,114,2
-Catalytic activity,Enriched_vs_Control,4.58040789,1142,3
-Cation binding,Enriched_vs_Control,-1.88235294,1700,2
-Nucleic acid binding,Enriched_vs_Control,2.430847,1193,2
+Cargo receptor activity,Enriched_vs_Control,-4.385965,114,2
+Catalytic activity,Enriched_vs_Control,4.58040789,1142,3
+Cation binding,Enriched_vs_Control,-1.88235294,1700,2
+Nucleic acid binding,Enriched_vs_Control,2.430847,1193,2
 Translation regulator activity,Enriched_vs_Control,8.69565217,23,5
-Signaling receptor binding,Enriched_vs_Control,-10.526316,19,1
-Transferase activity,Enriched_vs_Control,100,50,4
-Transporter activity,Enriched_vs_Control,14.9425287,87,3
+Signaling receptor binding,Enriched_vs_Control,-10.526316,19,1
+Transferase activity,Enriched_vs_Control,100,50,4
+Transporter activity,Enriched_vs_Control,14.9425287,87,3
