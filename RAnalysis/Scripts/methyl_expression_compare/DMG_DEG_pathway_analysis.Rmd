@@ -92,36 +92,6 @@ write.csv(DMG, file = "RAnalysis/Output/WGBS/GO.DMG.parent.terms.csv")
 ```
 
 
-
-```{r}
-#use dplyr inner_join instead
-
-common <- intersect(DMG$term, DEG$term) 
-
-common <- as.data.frame(common)
-
-#found three common terms for DMG and DEG
-
-#leukocyte migration involved in inflammatory response (parent term cell motility, immune system response, response to stress)
-
-#positive regulation of transcription from RNA polymerase II promoter in response to heat stress (DNA-templated transcription; response to stress; nitrogen compound metabolic process)
-
-#fatty acid derivative biosynthetic process (lipid metabolic process)
-
-#main question is why 10x terms have three overlapping but 5x does not
-```
-
-#next steps, fill in remaining parent terms for the NAs in these data sets and see the overlap there
-#filter datas sets with NAs for their slim terms
-```{r}
-DMG.NA <- DMG %>%
-  filter(is.na(slim_term))
-
-DEG.NA <- DEG %>%
-  filter(is.na(slim_term))
-```
-
-
 #Filled in all NAs with parent terms for completed data frames below
 #Used QuickGO to search and fill in the remaining NA parent terms https://www.ebi.ac.uk/QuickGO/term/GO:1901363
 #DMG go plot
@@ -493,11 +463,6 @@ ggsave("RAnalysis/Output/Final_Figures/Host/GO.BP.DEG.DMG.pdf", GO.plot.BP.DEG.D
 
 
 
-
-
-
-
-
 #make final DMG DEG molecular function comparison plot
 ```{r}
 #filter for just the molecular function ontology
@@ -571,6 +536,64 @@ ggsave("RAnalysis/Output/Final_Figures/Host/GO.CC.DEG.DMG.pdf", GO.plot.CC.DEG.D
 
 ```
 
+#compare gene lists for correlation, DEG, DMG need to bring in statistic data frame
+```{r}
+#methylation and expression dataframe calculated and complete in meth_GE_compare.Rmd script, found here: https://github.com/hputnam/Becker_E5/blob/master/RAnalysis/Scripts/methyl_expression_compare/meth_GE_compare.Rmd
+#this data frame lists only the genes found in meth and express data frames
+meth.express <- readRDS("RAnalysis/Data/GE_meth_compare/Multi_geneSummaryComplete.RData")
+
+#remove _gene_ in gene id to match other data frames
+meth.express$gene_id <-  gsub("_gene_","_", meth.express$gene_id)
+
+#this data frame lists all methylated genes found 
+methyl.annot <- readRDS("RAnalysis/Data/GE_meth_compare/meth_annot_full.RData")
+
+#remove _gene_ in gene id to match other data frames
+methyl.annot$gene_id <-  gsub("_gene_","_", methyl.annot$gene_id)
+
+#this data frame lists all expressed genes found
+express.annot <- readRDS("RAnalysis/Data/GE_meth_compare/gene_annot_full.RData")
+
+#remove _gene_ in gene id to match other data frames
+express.annot$gene_id <-  gsub("_gene_","_", express.annot$gene_id)
+
+#remove gene_ from column 2 to 8
+colnames(express.annot)[2:8] <-  sub(".*gene_", "", colnames(express.annot)[2:8])
+
+```
+
+# Make full gene and meth datframe and plot correlation for all genes
+```{r}
+## Mean Methylation vs Gene Expression following Liew et al
+meth.express.all <- meth.express
+
+meth.express.all  %>% drop_na()
+
+#control log gene expression x % methylation
+meth.express.all$log_gene <- log(meth.express.all$gene_mean_express+1)
+meth.express.all$per_meth <- meth.express.all$mean_meth * 100
+
+#make plot with correlation tests
+#decide between pearson, kendall, or spearman
+#first test normality
+shapiro.test(meth.express.all$gene_mean_express) # <0.05
+shapiro.test(meth.express.all$mean_meth) # <0.05
+#both variables are less then 0.05 indicating data do not follow normal distribution
+
+#use kendall test for correlation, Kendall’s is more robust and generally the preferred method between spearman and kendall
+
+meth.express.all <- ggplot(meth.express.all,aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + 
+    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+  stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
+    theme_cowplot();meth.express.all
+
+### Figure Mean Methylation vs Gene Expression###
+
+ggsave(meth.express.all, filename="RAnalysis/Output/meth_express_compare/global.express.meth.png", height = 7, width = 10)
+```
 
 #Filter dataframes for gene ontology groups that are involved in nitrogen pathways, stress pathways to see if expression and methylation are correlated
 ```{r}
@@ -621,39 +644,11 @@ long.pathway.DMG$gene_id <- gsub(' Pver', 'Pver', long.pathway.DMG$gene_id)
 ```
 
 
-#compare gene lists for correlation, DEG, DMG need to bring in statistic data frame
-```{r}
-#methylation and expression dataframe calculated and complete in meth_GE_compare.Rmd script, found here: https://github.com/hputnam/Becker_E5/blob/master/RAnalysis/Scripts/methyl_expression_compare/meth_GE_compare.Rmd
-#this data frame lists only the genes found in meth and express data frames
-meth.express <- readRDS("RAnalysis/Data/GE_meth_compare/Multi_geneSummaryComplete.RData")
-
-#remove _gene_ in gene id to match other data frames
-meth.express$gene_id <-  gsub("_gene_","_", meth.express$gene_id)
-
-#this data frame lists all methylated genes found 
-methyl.annot <- readRDS("RAnalysis/Data/GE_meth_compare/meth_annot_full.RData")
-
-#remove _gene_ in gene id to match other data frames
-methyl.annot$gene_id <-  gsub("_gene_","_", methyl.annot$gene_id)
-
-#this data frame lists all expressed genes found
-express.annot <- readRDS("RAnalysis/Data/GE_meth_compare/gene_annot_full.RData")
-
-#remove _gene_ in gene id to match other data frames
-express.annot$gene_id <-  gsub("_gene_","_", express.annot$gene_id)
-
-#remove gene_ from column 2 to 8
-colnames(express.annot)[2:8] <-  sub(".*gene_", "", colnames(express.annot)[2:8])
-
-```
-
-
 ```{r}
 #combine DMG and DEG data frames, by binding below so all rows are present
 
 #add column to specific type of measure
 long.pathway.DEG <- long.pathway.DEG %>% add_column(type = "DEG.GO.terms")
-
 
 #DMG columns = 12 rows and DEG = 435 rows, total rows should be 447
 DMG.DEG.dat <- rbind(long.pathway.DEG, long.pathway.DMG)
@@ -663,16 +658,15 @@ DMG.DEG.dat <- rbind(long.pathway.DEG, long.pathway.DMG)
 write.csv(DMG.DEG.dat, "RAnalysis/Output/meth_express_compare/hypothesis.DEG.DMG.goterms.csv")
 ```
 
+
 ```{r}
 #combine all meth express data frame with DMG.DEG data frame
 #this will merge only genes found in both DMG and DEG
 meth.exp.filt <- merge(meth.express, DMG.DEG.dat, by = 'gene_id')
 
 #this will merge to list all DEG and DMG express and meth statistics
-#all DMG rows should stay = 12, only 9
 meth.merge <- merge(methyl.annot, long.pathway.DMG)
 
-#all DEG rows should stay = 435, only 410
 express.merge <- merge(express.annot, long.pathway.DEG, by = 'gene_id')
 
 #the reason some expressed or methylated genes do not merge with stats are due to filtering for >3 CpG in methylation and >0 mean expression
@@ -681,7 +675,7 @@ express.merge <- merge(express.annot, long.pathway.DEG, by = 'gene_id')
 ```
 
 
-#look at comparisons between genes in control and enriched, calculate unique gene_ids in both control and enriched and number that are shared between the two groups, venn diagram
+# Look at correlation for mean methylation and gene expression in hypothesis driven approach
 ```{r}
 ## Mean Methylation vs Gene Expression following Liew et al
 df <- meth.exp.filt
@@ -709,8 +703,6 @@ meth.express.specific <- ggplot(df,aes(x=per_meth, y=log_gene,)) +
   stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
     theme_cowplot();meth.express.specific
 
-
-
 ### Figure Mean Methylation vs Gene Expression###
 
 ggsave(meth.express.specific, filename="RAnalysis/Output/meth_express_compare/pathway.specific.express.meth.png", height = 7, width = 10)
@@ -718,75 +710,23 @@ ggsave(meth.express.specific, filename="RAnalysis/Output/meth_express_compare/pa
 
 
 
-#look at comparisons between genes in control and enriched, calculate unique gene_ids in both control and enriched and number that are shared between the two groups, venn diagram
-```{r}
-## Mean Methylation vs Gene Expression following Liew et al
 
-#control log gene expression x % methylation
-df$log_gene_C <- log(df$gene_mean_express_C+1)
-df$per_meth_C <- df$mean_meth_C * 100
-
-#make plot with correlation tests
-#decide between pearson, kendall, or spearman
-#first test normality
-shapiro.test(df$gene_mean_express_C) # <0.05
-shapiro.test(df$mean_meth_C) # <0.05
-#both variables are less then 0.05 indicating data do not follow normal distribution
-
-#use kendall test for correlation, Kendall’s is more robust and generally the preferred method between spearman and kendall
-control <- ggplot(df, aes(x=per_meth_C, y=log_gene_C)) + 
-    geom_point() + ylim(0,3) + xlim(0,100) +
-    geom_smooth(method=lm, colour="orange",size=2,na.rm = TRUE) +
-    stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
-    scale_color_viridis() +
-    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-    theme_cowplot();control
-
-
-#enriched log gene expression x % methylation
-df$log_gene_E <- log(df$gene_mean_express_E+1)
-df$per_meth_E <- df$mean_meth_E * 100
-
-#make plot with correlation tests
-#decide between pearson, kendall, or spearman
-#first test normality
-shapiro.test(df$gene_mean_express_E) # <0.05
-shapiro.test(df$mean_meth_E) # <0.05
-#both variables are less then 0.05 indicating data do not follow normal distribution
-
-#use kendall test for correlation, Kendall’s is more robust and generally the preferred method between spearman and kendall
-enriched <- ggplot(df,aes(x=per_meth_E,y=log_gene_E, cor.coef = TRUE, cor.method = "pearson")) + 
-    geom_point() + ylim(0,3) + xlim(0,100) +
-    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
-    stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
-    scale_color_viridis() +
-    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-    theme_cowplot();enriched
-
-
-
-### Figure Mean Methylation vs Gene Expression###
-
-meth_meanexpress <- control + labs(title = "", subtitle = "Control") + enriched + labs(title = "", subtitle = "Enriched")
-
-meth_meanexpress
-
-ggsave(meth_meanexpress, filename="RAnalysis/Output/meth_express_compare/treatment.pathway.specific.express.meth.png", height = 7, width = 15)
-```
 
 ```{r}
 #find unique GO slim terms that overlap between DEG and DMG lists
-test1 <- unique(DEG.complete$slim_term)
-test1 <- data_frame(test1)
-test1 <- test1 %>% 
+unique.DEG <- unique(DEG.complete$slim_term)
+unique.DEG <- data_frame(unique.DEG)
+unique.DEG <- unique.DEG %>% 
        rename("slim_term" = "test1")
 
-test2 <- unique(DMG.complete$slim_term)
-test2 <- data_frame(test2)
-test2 <- test2 %>% 
-       rename("slim_term" = "test2")
+unique.DMG <- unique(DMG.complete$slim_term)
+unique.DMG <- data_frame(unique.DMG)
+#remove NAs 
+unique.DMG <- unique.DMG[!is.na(unique.DMG$test2), ]
+unique.DMG <- unique.DMG %>% 
+       rename("slim_term" = "test1")
 
-test3 <- merge(test1, test2, on="slim_term")
+overlap <- merge(unique.DEG, unique.DMG, on="slim_term")
 #23 unique terms
 
 #make biological process DEG DMG comparison figure
