@@ -134,39 +134,3 @@ write.table(gff, file="RAnalysis/Output/RNA-seq/Pver_genome_assembly_v1.0_fixed.
 #gzip the file 
 #gzip("RAnalysis/Output/RNA-seq/Pver_genome_assembly_v1.0_fixed.gff3")
 ```
-
-
-
-
-
-
-
-check if gene names are all found in the Annotation file
-```{r}
-genes <- gff %>%filter(id=="gene") #filter to only the genes
-genes$Query <- sub("^.*?\\;", "", genes$ID) # keep the Parent and Name information
-genes$Query <- sub("^.*?\\;", "", genes$Query) # keep the Name information
-genes$Query <- gsub("Name=", "", genes$Query) #remove "Name=" from the column
-genes$check <- genes$Query
-
-#Read in annotation file to check gene names are the same in the gff and the "Query" column of the annotation
-Annot <- readxl::read_xlsx("~/Desktop/FileS2_Pver_gene_annot_May28.xlsx", skip=4) 
-
-#see if the number of rows is the same
-nrow(Annot)==nrow(genes)
-
-#how many unique gene names do they each have
-length(unique(Annot$Query))
-length(unique(genes$Query))
-
-
-length(unique(Annot$Query))- length(unique(genes$Query))
-
-diffs <-left_join(Annot, genes, by="Query")
-
-
-```
-
-
-
-
