@@ -118,7 +118,7 @@ length(na.omit(pver_annot$SWISS_GO.IDs)) # 19,450 sequences were assigned GO ter
 length(na.omit(pver_annot$SWISS_Enzyme.Codes)) # 7,627 sequences were assigned enzyme codes 
 
 # Count Trembl hits and GO terms
-length(na.omit(pver_annot$TREMBL_.Hits)) # 6,743 sequences had hits against SwissProt database
+length(na.omit(pver_annot$TREMBL_.Hits)) # 6,743 sequences had hits against Trembl database
 length(na.omit(pver_annot$TREMBL_GO.IDs)) # 4,399 sequences were assigned GO terms
 length(na.omit(pver_annot$TREMBL_Enzyme.Codes)) # 787 sequences were assigned enzyme codes
 
