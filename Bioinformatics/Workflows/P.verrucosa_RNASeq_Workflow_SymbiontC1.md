@@ -1,11 +1,3 @@
----
-layout: post
-title: Pocillopora verrucosa RNA-seq Symbiont Bioinformatic Workflow
-date: 2023-03-16
-category: [ Code ]
-tag: [ RNA-seq, Symbiont, Bioinformatics, Pocillopora verrucosa ]
-projects: E5 - Molecular Underpinnings
----
 
 ### **Goal**
 
