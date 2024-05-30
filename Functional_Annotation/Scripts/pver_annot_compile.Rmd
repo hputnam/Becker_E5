@@ -127,7 +127,7 @@ length(na.omit(pver_annot$InterPro.IDs)) # 25,679 sequences had hits against IPS
 length(na.omit(pver_annot$InterPro.GO.IDs)) # 15,946 sequences were assigned GO terms 
 
 # Count Diamond Blast hits and GO terms
-length(na.omit(pver_annot$BLAST_.Hits)) # 26,426 sequences had hits against SwissProt database
+length(na.omit(pver_annot$BLAST_.Hits)) # 26,426 sequences had hits against NCBI nr database
 length(na.omit(pver_annot$BLAST_GO.IDs)) # 4,303 sequences were assigned GO terms
 length(na.omit(pver_annot$BLAST_Enzyme.Codes)) # 1,098 sequences were assigned enzyme codes
 
