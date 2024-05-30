@@ -53,7 +53,7 @@ library(grid)
 library(cowplot)
 ```
 
-#Downloaded all final .bed files for 5x and 10x from bluewaves to desktop: scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*_enrichment.bed /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/WGBS
+#Downloaded all final .bed files for and 10x from andromeda to desktop: scp -r danielle_becker@andromeda.uri.edu:/data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*_enrichment.bed /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/WGBS
 
 ###Samples E8 had low data coverage (see WGBS workflow in Bioinformatics>WGBS>WGBS workflow for further information), not moving forward with these samples in statistical steps
 
@@ -211,7 +211,7 @@ write.table(DMG.sig.annot.10x, 'RAnalysis/Output/WGBS/Treatment_sig_annot.10x.ts
 ```{r}
 #Sanity check plotting of DMGs by treatment
 subdf.DMG <- MD.10x  %>%	
-  filter(gene == DMG.sig.annot.10x$gene[2])
+  filter(gene == DMG.sig.annot.10x$gene[i])
 means.DMG <- aggregate(per.meth ~ treatment, data=subdf.DMG, FUN=mean)
 ses.DMG <- aggregate(per.meth ~ treatment, data=subdf.DMG, FUN=std.error)
 means.DMG$ses <- ses.DMG$per.meth
@@ -230,7 +230,7 @@ DMG.mod <- kruskal.test(per.meth ~ treatment, data = subdf.DMG)
 
 DMG.mod
 
-#results: Kruskal-Wallis chi-squared = 141.29, df = 1, p-value < 2.2e-16, significantly higher percent meth in DMGs in enriched treatment
+#results: Kruskal-Wallis chi-squared = 3.9272, df = 1, p-value < 0.04751, significantly higher percent meth in DMGs in enriched treatment
 
 #make bar plot of means DMG
 plot.DMG <- ggplot(means.DMG, aes(x=treatment, y=per.meth, fill = treatment)) +

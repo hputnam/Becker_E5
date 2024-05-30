@@ -259,7 +259,7 @@ DEG.volcano <- ggplot(volcano, aes(x = log2FoldChange, y = -log10(padj), color =
     values = colors, 
     name = "Gene Expression Status",  
     breaks = c("Upregulated", "Downregulated", "Not Significant"),
-    labels = c("Upregulated (84)", "Downregulated (172)", "Not Significant"),
+    labels = c("Upregulated (174)", "Downregulated (78)", "Not Significant"),
     drop = FALSE
   ) +  # Include all specified breaks in the legend
   labs(title = "", x = "log2FoldChange", y = "-log10(adjusted p-value)") +

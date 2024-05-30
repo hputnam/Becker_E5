@@ -599,7 +599,7 @@ ggsave(meth.express.all, filename="RAnalysis/Output/meth_express_compare/global.
 ```{r}
 #filter by any category that contained the word, could do anything that has the word nitrogen, stress, and heat 
 
-vector1 <- c("nitrogen", "oxygen", "glucose", "carbon", "heat", "nutrient", "carbohydrate", "oxidative", "protein metabolic process", "amino acid", "oxidoreductase activity", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "protein modification process", "protein transport", "DNA")
+vector1 <- c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound", "glutamate", "glutamine", "protein metabolic proces", "amino acid")
 
 phenotype.pathways.DEG <-DEG.complete%>%
       filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
@@ -714,20 +714,27 @@ ggsave(meth.express.specific, filename="RAnalysis/Output/meth_express_compare/pa
 
 ```{r}
 #find unique GO slim terms that overlap between DEG and DMG lists
-unique.DEG <- unique(DEG.complete$slim_term)
-unique.DEG <- data_frame(unique.DEG)
-unique.DEG <- unique.DEG %>% 
-       rename("slim_term" = "test1")
+#DEG
+unique.DEG <- DEG.complete %>%
+  distinct(slim_term, ontology) %>%
+  tibble::as_tibble()  # Convert to tibble
 
-unique.DMG <- unique(DMG.complete$slim_term)
-unique.DMG <- data_frame(unique.DMG)
-#remove NAs 
-unique.DMG <- unique.DMG[!is.na(unique.DMG$test2), ]
-unique.DMG <- unique.DMG %>% 
-       rename("slim_term" = "test1")
+#filter NAs
+unique.DEG <- unique.DEG %>%
+  filter(!is.na(slim_term) & !is.na(ontology))
 
+#DMG
+unique.DMG <- DMG.complete %>%
+  distinct(slim_term, ontology) %>%
+  tibble::as_tibble()  # Convert to tibble
+
+#filter NAs
+unique.DMG <- unique.DMG %>%
+  filter(!is.na(slim_term) & !is.na(ontology))
+
+#merge to show overlapping terms
 overlap <- merge(unique.DEG, unique.DMG, on="slim_term")
-#23 unique terms
+#32 unique terms
 
 #make biological process DEG DMG comparison figure
 hypo.DEG.DMG <-  ggplot(df, aes(x = type, y = term)) + 
@@ -756,7 +763,6 @@ hypo.DEG.DMG <-  ggplot(df, aes(x = type, y = term)) +
 ggsave("RAnalysis/Output/Final_Figures/Host/GO.hypo.DEG.DMG.pdf", hypo.DEG.DMG , width = 20, height = 30, units = c("in"))
 ggsave("RAnalysis/Output/Final_Figures/Host/GO.hypo.DEG.DMG.png", hypo.DEG.DMG , width = 20, height = 30, units = c("in"))
 
-length(unique(DEG.complete$slim_term)) # 75 unique GO slim terms
 
 ```
 
