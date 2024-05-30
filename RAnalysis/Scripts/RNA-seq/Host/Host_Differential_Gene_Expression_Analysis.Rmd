@@ -151,15 +151,15 @@ gdds <- DESeqDataSetFromMatrix(countData = gcount_filt,
 We're looking to see if the samples of the same treatments cluster
 
 ##### Log-transform the count data
-First we are going to log-transform the data using a variance stabilizing transforamtion (vst). This is only for visualization purposes. Essentially, this is roughly similar to putting the data on the log2 scale. It will deal with the sampling variability of low counts by calculating within-group variability (if blind=FALSE). Importantly, it does not use the design to remove variation in the data, and so can be used to examine if there may be any variability do to technical factors such as extraction batch effects.
+First we are going to transform the data using a variance stabilizing transforamtion (vst). This is only for visualization purposes.  It will deal with the sampling variability of low counts by calculating within-group variability (if blind=FALSE). Importantly, it does not use the design to remove variation in the data, and so can be used to examine if there may be any variability do to technical factors such as extraction batch effects.
 
-To do this we first need to calculate the size factors of our samples. This is a rough estimate of how many reads each sample contains compared to the others. In order to use VST (the faster log2 transforming process) to log-transform our data, the size factors need to be less than 4. Otherwise, there could be artefacts in our results.
+To do this we first need to calculate the size factors of our samples. This is a rough estimate of how many reads each sample contains compared to the others. In order to use VST (the faster log2 transforming process) to log-transform our data, the size factors need to be less than 4. Otherwise, there could be artifacts in our results.
 ```{r}
 SF.gdds <- estimateSizeFactors(gdds) #estimate size factors to determine if we can use vst  to transform our data. Size factors should be less than four to use vst
 print(sizeFactors(SF.gdds)) #View size factors
 ```
 
-Our size factors are all less than 4, so we can use VST!
+Our size factors are all less than 4, so we can use VST
 ```{r}
 gvst <- vst(gdds, blind=FALSE) #apply a variance stabilizing transformation to minimize effects of small counts and normalize library size
 ```
