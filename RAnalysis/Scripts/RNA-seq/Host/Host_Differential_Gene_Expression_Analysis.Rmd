@@ -198,9 +198,7 @@ ggsave(path = "RAnalysis/Output/Final_Figures/Host/", filename = "DEGSeq2_genera
 DEGSeq2_wald <- DESeq(gdds) # run differential expression test by treatment using wald test 
 ```
 
-#Explore significant p-values for treatment
-
-This is only filtering by p-value, not fold change? 
+#Explore significant adjusted p-values, considering FDR, for treatment
 
 When running results, the contrast command should be in this order: factor being tested, numerator (the treatment), and denominator (the reference treatment). 
 
@@ -226,7 +224,7 @@ DEGSeq2.sig.results$gene_id <-rownames(DEGSeq2.sig.results)
 write.csv(DEGSeq2.sig.results, 'RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.results.host.csv')  
 
 ```
-252 genes are differential at p<0.05 with no fold change filtering. 
+252 genes are differential at padj<0.05 with no fold change filtering. 
 
 # Use ggvolc to visualize DEG up and down regulated genes
 
