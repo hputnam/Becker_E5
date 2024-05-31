@@ -1,0 +1,23 @@
+"","category","over_represented_pvalue","under_represented_pvalue","numDEInCat","numInCat","term","ontology","bh_adjust"
+"43","GO:0005789",0.0283093732325823,0.988924062435131,9,440,"endoplasmic reticulum membrane","CC",1
+"46","GO:0005938",0.0148210173131798,0.996137203031088,6,195,"cell cortex","CC",1
+"42","GO:0005743",0.0437739278589326,0.987160854974603,5,200,"mitochondrial inner membrane","CC",1
+"39","GO:0005581",0.0372855519804962,0.993685009642863,3,80,"collagen trimer","CC",1
+"41","GO:0005680",0.0151652350184495,0.999154750459395,2,19,"anaphase-promoting complex","CC",1
+"44","GO:0005892",0.0309747988496162,0.997419208308675,2,26,"acetylcholine-gated channel complex","CC",1
+"154","GO:0032590",0.0336933122841761,0.997062541312969,2,26,"dendrite membrane","CC",1
+"166","GO:0034362",7.9267047516842e-05,1,2,2,"low-density lipoprotein particle","CC",0.517964045680693
+"181","GO:0042589",0.0189928867936527,0.998786836517575,2,24,"zymogen granule membrane","CC",1
+"253","GO:0098691",0.00120623639121008,0.999986609165088,2,5,"dopaminergic synapse","CC",1
+"258","GO:0098981",0.0222703416994615,0.998466733902471,2,21,"cholinergic synapse","CC",1
+"2","GO:0000808",0.0443922036907773,0.999249950033139,1,4,"origin recognition complex","CC",1
+"40","GO:0005602",0.0101355157175131,1,1,1,"complement component C1 complex","CC",1
+"45","GO:0005899",0.0115729195636007,1,1,1,"insulin receptor complex","CC",1
+"159","GO:0032982",0.0343200723311631,0.999602844591363,1,3,"myosin filament","CC",1
+"168","GO:0034455",0.0230082627238971,0.999866642319404,1,2,"t-UTP complex","CC",1
+"196","GO:0048269",0.0428159243433921,0.999302744599208,1,4,"methionine adenosyltransferase complex","CC",1
+"220","GO:0060417",0.0230124330872718,0.999866593687318,1,2,"yolk","CC",1
+"252","GO:0098674",0.034320072331186,0.999602844591363,1,3,"extrinsic component of neuronal dense core vesicle membrane","CC",1
+"257","GO:0098855",0.0115729195634789,1,1,1,"HCN channel complex","CC",1
+"285","GO:1990467",0.0291134502762393,0.999714885889847,1,3,"NuA3a histone acetyltransferase complex","CC",1
+"286","GO:1990468",0.0111749043936567,1,1,1,"NuA3b histone acetyltransferase complex","CC",1

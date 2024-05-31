@@ -50,11 +50,28 @@ library(org.Ce.eg.db)
 # Structural annotation GFF3 file
 ```{r, echo=FALSE}
 #structural annotation file needed to calculate the length by stop position - start position
+
 #bring in the gene specific gff3 and pull out gene id 
-GFF3 <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0.gene.gff3", header = FALSE, sep="", skip = 1)
-length(unique(GFF3$V9)) # 27439
-colnames(GFF3) <- c("prot", "Predict", "id", "start","stop", "pos1", "pos2","pos3", "gene_id") #name columns
-GFF3$length <- GFF3$stop - GFF3$start #calculate gene length
+GFF3 <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0_modified.gff3", header = FALSE, sep="", skip = 1)
+
+#rename column names
+colnames(GFF3) <- c("seqid", "source", "type", "start", "end", "score", "strand", "phase", "gene_id")
+
+#check length, should be 27439 genes, is not because it has CDS, exon, mRNA, 5-prime_UTC, etc attributes also
+length(unique(GFF3$gene_id)) # 353170
+
+#filter type to just include genes
+GFF3 <- GFF3 %>% filter(type == "gene")
+
+#check length, should be 27439
+length(GFF3$type) # 27439
+
+# Convert start and end columns to numeric to calculate gene length
+GFF3$start <- as.numeric(as.character(GFF3$start))
+GFF3$end <- as.numeric(as.character(GFF3$end))
+
+#calculate gene length
+GFF3$length <- GFF3$end - GFF3$start 
 
 #Rename gene_id column to match DESeq2 results, currently has too many characters and separations
 GFF3$gene_id <-  gsub(";.*","",GFF3$gene_id) #remove extra characters after the first ;
@@ -74,13 +91,10 @@ GFF3$gene_id <-  gsub("Pver_split_gene_g","Pver_gene_g",GFF3$gene_id)
 GFF3$gene_id <-  gsub("_gene_g","_g",GFF3$gene_id) #sub gene_g with _g
 GFF3$gene_id <-  gsub("_gene_","_",GFF3$gene_id) #remove extra _
 GFF3$gene_id <-  gsub("_split_","_",GFF3$gene_id) #remove split naming in gene id
-
-
 ```
 
 
-
-# Identifying treatment and all expressed pver genes (poverA = 0.90,10)
+# Identifying treatment and all expressed pver genes (poverA = 0.50,10)
 ```{r}
 #treatment information
 treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/metadata.RNAseq.csv", header = TRUE, sep = ",")
@@ -109,14 +123,14 @@ UPREG  <- DEG.res %>% filter(log2FoldChange > 0)
 
 #all genes
 DEG <- GFF3[GFF3$gene_id %in% DEG.res$gene_id, ]
-dim(DEG) # 256 x 10
+dim(DEG) # 251 x 10
 DEG_names <- as.vector(DEG$gene_id)
 gene_vector <- as.integer(GFF3$gene_id%in%DEG_names)
 names(gene_vector) <- GFF3$gene_id
 
 #UPREG
 DEG.up <- GFF3[GFF3$gene_id %in% UPREG$gene_id, ]
-dim(DEG.up) # 84 x 10
+dim(DEG.up) # 173 x 10
 DEG_names.up <- as.vector(DEG.up$gene_id)
 gene_vector.up <- as.integer(GFF3$gene_id%in%DEG_names.up)
 names(gene_vector.up) <- GFF3$gene_id
@@ -124,7 +138,7 @@ names(gene_vector.up) <- GFF3$gene_id
 
 #DOWNREG
 DEG.down <- GFF3[GFF3$gene_id %in% DOWNREG$gene_id, ]
-dim(DEG.down) # 172 x 10
+dim(DEG.down) # 78 x 10
 DEG_names.down <- as.vector(DEG.down$gene_id)
 gene_vector.down <- as.integer(GFF3$gene_id%in%DEG_names.down)
 names(gene_vector.down) <- GFF3$gene_id
@@ -151,10 +165,6 @@ pwf.down<-nullp(gene_vector.down, IDvector, bias.data=lengthVector) #weight vect
 ```{r}
 annot_GO <- read.csv("Functional_Annotation/Final_Annotations/pver_GOterms_interprot_swissprot_blast_trembl_20211203.csv", header = TRUE)[,2:3]
 
-#annot_GO <- read_tsv( "RAnalysis/Genome/Pver_gene_annotation_file.txt", col_names = TRUE) #biological annotation information
-#colnames(annot_GO)[2] <- "gene_id" #set column name for consistency across files
-#colnames(annot_GO)[13] <- "GO.ID"
-#annot_GO <- select(gene_id, GO.ID)
 
 # GO terms already split into single GO term per row/sequence 
 colnames(annot_GO) <- c("gene_id", "GO.ID")

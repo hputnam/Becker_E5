@@ -381,14 +381,6 @@ plotCounts(DEGSeq2_wald, gene=rownames(up)[1], intgroup="treatment")
 plotCounts(DEGSeq2_wald, gene=rownames(down)[1], intgroup="treatment")
 ```
 
-```{r}
-#make gct expression data set for GSEA analysis
-norm_counts <- counts(SF.gdds, normalized = T)
-fid <- "norm_counts.gct" 
-writeLines(c("#1.2", paste(nrow(norm_counts), ncol(norm_counts) - 2, collapse="\t")), fid, sep="\n")
-#write to .txt a tab deliniated file
-write.table(norm_counts, "RAnalysis/Data/norm_counts.txt", file=fid, quote=FALSE, row.names=FALSE, col.names=TRUE, sep="\t", append = TRUE)
-```
 
 
 
