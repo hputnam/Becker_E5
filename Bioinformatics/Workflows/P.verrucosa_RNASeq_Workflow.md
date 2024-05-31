@@ -947,6 +947,7 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/gffcompare.sh
 ```
 
 ```
+
 #= Summary for dataset: stringtie_merged.gtf 
 #     Query mRNAs :   27439 in   27401 loci  (24124 multi-exon transcripts)
 #            (38 multi-transcript loci, ~1.0 transcripts per locus)
@@ -963,6 +964,16 @@ Intron chain level:   100.0     |   100.0    |
      Matching intron chains:   24124
        Matching transcripts:   27438
               Matching loci:   27400
+
+          Missed exons:       0/208636  (  0.0%)
+           Novel exons:       0/208633  (  0.0%)
+        Missed introns:       0/181193  (  0.0%)
+         Novel introns:       0/181193  (  0.0%)
+           Missed loci:       0/27401   (  0.0%)
+            Novel loci:       0/27401   (  0.0%)
+
+ Total union super-loci across all input datasets: 27401 
+27439 out of 27439 consensus transcripts written in merged.annotated.gtf (0 discarded as redundant)
 
 ```
 
