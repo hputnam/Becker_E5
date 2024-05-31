@@ -946,6 +946,26 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/gffcompare.sh
 
 ```
 
+```
+#= Summary for dataset: stringtie_merged.gtf 
+#     Query mRNAs :   27439 in   27401 loci  (24124 multi-exon transcripts)
+#            (38 multi-transcript loci, ~1.0 transcripts per locus)
+# Reference mRNAs :   27439 in   27401 loci  (24124 multi-exon)
+# Super-loci w/ reference transcripts:    27401
+#-----------------| Sensitivity | Precision  |
+        Base level:   100.0     |   100.0    |
+        Exon level:   100.0     |   100.0    |
+      Intron level:   100.0     |   100.0    |
+Intron chain level:   100.0     |   100.0    |
+  Transcript level:   100.0     |   100.0    |
+       Locus level:   100.0     |   100.0    |
+
+     Matching intron chains:   24124
+       Matching transcripts:   27438
+              Matching loci:   27400
+
+```
+
 e) Re-estimate assembly
 
 ```
