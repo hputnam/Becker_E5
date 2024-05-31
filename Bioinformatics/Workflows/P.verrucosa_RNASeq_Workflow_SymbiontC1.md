@@ -724,6 +724,35 @@ gffcompare -r /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Sym_C1/Sy
 
 ```
 
+```
+#= Summary for dataset: stringtie_merged.gtf 
+#     Query mRNAs :   35913 in   35913 loci  (33359 multi-exon transcripts)
+#            (0 multi-transcript loci, ~1.0 transcripts per locus)
+# Reference mRNAs :   35913 in   35913 loci  (33359 multi-exon)
+# Super-loci w/ reference transcripts:    35913
+#-----------------| Sensitivity | Precision  |
+        Base level:   100.0     |   100.0    |
+        Exon level:   100.0     |   100.0    |
+      Intron level:   100.0     |   100.0    |
+Intron chain level:   100.0     |   100.0    |
+  Transcript level:   100.0     |   100.0    |
+       Locus level:   100.0     |   100.0    |
+
+     Matching intron chains:   33359
+       Matching transcripts:   35913
+              Matching loci:   35913
+
+          Missed exons:       0/360656  (  0.0%)
+           Novel exons:       0/360656  (  0.0%)
+        Missed introns:       0/324743  (  0.0%)
+         Novel introns:       0/324743  (  0.0%)
+           Missed loci:       0/35913   (  0.0%)
+            Novel loci:       0/35913   (  0.0%)
+
+ Total union super-loci across all input datasets: 35913 
+35913 out of 35913 consensus transcripts written in merged.annotated.gtf (0 discarded as redundant)
+```
+
 e) Re-estimate assembly
 
 ```
