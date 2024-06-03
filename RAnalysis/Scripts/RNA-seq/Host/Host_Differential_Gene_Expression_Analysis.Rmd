@@ -360,7 +360,7 @@ write.csv(counts(DEGSeq2_list), file="RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2_
 ## DEG summary info 
 ## Run to calculate the DEGs, and upregulated vs. downregulated genes
 ```{r}
-length(unique(DEGSeq2.sig.results$gene_id)) # 
+length(unique(DEGSeq2.sig.results$gene_id)) # 252
 down <- DEGSeq2.sig.results %>% filter(log2FoldChange < 0) 
 length(unique(down$gene_id)) # DEGs downregulated 78
 up <- DEGSeq2.sig.results %>% filter(log2FoldChange > 0)
@@ -370,13 +370,15 @@ length(unique(up$gene_id)) # DEGs upregulated 174
 DEGSeq2.sig.results <- DEGSeq2.sig.results %>%
   mutate(direction = ifelse(log2FoldChange < 0, "Downregulated", "Upregulated"))
 
+# Sanity check to make sure all down and upregulated assigned properly
+sum(DEGSeq2.sig.results$direction == "Downregulated") # DEGs downregulated 78
+sum(DEGSeq2.sig.results$direction == "Upregulated") # DEGs upregulated 174
+
 write.csv(DEGSeq2.sig.results, 'RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.results.host.csv')  
 
 ```
 
-
 ## Visualize fold change of DEGs between treatments 
-
 ```{r}
 plotCounts(DEGSeq2_wald, gene=rownames(up)[1], intgroup="treatment")
 
