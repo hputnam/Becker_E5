@@ -104,10 +104,10 @@ head(gcount_filt)
 dim(gcount_filt)
 dim(gcount)
 
+# We now have 19,821 genes after filtering, reduced from 27,439 genes before filtering.
 ```
-We now have 19,821 genes after filtering, reduced from 27,439 genes before filtering. 
-
-
+ 
+ 
 Check the order now that the gene count matrix has been filtered 
 ```{r}
 row.names(treatmentinfo_ordered)
@@ -221,15 +221,13 @@ DEGSeq2.results <- as.data.frame(DEGSeq2.results)
 DEGSeq2.sig.results <- subset(DEGSeq2.results, padj < 0.05)
 DEGSeq2.sig.results <- as.data.frame(DEGSeq2.sig.results)
 DEGSeq2.sig.results$gene_id <-rownames(DEGSeq2.sig.results)
-write.csv(DEGSeq2.sig.results, 'RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.results.host.csv')  
 
+
+# 252 genes are differential at padj<0.05 with no fold change filtering. 
 ```
-252 genes are differential at padj<0.05 with no fold change filtering. 
+
 
 # Use ggvolc to visualize DEG up and down regulated genes
-
-AH removed the filtering for pvalue - it was taking out the highly significant genes.  
-
 ```{r}
 
 # Define criteria for upregulation and downregulation
@@ -364,12 +362,18 @@ write.csv(counts(DEGSeq2_list), file="RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2_
 ```{r}
 length(unique(DEGSeq2.sig.results$gene_id)) # 
 down <- DEGSeq2.sig.results %>% filter(log2FoldChange < 0) 
-length(unique(down$gene_id)) # DEGs downregulated
+length(unique(down$gene_id)) # DEGs downregulated 78
 up <- DEGSeq2.sig.results %>% filter(log2FoldChange > 0)
-length(unique(up$gene_id)) # DEGs upregulated
+length(unique(up$gene_id)) # DEGs upregulated 174
+
+# Add a column indicating the direction of differential expression
+DEGSeq2.sig.results <- DEGSeq2.sig.results %>%
+  mutate(direction = ifelse(log2FoldChange < 0, "Downregulated", "Upregulated"))
+
+write.csv(DEGSeq2.sig.results, 'RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.results.host.csv')  
 
 ```
-78 downregulated; 174 upregulated 
+
 
 ## Visualize fold change of DEGs between treatments 
 
