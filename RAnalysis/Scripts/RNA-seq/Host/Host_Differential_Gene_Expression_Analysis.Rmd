@@ -188,11 +188,11 @@ unmatched_genes <- setdiff(GFF3$gene_id, gcount_edited$gene_id)
 print(unmatched_genes) #all gene_ids now match
 
 # Check if all gene IDs in GFF3 are included in gcount
-unmatched_genes <- setdiff(annot_GO$gene_id, GFF3$gene_id)
+unmatched_genes <- setdiff(GFF3$gene_id, annot_GO$gene_id)
 # Print the unmatched gene IDs
 print(unmatched_genes)
 
-# 116 unmatched gene ids in annot_GO
+# 115 unmatched gene ids in annot_GO
 
 ```
 
