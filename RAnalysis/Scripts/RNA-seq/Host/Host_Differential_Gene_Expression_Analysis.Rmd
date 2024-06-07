@@ -146,15 +146,15 @@ annot_GO <- unique(annot_GO)
 annot_GO$gene_id <-  gsub("\\..*","",annot_GO$gene_id) #remove extra characters after the first .
 
 dim(annot_GO) # 282963 x 2
-length(unique(annot_GO$GO.ID)) # 17023 unique GO.IDs
-length(unique(annot_GO$gene_id)) # 24037 unique gene IDs
+length(unique(annot_GO$GO.ID)) # 17024 unique GO.IDs
+length(unique(annot_GO$gene_id)) # 27439 unique gene IDs
 head(annot_GO)
 
 write.csv(annot_GO, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/annot_GO.terms.host.csv")
 
 ```
 
-# Use set diff to compare gene_IDs in all three
+# Use set diff to compare gene_IDs in all three files: gff3, gene count matrix, and functional annotation
 ```{r}
 # Create a copy of the original data frame
 gcount_edited <-gcount
@@ -169,10 +169,33 @@ gcount_edited <- gcount_edited[, c(ncol(gcount_edited), 1:(ncol(gcount_edited) -
 #remove extra characters to match annotation and gff3
 gcount_edited$gene_id <-  gsub("_gene_g","_g",gcount_edited$gene_id) #sub gene_g with _g
 
+#remove the extra "gene" to match the "Pver_gene_g#" format
+gcount_edited$gene_id <-  gsub("Pver_gene_novel_gene_","Pver_novel_gene_",gcount_edited$gene_id)
+gcount_edited$gene_id <-  gsub("Pver_gene_split_gene_g","Pver_split_gene_g",gcount_edited$gene_id)
+
+#remove the _split_ from gene_id name
+gcount_edited$gene_id <-  gsub("Pver_split_gene_g","Pver_gene_g",gcount_edited$gene_id)
+
+#remove extra characters to match DESeq2
+gcount_edited$gene_id <-  gsub("_gene_g","_g",gcount_edited$gene_id) #sub gene_g with _g
+gcount_edited$gene_id <-  gsub("_gene_","_",gcount_edited$gene_id) #remove extra _
+gcount_edited$gene_id <-  gsub("_split_","_",gcount_edited$gene_id) #remove split naming in gene id
+
 # Check if all gene IDs in GFF3 are included in gcount
 unmatched_genes <- setdiff(GFF3$gene_id, gcount_edited$gene_id)
 # Print the unmatched gene IDs
 print(unmatched_genes)
+
+#there were 41 unmatched genes and the reason for it was somme IDs had "-g##" listed after the "Pver_g###" EX: Pver_g467-g19
+# Modify the gene_id column to remove the dash and anything after it
+gcount_edited$gene_id <- gsub("-.*", "", gcount_edited$gene_id)
+
+# Check again if all gene IDs in GFF3 are included in gcount
+unmatched_genes <- setdiff(GFF3$gene_id, gcount_edited$gene_id)
+# Print the unmatched gene IDs
+print(unmatched_genes)
+
+#all gene_ids now match
 
 # Check if all gene IDs in GFF3 are included in gcount
 unmatched_genes <- setdiff(GFF3$gene_id, annot_GO$gene_id)

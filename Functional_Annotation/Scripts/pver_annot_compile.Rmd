@@ -29,10 +29,6 @@ swissprot <- read.csv("Functional_Annotation/Blast2GO/Pver_swissprot_blast2go_ta
 dim(swissprot) # 27,439
 head(swissprot)
 
-#remove description NA rows 
-#swissprot <- swissprot %>% drop_na("Description")
-
-
 #remove X row, rename SeqName to gene_ID
 swissprot <- swissprot[-c(1:2)]
 swissprot <- rename(swissprot, gene_id = SeqName)
@@ -163,7 +159,7 @@ GO_swiss$GO.ID <- gsub("P:", "", GO_swiss$GO.ID)
 GO_swiss$GO.ID <- gsub("C:", "", GO_swiss$GO.ID)
 GO_swiss$GO.ID <- gsub(" ", "", GO_swiss$GO.ID)
 GO_swiss[GO_swiss == "NA"] <- NA
-GO_swiss <- na.omit(GO_swiss) # remove rows with NAs
+#GO_swiss <- na.omit(GO_swiss) # remove rows with NAs
 dim(GO_swiss) # 235,923 total GO terms
 
 # Trembl
@@ -177,7 +173,7 @@ GO_trembl$GO.ID <- gsub("P:", "", GO_trembl$GO.ID)
 GO_trembl$GO.ID <- gsub("C:", "", GO_trembl$GO.ID)
 GO_trembl$GO.ID <- gsub(" ", "", GO_trembl$GO.ID)
 GO_trembl[GO_trembl == "NA"] <- NA
-GO_trembl <- na.omit(GO_trembl) # remove rows with NAs
+#GO_trembl <- na.omit(GO_trembl) # remove rows with NAs
 dim(GO_trembl) # 13,222 total GO terms
 
 
@@ -192,7 +188,7 @@ GO_IPS$GO.ID <- gsub("P:", "", GO_IPS$GO.ID)
 GO_IPS$GO.ID <- gsub("C:", "", GO_IPS$GO.ID)
 GO_IPS$GO.ID <- gsub(" ", "", GO_IPS$GO.ID)
 GO_IPS[GO_IPS == "NA"] <- NA
-GO_IPS <- na.omit(GO_IPS) # remove rows with NAs
+#GO_IPS <- na.omit(GO_IPS) # remove rows with NAs
 dim(GO_IPS) # 42,128 total GO terms 
 
 
@@ -207,7 +203,7 @@ GO_blast$GO.ID <- gsub("P:", "", GO_blast$GO.ID)
 GO_blast$GO.ID <- gsub("C:", "", GO_blast$GO.ID)
 GO_blast$GO.ID <- gsub(" ", "", GO_blast$GO.ID)
 GO_blast[GO_blast == "NA"] <- NA
-GO_blast <- na.omit(GO_blast) # remove rows with NAs
+#GO_blast <- na.omit(GO_blast) # remove rows with NAs
 dim(GO_blast) # 11,288 total GO terms
 
 ```
@@ -277,7 +273,7 @@ GO_all <- unique(GO_all)
 write.csv(GO_all, "Functional_Annotation/Final_Annotations/pver_GOterms_interprot_swissprot_blast_trembl_20211203.csv")
 
 # Identify how many unique gene_ids and GO IDs are in the df 
-length(unique(GO_all$gene_id)) # 24,037 gene_ids have one or more GO terms, means that not all gene models got assigned GO terms (3,402 did not)
+length(unique(GO_all$gene_id)) # 24,037 gene_ids have one or more GO terms, means that not all gene models got assigned GO terms (3,402 did not), but kept NAs for downstream analysis
 length(unique(GO_all$GO.ID)) # 17,024 unique GO terms 
 ```
 
