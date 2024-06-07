@@ -81,13 +81,15 @@ colnames(gcount)
 #all are now in the same order 
 ```
 
-# Use code to first edit and compare gene_id and structure across all necessary downstream files for transcripts (gene matrix) brought in above, gff3 (modified gff3) and functional annotation
+# Use code to first edit and compare gene_id and structure across all necessary downstream files for transcripts (gene matrix) brought in above, gff3 (Pver_genome_assembly_v1.0_modified.gff3) and functional annotation (pver_GOterms_interprot_swissprot_blast_trembl_20211203.csv)
 
 # Load in GFF3 file
 ```{r, echo=FALSE}
 #structural annotation file needed to calculate the length by stop position - start position
 #bring in the gene specific gff3 and pull out gene id 
 GFF3 <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0_modified.gff3", header = FALSE, sep="", skip = 1)
+
+#reef.genommics.gff3 <- read.csv("../../../Downloads/Pver_genome_assembly_v1.0.gff3", header = FALSE, sep="", skip = 1)
 
 #rename column names
 colnames(GFF3) <- c("seqid", "source", "type", "start", "end", "score", "strand", "phase", "gene_id")
@@ -108,21 +110,18 @@ GFF3$end <- as.numeric(as.character(GFF3$end))
 #calculate gene length
 GFF3$length <- GFF3$end - GFF3$start 
 
-#Rename gene_id column to match DESeq2 results, currently has too many characters and separations
+#Rename gene_id column, currently has too many characters and separations
 GFF3$gene_id <-  gsub(";.*","",GFF3$gene_id) #remove extra characters after the first ;
 #There also appears to be the presence of the characters ID= in each row
 GFF3$gene_id <- gsub("ID=","",GFF3$gene_id) #remove ID=
-#There is also an extra "-g#" that can be removed
+# remove everything after the - in split gene query name
 GFF3$gene_id <-  gsub("-.*","",GFF3$gene_id) #remove the extra g number after the dash
 
 #remove the extra "gene" to match the "Pver_gene_g#" format
 GFF3$gene_id <-  gsub("Pver_gene_novel_gene_","Pver_novel_gene_",GFF3$gene_id)
-GFF3$gene_id <-  gsub("Pver_gene_split_gene_g","Pver_split_gene_g",GFF3$gene_id)
+GFF3$gene_id <-  gsub("Pver_gene_split_gene_", "Pver_gene_",GFF3$gene_id)
 
-#remove the _split_ from gene_id name
-GFF3$gene_id <-  gsub("Pver_split_gene_g","Pver_gene_g",GFF3$gene_id)
-
-#remove extra characters to match DESeq2
+#remove extra characters to match gcounts
 GFF3$gene_id <-  gsub("_gene_g","_g",GFF3$gene_id) #sub gene_g with _g
 GFF3$gene_id <-  gsub("_gene_","_",GFF3$gene_id) #remove extra _
 GFF3$gene_id <-  gsub("_split_","_",GFF3$gene_id) #remove split naming in gene id
@@ -143,7 +142,18 @@ annot_GO$GO.ID <- replace_na(annot_GO$GO.ID, "unknown")
 annot_GO$GO.ID <- as.factor(annot_GO$GO.ID)
 annot_GO$gene_id <- as.factor(annot_GO$gene_id)
 annot_GO <- unique(annot_GO)
-annot_GO$gene_id <-  gsub("\\..*","",annot_GO$gene_id) #remove extra characters after the first .
+annot_GO$gene_id <- gsub("\\.t\\d+", "", annot_GO$gene_id) # Remove the '.t#' suffix while preserving 'g' followed by numbers
+annot_GO$gene_id <- gsub("_model", "", annot_GO$gene_id) # Remove "_model_#_" pattern from the gene_id column
+annot_GO$gene_id <- gsub("\\..*", "", annot_GO$gene_id) # Remove the version number and extra suffix from the gene_id column in annot_GO dataframe
+annot_GO$gene_id <-  gsub("-.*","",annot_GO$gene_id) #remove the extra g number after the dash
+
+#remove the extra "gene" to match the "Pver_gene_g#" format
+annot_GO$gene_id <-  gsub("Pver_gene_novel_gene_","Pver_novel_gene_",annot_GO$gene_id)
+annot_GO$gene_id <-  gsub("Pver_gene_split_gene_", "Pver_gene_",annot_GO$gene_id)
+
+#remove extra characters to match GFF3
+annot_GO$gene_id <-  gsub("_gene_g","_g",annot_GO$gene_id) #sub gene_g with _g
+annot_GO$gene_id <-  gsub("_gene_","_",annot_GO$gene_id) #remove extra _
 
 dim(annot_GO) # 282963 x 2
 length(unique(annot_GO$GO.ID)) # 17024 unique GO.IDs
@@ -168,39 +178,21 @@ gcount_edited <- gcount_edited[, c(ncol(gcount_edited), 1:(ncol(gcount_edited) -
 
 #remove extra characters to match annotation and gff3
 gcount_edited$gene_id <-  gsub("_gene_g","_g",gcount_edited$gene_id) #sub gene_g with _g
-
-#remove the extra "gene" to match the "Pver_gene_g#" format
-gcount_edited$gene_id <-  gsub("Pver_gene_novel_gene_","Pver_novel_gene_",gcount_edited$gene_id)
-gcount_edited$gene_id <-  gsub("Pver_gene_split_gene_g","Pver_split_gene_g",gcount_edited$gene_id)
-
-#remove the _split_ from gene_id name
-gcount_edited$gene_id <-  gsub("Pver_split_gene_g","Pver_gene_g",gcount_edited$gene_id)
-
-#remove extra characters to match DESeq2
-gcount_edited$gene_id <-  gsub("_gene_g","_g",gcount_edited$gene_id) #sub gene_g with _g
 gcount_edited$gene_id <-  gsub("_gene_","_",gcount_edited$gene_id) #remove extra _
-gcount_edited$gene_id <-  gsub("_split_","_",gcount_edited$gene_id) #remove split naming in gene id
+gcount_edited$gene_id <- gsub("-.*", "", gcount_edited$gene_id) # Modify the gene_id column to remove the dash and anything after it
+gcount_edited$gene_id <-  gsub("Pver_split_", "Pver_",gcount_edited$gene_id) #remove the extra _gene_ after split
 
 # Check if all gene IDs in GFF3 are included in gcount
 unmatched_genes <- setdiff(GFF3$gene_id, gcount_edited$gene_id)
 # Print the unmatched gene IDs
-print(unmatched_genes)
-
-#there were 41 unmatched genes and the reason for it was somme IDs had "-g##" listed after the "Pver_g###" EX: Pver_g467-g19
-# Modify the gene_id column to remove the dash and anything after it
-gcount_edited$gene_id <- gsub("-.*", "", gcount_edited$gene_id)
-
-# Check again if all gene IDs in GFF3 are included in gcount
-unmatched_genes <- setdiff(GFF3$gene_id, gcount_edited$gene_id)
-# Print the unmatched gene IDs
-print(unmatched_genes)
-
-#all gene_ids now match
+print(unmatched_genes) #all gene_ids now match
 
 # Check if all gene IDs in GFF3 are included in gcount
-unmatched_genes <- setdiff(GFF3$gene_id, annot_GO$gene_id)
+unmatched_genes <- setdiff(annot_GO$gene_id, GFF3$gene_id)
 # Print the unmatched gene IDs
 print(unmatched_genes)
+
+# 116 unmatched gene ids in annot_GO
 
 ```
 

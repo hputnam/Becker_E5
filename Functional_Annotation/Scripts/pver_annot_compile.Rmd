@@ -273,7 +273,7 @@ GO_all <- unique(GO_all)
 write.csv(GO_all, "Functional_Annotation/Final_Annotations/pver_GOterms_interprot_swissprot_blast_trembl_20211203.csv")
 
 # Identify how many unique gene_ids and GO IDs are in the df 
-length(unique(GO_all$gene_id)) # 24,037 gene_ids have one or more GO terms, means that not all gene models got assigned GO terms (3,402 did not), but kept NAs for downstream analysis
+length(unique(GO_all$gene_id)) # kept total 27439 gene_ids in for comparison but only 24,037 gene_ids have one or more GO terms, means that not all gene models got assigned GO terms (3,402 did not), but kept NAs for downstream analysis
 length(unique(GO_all$GO.ID)) # 17,024 unique GO terms 
 ```
 
