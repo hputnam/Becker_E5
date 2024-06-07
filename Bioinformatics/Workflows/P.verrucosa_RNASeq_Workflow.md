@@ -975,9 +975,17 @@ Intron chain level:   100.0     |   100.0    |
  Total union super-loci across all input datasets: 27401 
 27439 out of 27439 consensus transcripts written in merged.annotated.gtf (0 discarded as redundant)
 
+For matching transcripts we noticed that one transcript did not match the reference, so we identified the transcript as TCONS_00002577: "Pver_gene_novel_gene_109_5de57afd" and it had a class code of '-k' listed which indicates that this transcript is fully contained/enclosed within a reference transcript from the provided reference annotation
+
+'=' Flag:
+The '=' flag indicates that the query transcript has an identical intron chain as a reference transcript from the provided annotation. This means the query transcript has exactly the same exon-intron structure and coordinates as a reference transcript, except potentially different lengths for the terminal exons.
+
+'k' Flag:
+The 'k' flag means the query transcript is fully contained within (enclosed by) a reference transcript from the annotation. 'k' indicates it is a complete subset of a reference but with potential differences in terminal exon lengths or other minor variations from the reference model.
+
 ```
 
-e) Re-estimate assembly
+e) Re-estimate assembly (this step is redundant and not necessary unless you have an updated reference or another assembly you need to cross-reference)
 
 ```
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/re_estimate.assembly.sh
