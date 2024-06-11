@@ -169,7 +169,7 @@ print(unmatched_genes)
 # First, filter for PASSA_UPDATES that have a #PROT tag in V1 and for Pver_novel_model in V2 which corresponds to the Query ID found in our functional annotation file (annot_GO)
 filtered_df <- reef.genomics.gff3 %>%
   filter(V1 == "#PROT" & grepl("Pver_novel_model", V2)) %>%
-  select(sequid = V1, query = V2, gene = V3) %>%
+  dplyr::select(sequid = V1, query = V2, gene = V3) %>%
   mutate(query = gsub("_model", "", query),
     gene = gsub("_gene", "", gene),
     query = gsub("5de57afd.*", "5de57afd", query),
@@ -221,11 +221,11 @@ all(rownames(treatmentinfo) %in% colnames(gcount_edited)) # must come out TRUE
 
 #Display current order of metadata and gene count matrix.  
 row.names(treatmentinfo) 
-colnames(gcount)
+colnames(gcount_edited)
 #These are not in the same order, re order them.  
 
 #identify the genecount order
-list<-colnames(gcount)
+list<-colnames(gcount_edited)
 list<-as.factor(list)
 
 # Re-order the levels of the treatment information
@@ -237,7 +237,7 @@ treatmentinfo_ordered <- treatmentinfo[order(treatmentinfo$sample_id),]
 #Check the order of metadata and gene count matrix.  
 row.names(treatmentinfo_ordered)
 treatmentinfo_ordered$sample_id
-colnames(gcount)
+colnames(gcount_edited)
 
 #all are now in the same order 
 ```
@@ -252,16 +252,16 @@ colnames(gcount)
 filt <- filterfun(pOverA(0.50,10))
 
 #create filter for the counts data
-gfilt <- genefilter(gcount, filt)
+gfilt <- genefilter(gcount_edited, filt)
 
 #identify genes to keep by count filter
-gkeep <- gcount[gfilt,]
+gkeep <- gcount_edited[gfilt,]
 
 #identify gene lists
 gn.keep <- rownames(gkeep)
 
 #gene count data filtered in PoverA, P percent of the samples have counts over A
-gcount_filt <- as.data.frame(gcount[which(rownames(gcount) %in% gn.keep),])
+gcount_filt <- as.data.frame(gcount_edited[which(rownames(gcount_edited) %in% gn.keep),])
 head(gcount_filt)
 dim(gcount_filt)
 dim(gcount)
@@ -438,8 +438,8 @@ ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DEG.PCA.v
 
 ## Identify unique genes from DEGs from treatments 
 ```{r}
-dim(DEGSeq2.sig.results) # 
-length(unique(DEGSeq2.sig.results$gene_id)) # 
+dim(DEGSeq2.sig.results) # 252 7
+length(unique(DEGSeq2.sig.results$gene_id)) # 252
 write.csv(DEGSeq2.sig.results, file = "RAnalysis/Output/RNA-seq/DEG/Host/DEGs.all_treatment_20240530_host.csv")
 ```
 
