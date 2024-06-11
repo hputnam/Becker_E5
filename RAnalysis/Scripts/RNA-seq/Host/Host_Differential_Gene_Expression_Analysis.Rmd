@@ -89,7 +89,7 @@ colnames(gcount)
 #bring in the gene specific gff3 and pull out gene id 
 GFF3 <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0_modified.gff3", header = FALSE, sep="", skip = 1)
 
-#reef.genommics.gff3 <- read.csv("../../../Downloads/Pver_genome_assembly_v1.0.gff3", header = FALSE, sep="", skip = 1)
+reef.genomics.gff3 <- read.csv("../../../Downloads/Pver_genome_assembly_v1.0.gff3", header = FALSE, sep="", skip = 1)
 
 #rename column names
 colnames(GFF3) <- c("seqid", "source", "type", "start", "end", "score", "strand", "phase", "gene_id")
@@ -149,7 +149,7 @@ annot_GO$gene_id <-  gsub("-.*","",annot_GO$gene_id) #remove the extra g number 
 
 #remove the extra "gene" to match the "Pver_gene_g#" format
 annot_GO$gene_id <-  gsub("Pver_gene_novel_gene_","Pver_novel_gene_",annot_GO$gene_id)
-annot_GO$gene_id <-  gsub("Pver_gene_split_gene_", "Pver_gene_",annot_GO$gene_id)
+annot_GO$gene_id <-  gsub("Pver_split_gene_", "Pver_gene_",annot_GO$gene_id)
 
 #remove extra characters to match GFF3
 annot_GO$gene_id <-  gsub("_gene_g","_g",annot_GO$gene_id) #sub gene_g with _g
@@ -187,12 +187,45 @@ unmatched_genes <- setdiff(GFF3$gene_id, gcount_edited$gene_id)
 # Print the unmatched gene IDs
 print(unmatched_genes) #all gene_ids now match
 
-# Check if all gene IDs in GFF3 are included in gcount
+# Check if all gene IDs in GFF3 are included in  annot_GO
 unmatched_genes <- setdiff(GFF3$gene_id, annot_GO$gene_id)
 # Print the unmatched gene IDs
 print(unmatched_genes)
 
-# 115 unmatched gene ids in annot_GO
+# 117 unmatched gene ids in annot_GO
+
+# The unmatched genes are due to PASSA_UPDATES to annotations related to updates in the authors published reefgenomics structural annotation for P. verrucosa where a Query ID (EX: Pver_novel_model_159_5de57afd) matches a Gene ID made by the authors (EX: Pver_novel_gene_158_5de57afd)
+# We will now change the Query ID name listed in our annot_GO dataframe to the corresponding Gene ID name from the authors published reefgenomics structural annotation to make sure all dataframes match
+
+# First, filter for PASSA_UPDATES that have a #PROT tag in V1 and for Pver_novel_model in V2 which corresponds to the Query ID found in our functional annotation file (annot_GO)
+filtered_df <- reef.genomics.gff3 %>%
+  filter(V1 == "#PROT" & grepl("Pver_novel_model", V2)) %>%
+  select(sequid = V1, query = V2, gene = V3) %>%
+  mutate(
+    query = gsub("_model", "", query),
+    gene = gsub("_gene", "", gene),
+    query = gsub("5de57afd.*", "5de57afd", query),
+    gene = gsub("5de57afd.*", "5de57afd", gene)) # Make filtered_df nomenclature for query and gene match above dataframes by removing _model_ from query and _gene_ from gene and also anything after the 5de57afd.
+
+# Use if else statement to replace the query (gene_id) found in our annot_GO dataframe with the corresponding gene (gene_id) used in the published structural annotation to match our GFF3 and gcount_filtered dataframes
+annot_GO  <- annot_GO %>%
+  mutate(gene_id = ifelse(gene_id %in% filtered_df$query, 
+                          filtered_df$gene[match(gene_id, filtered_df$query)], 
+                          gene_id))
+
+# Check if all gene IDs in GFF3 are included in annot_GO
+unmatched_genes <- setdiff(GFF3$gene_id, annot_GO$gene_id)
+# Print the unmatched gene IDs
+print(unmatched_genes)
+
+# all IDs match
+
+# Check if all gene IDs in gcount are in annot_GO
+unmatched_genes <- setdiff(gcount_edited$gene_id, annot_GO$gene_id)
+# Print the unmatched gene IDs
+print(unmatched_genes)
+
+# all IDs match
 
 ```
 
