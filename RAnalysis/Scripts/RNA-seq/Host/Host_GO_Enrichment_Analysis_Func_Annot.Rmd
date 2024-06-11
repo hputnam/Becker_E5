@@ -502,13 +502,13 @@ CC.filt.u <- enriched.GO.05.up %>% filter(ontology == "CC")
 MF.filt.u <- enriched.GO.05.up %>% filter(ontology == "MF")
 
 #select only 30 lowest pvalues and rejoin 
-BP.filt2.u <- BP.filt %>% slice_min(order_by = over_represented_pvalue, n = 30)
+BP.filt2.u <- BP.filt.u %>% slice_min(order_by = over_represented_pvalue, n = 30)
 
-MF.filt2.u <- MF.filt %>% slice_min(order_by = over_represented_pvalue, n = 30)
+MF.filt2.u <- MF.filt.u %>% slice_min(order_by = over_represented_pvalue, n = 30)
 
 #rejoin dataframes
 
-enriched.up <- rbind(MF.filt2.u, BP.filt2.u, CC.filt)
+enriched.up <- rbind(MF.filt2.u, BP.filt2.u, CC.filt.u)
 
 # rename ontology terms
 enriched.up <- enriched.up %>%
@@ -621,10 +621,10 @@ ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/down.upre
 ```{r}
 
 #Load in KO term functional annotation and edit to match GFF3 and annotation file
-KFS.KO.orig <- read_tsv("RAnalysis/Data/KEGG_ontology/Pver_KO_annot.tsv.zip", col_names = TRUE)
+KFS.KO.orig <- read_tsv("../../../Desktop/Pver_KO_annot.tsv.zip", col_names = TRUE)
 
 KFS.KO <- KFS.KO.orig[-1,c(1,2,3)]
-colnames(KFS.KO) <- c("sig","gene_id", "ko")
+colnames(KFS.KO) <- c("sig", "gene_id", "ko")
 KFS.KO <- filter(KFS.KO, sig=="*")
 KFS.KO <- KFS.KO[,c(2:3)]
 
@@ -702,8 +702,8 @@ down.KO.05 <- unique(left_join(down.KO.05[,-6], KFS.KO.def, by=c("category")))
 
 Write output KEGG enrichment files
 ```{r}
-write.csv(up.KO.05, file = "RAnalysis/Output/RNA-seq/KEGG/KO.05.up.csv")
-write.csv(down.KO.05, file = "RAnalysis/Output/RNA-seq/KEGG/KO.05.down.csv")
+write.csv(up.KO.05, file = "RAnalysis/Output/RNA-seq/KEGG_ontology/KO.05.up.csv")
+write.csv(down.KO.05, file = "RAnalysis/Output/RNA-seq/KEGG_ontology/KO.05.down.csv")
 ```
 
 ## Make supplemental table summarizing KO enrichment
@@ -744,7 +744,7 @@ KOdf <- bind_rows(KOdf_U, KOdf_D)
 KOdf <- na.omit(KOdf)
 head(KOdf)
 str(KOdf)
-write.csv(KOdf, file = "RAnalysis/Output/RNA-seq/KEGG/KOenrichmentsummary.csv", row.names = FALSE)
+write.csv(KOdf, file = "RAnalysis/Output/RNA-seq/KEGG_ontology/KOenrichmentsummary.csv", row.names = FALSE)
 ```
 
 ```{r}
@@ -774,7 +774,7 @@ KEGGplot <- KOdf  %>%  mutate(term = fct_reorder(term, -log10(over_represented_p
 KEGGplot
 
 
-ggsave("RAnalysis/Output/Final_Figures/Host/KEGGplot.png", KEGGplot, width = 10, height = 10, units = c("in"))
+ggsave("RAnalysis/Output/RNA-seq/KEGG_ontology/KEGGplot.png", KEGGplot, width = 10, height = 10, units = c("in"))
  
 ```
 
