@@ -44,10 +44,16 @@ library(org.Ce.eg.db)
 # Import the data files 
 ```{r, echo=FALSE}
 # Structural annotation GFF3 file
-GFF3 <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/structured_gff3.csv")
+GFF3 <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/rename_structure_gff3.csv")
 
 # Load go terms from functional annotation file
-annot_GO <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/GO.terms.host.csv")
+annot_GO <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/annot_GO.terms.host.csv")
+
+# Check if all gene IDs in GFF3 are in annot_GO
+unmatched_genes <- setdiff(GFF3$gene_id, annot_GO$gene_id)
+# Print the unmatched gene IDs
+print(unmatched_genes)
+
 ```
 
 # Identifying treatment and all expressed pver genes (poverA = 0.50,10)

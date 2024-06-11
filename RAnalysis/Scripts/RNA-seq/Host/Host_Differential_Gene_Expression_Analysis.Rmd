@@ -29,7 +29,8 @@ library("grid")
 library("cowplot")
 ```
 
-Import the data files 
+# Use code to first edit and compare gene_id and structure across all necessary downstream files for transcripts (gene matrix) brought in above, gff3 (Pver_genome_assembly_v1.0_modified.gff3) and functional annotation (pver_GOterms_interprot_swissprot_blast_trembl_20211203.csv)
+# Load in treatment info and gene count matrix data files 
 ```{r}
 #treatment information
 treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/metadata.RNAseq.csv", header = TRUE, sep = ",")
@@ -50,38 +51,24 @@ for ( col in 1:ncol(gcount)){
   colnames(gcount)[col] <-  sub("_R1.fastp.trim.20230215.fq.gz.sam.sorted.bam.merge.gtf", "", colnames(gcount)[col])
 }
 
-#set the metadata row names as the sample names
-row.names(treatmentinfo) <- treatmentinfo$sample_id
+# Create a copy of the original data frame
+gcount_edited <- gcount
 
-# Make sure treatment info ='s the rows of count data
-all(rownames(treatmentinfo) %in% colnames(gcount)) # must come out TRUE
+# Convert row names to a column
+gcount_edited$gene_id <- rownames(gcount_edited)
+rownames(gcount_edited) <- NULL
 
-#check that the order of the samples in the gene count columns matches the order in the treatment info rows
+# Reorganize the data frame so 'gene_id' is the first column
+gcount_edited <- gcount_edited[, c(ncol(gcount_edited), 1:(ncol(gcount_edited) - 1))]
 
-#Display current order of metadata and gene count matrix.  
-row.names(treatmentinfo) 
-colnames(gcount)
-#These are not in the same order, re order them.  
+#remove extra characters to match annotation and gff3
+gcount_edited$gene_id <-  gsub("_gene_g","_g",gcount_edited$gene_id) #sub gene_g with _g
+gcount_edited$gene_id <-  gsub("_gene_","_",gcount_edited$gene_id) #remove extra _
+gcount_edited$gene_id <- gsub("-.*", "", gcount_edited$gene_id) # Modify the gene_id column to remove the dash and anything after it
+gcount_edited$gene_id <-  gsub("Pver_split_", "Pver_",gcount_edited$gene_id) #remove the extra _gene_ after split
 
-#identify the genecount order
-list<-colnames(gcount)
-list<-as.factor(list)
-
-# Re-order the levels of the treatment information
-treatmentinfo$sample_id <- factor(as.character(treatmentinfo$sample_id), levels=list)
-
-# Re-order the data.frame
-treatmentinfo_ordered <- treatmentinfo[order(treatmentinfo$sample_id),]
-
-#Check the order of metadata and gene count matrix.  
-row.names(treatmentinfo_ordered)
-treatmentinfo_ordered$sample_id
-colnames(gcount)
-
-#all are now in the same order 
 ```
 
-# Use code to first edit and compare gene_id and structure across all necessary downstream files for transcripts (gene matrix) brought in above, gff3 (Pver_genome_assembly_v1.0_modified.gff3) and functional annotation (pver_GOterms_interprot_swissprot_blast_trembl_20211203.csv)
 
 # Load in GFF3 file
 ```{r, echo=FALSE}
@@ -164,22 +151,6 @@ head(annot_GO)
 
 # Use set diff to compare gene_IDs in all three files: gff3, gene count matrix, and functional annotation
 ```{r}
-# Create a copy of the original data frame
-gcount_edited <-gcount
-
-# Convert row names to a column
-gcount_edited$gene_id <- rownames(gcount_edited)
-rownames(gcount_edited) <- NULL
-
-# Reorganize the data frame so 'gene_id' is the first column
-gcount_edited <- gcount_edited[, c(ncol(gcount_edited), 1:(ncol(gcount_edited) - 1))]
-
-#remove extra characters to match annotation and gff3
-gcount_edited$gene_id <-  gsub("_gene_g","_g",gcount_edited$gene_id) #sub gene_g with _g
-gcount_edited$gene_id <-  gsub("_gene_","_",gcount_edited$gene_id) #remove extra _
-gcount_edited$gene_id <- gsub("-.*", "", gcount_edited$gene_id) # Modify the gene_id column to remove the dash and anything after it
-gcount_edited$gene_id <-  gsub("Pver_split_", "Pver_",gcount_edited$gene_id) #remove the extra _gene_ after split
-
 # Check if all gene IDs in GFF3 are included in gcount
 unmatched_genes <- setdiff(GFF3$gene_id, gcount_edited$gene_id)
 # Print the unmatched gene IDs
@@ -199,8 +170,7 @@ print(unmatched_genes)
 filtered_df <- reef.genomics.gff3 %>%
   filter(V1 == "#PROT" & grepl("Pver_novel_model", V2)) %>%
   select(sequid = V1, query = V2, gene = V3) %>%
-  mutate(
-    query = gsub("_model", "", query),
+  mutate(query = gsub("_model", "", query),
     gene = gsub("_gene", "", gene),
     query = gsub("5de57afd.*", "5de57afd", query),
     gene = gsub("5de57afd.*", "5de57afd", gene)) # Make filtered_df nomenclature for query and gene match above dataframes by removing _model_ from query and _gene_ from gene and also anything after the 5de57afd.
@@ -228,6 +198,48 @@ print(unmatched_genes)
 # save updated annot_GO file for downstream analysis
 write.csv(annot_GO, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/annot_GO.terms.host.csv")
 
+```
+
+Move forward with analysis
+```{r}
+#assign the first row of gene names as rownames in gene count data
+rownames(gcount_edited) <- gcount_edited[,1]
+
+#remove gene names so only numeric counts data are in dataset
+gcount_edited <- gcount_edited[,-1]
+
+#view data
+head(gcount_edited)
+
+#set the metadata row names as the sample names
+row.names(treatmentinfo) <- treatmentinfo$sample_id
+
+# Make sure treatment info ='s the rows of count data
+all(rownames(treatmentinfo) %in% colnames(gcount_edited)) # must come out TRUE
+
+#check that the order of the samples in the gene count columns matches the order in the treatment info rows
+
+#Display current order of metadata and gene count matrix.  
+row.names(treatmentinfo) 
+colnames(gcount)
+#These are not in the same order, re order them.  
+
+#identify the genecount order
+list<-colnames(gcount)
+list<-as.factor(list)
+
+# Re-order the levels of the treatment information
+treatmentinfo$sample_id <- factor(as.character(treatmentinfo$sample_id), levels=list)
+
+# Re-order the data.frame
+treatmentinfo_ordered <- treatmentinfo[order(treatmentinfo$sample_id),]
+
+#Check the order of metadata and gene count matrix.  
+row.names(treatmentinfo_ordered)
+treatmentinfo_ordered$sample_id
+colnames(gcount)
+
+#all are now in the same order 
 ```
 
 
