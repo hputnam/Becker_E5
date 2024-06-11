@@ -160,8 +160,6 @@ length(unique(annot_GO$GO.ID)) # 17024 unique GO.IDs
 length(unique(annot_GO$gene_id)) # 27439 unique gene IDs
 head(annot_GO)
 
-write.csv(annot_GO, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/annot_GO.terms.host.csv")
-
 ```
 
 # Use set diff to compare gene_IDs in all three files: gff3, gene count matrix, and functional annotation
@@ -226,6 +224,9 @@ unmatched_genes <- setdiff(gcount_edited$gene_id, annot_GO$gene_id)
 print(unmatched_genes)
 
 # all IDs match
+
+# save updated annot_GO file for downstream analysis
+write.csv(annot_GO, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/annot_GO.terms.host.csv")
 
 ```
 
