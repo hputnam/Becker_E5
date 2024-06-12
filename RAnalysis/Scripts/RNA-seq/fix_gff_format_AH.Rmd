@@ -20,7 +20,7 @@ library(R.utils)
 Load  gene gff file
 
 ```{r}
-gff <- read.csv(file="~/Desktop/Pver_genome_assembly_v1.0.gff3", header=FALSE, sep="\t", skip=1) 
+gff <- read.csv(file="../../Pver_genome_assembly_v1.0.gff3", header=FALSE, sep="\t", skip=1) 
 #gff <- na.omit(gff)
 
 #gff.DB <- read.csv(file="data/Tagseq_zymo_genohub/Pver_genome_assembly_v1.0_modified.gff3", header=FALSE, sep="\t", skip=1) 
@@ -92,7 +92,7 @@ head(gff)
 Check which things are not matching between the gff and annotation file. 
 ```{r}
 #Read in annotation file to check gene names are the same in the gff and the "Query" column of the annotation
-Annot <- readxl::read_xlsx("~/Desktop/FileS2_Pver_gene_annot_May28.xlsx", skip=4) 
+Annot <- readxl::read_xlsx("../../../Downloads/evaa184_supplementary_data/FileS2_Pver_gene_annot_May28.xlsx", skip=4)
 
 gff_list<-gff$transcript_id
 head(gff_list)
@@ -129,8 +129,8 @@ head(gff)
 
 Save file. Gzip and then upload this to the server for use in bioinformatic steps.  
 ```{r}
-write.table(gff, file="RAnalysis/Output/RNA-seq/Pver_genome_assembly_v1.0_fixed.gff3", sep="\t", col.names = FALSE, row.names=FALSE, quote=FALSE)
+write.table(gff, file="../../Pver_genome_assembly_v1.0_fixed.gff3", sep="\t", col.names = FALSE, row.names=FALSE, quote=FALSE)
 
 #gzip the file 
-#gzip("RAnalysis/Output/RNA-seq/Pver_genome_assembly_v1.0_fixed.gff3")
+gzip("../../Pver_genome_assembly_v1.0_fixed.gff3")
 ```
