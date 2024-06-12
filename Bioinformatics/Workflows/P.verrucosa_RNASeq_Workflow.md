@@ -1132,7 +1132,7 @@ scp danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNA
 
 # We will be using sample E9's .bam file to compare between the two gff3 files
 
-a) Assemble and estimate reads
+a) Assemble and estimate reads for the fixed.gff3
 
 ```
 nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble_gff3_compare.sh
@@ -1151,29 +1151,24 @@ nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble_g
 
 module load StringTie/2.2.1-GCC-11.2.0
 
-stringtie -p 48 --rf -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0_fixed.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/gff3.count.compare/E9_R1.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/E9_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam
+# Run the first stringtie command in the background
+stringtie -p 48 --rf -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0_fixed.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/gff3.count.compare/E9_R1_fixed.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/E9_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam &
+
+# Run the second stringtie command in the background
+stringtie -p 48 --rf -e -G /data/putnamlab/REFS/Pverr/Pver_genome_assembly_v1.0_modified.gff3 -o /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/gff3.count.compare/E9_R1_modified.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/E9_R1.fastp-trim.20230215.fq.gz.sam.sorted.bam &
+
+# Wait for both commands to finish
+wait
 
 ```
 
 ```
 sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/StringTie_Assemble_gff3_compare.sh
 
-Submitted batch job 322174
+Submitted batch job 322183
 ```
 
-b) Merge stringTie gtf results
 
-#in this step we are making a file with all the gtf names and stringtie will merge them all together for a master list for your specific genes
-
-```
-ls *gtf > mergelist_gff3.txt
-cat mergelist_gff3.txt
-
-module load StringTie/2.2.1-GCC-11.2.0
-
-stringtie --merge -p 8 -G /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/Pver_genome_assembly_v1.0_fixed.gff3 -o stringtie_merged.gtf mergelist.txt
-
-```
 
 
 
