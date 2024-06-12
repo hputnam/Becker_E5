@@ -683,7 +683,7 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/mapped_read_counts
 
 ### Needed to modify Pverr_genome_assembly file, following steps described below
 
-When I was trying to create my gene matrix using the prepDE.py script below, I was receiving an error relating to the transcript ID's in my .gtf files. 
+When I was trying to create my gene matrix using the prepDE.py script below, I was receiving an error relating to the transcript ID's in my .gtf files.
 
 Error:
 Traceback (most recent call last):
@@ -712,7 +712,7 @@ sed -r -e 's/(Parent=[^[:space:]])./\1/' Pver_genome_assembly_v1.0.gff3 > fixed_
 
 to edit the original Pver_genome_assembly_v1.0.gff3 file in my directory to remove the 5_prime_partial true, 3_prime_partial true, and the space causing the file corruption issue. This command keeps the text (non-space characters) after Parent= and discards the rest of the line.
 
-After making this correction to the Pver_genome_assembly_v1.0.gff3 file, I tested the new fixed_Pver_genome_assembly_v1.0.gff3 reference file on one sample file and was able to work through the entire workflow with no issues to create a gene matrix. 
+After making this correction to the Pver_genome_assembly_v1.0.gff3 file, I tested the new fixed_Pver_genome_assembly_v1.0.gff3 reference file on one sample file and was able to work through the entire workflow with no issues to create a gene matrix.
 
 Code authored by Polina Shpilker to amend issue:
 
@@ -819,7 +819,7 @@ with open(input_file, 'r') as inp :
                 columns = line.strip().split("\t")
 
                 dat_type = columns[2]
-                
+
                 - If there are more columns than expected, that means we have the additional 5_prime_partial or
                 -   3_prime_partial tags incorrectly appended. Fix the attribute column to store this data, and then
                 -  get rid of the extra columns. Log that the change has been made.
@@ -948,7 +948,7 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/gffcompare.sh
 
 ```
 
-#= Summary for dataset: stringtie_merged.gtf 
+#= Summary for dataset: stringtie_merged.gtf
 #     Query mRNAs :   27439 in   27401 loci  (24124 multi-exon transcripts)
 #            (38 multi-transcript loci, ~1.0 transcripts per locus)
 # Reference mRNAs :   27439 in   27401 loci  (24124 multi-exon)
@@ -972,7 +972,7 @@ Intron chain level:   100.0     |   100.0    |
            Missed loci:       0/27401   (  0.0%)
             Novel loci:       0/27401   (  0.0%)
 
- Total union super-loci across all input datasets: 27401 
+ Total union super-loci across all input datasets: 27401
 27439 out of 27439 consensus transcripts written in merged.annotated.gtf (0 discarded as redundant)
 
 For matching transcripts we noticed that one transcript did not match the reference, so we identified the transcript as TCONS_00002577: "Pver_gene_novel_gene_109_5de57afd" and it had a class code of '-k' listed which indicates that this transcript is fully contained/enclosed within a reference transcript from the provided reference annotation
@@ -1122,11 +1122,11 @@ scp danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/Becker_RNA
 ```
 
 
+# 8) Compare modified.gff3 and fixed.gff3
 
+To ensure that our modified.gff3 did not change any necessary transcripts or information needed for downstream analysis, we are going to compare the counts assigned to each gene from one sample to a fixed.gff3 that was composed using the below Rscript:
 
-################################
-# To ensure that our modified.gff3 did not change any necessary transcripts or information needed for downstream analysis, we are going to compare the counts assigned to each gene from one sample to a fixed.gff3 that was composed using the below Rscript:
-This script adds transcript and gene id into GFF file for alignment.  Here, I'll be adding transcript_id= and gene_id= to 'gene' column because we needs that label to map our RNAseq data  Load libraries and data. ```{r}#Load librarieslibrary(tidyverse)library(R.utils)```Load  gene gff file```{r}gff <- read.csv(file="../../Pver_genome_assembly_v1.0.gff3", header=FALSE, sep="\t", skip=1) #gff <- na.omit(gff)#gff.DB <- read.csv(file="data/Tagseq_zymo_genohub/Pver_genome_assembly_v1.0_modified.gff3", header=FALSE, sep="\t", skip=1) #gff.DB <- na.omit(gff.DB)```Rename columns ```{r}colnames(gff) <- c("scaffold", "Gene.Predict", "id", "gene.start","gene.stop", "pos1", "pos2","pos3", "gene")head(gff)unique(gff$scaffold)#shows that #PROT and # PASA_UPDATE # ORIGINAL: lines have been included but only have information in column 1 scaffold```Remove extra #PROT and # PASA_UPDATE and # ORIGINAL:check the number of genes against the number in the genome```{r}#genes in the Pverrucosa genome 27,439# remove any rows with NAgff <- na.omit(gff)# check the number of genes against the number in the genome# Pverrucosa should return 27439nrow(gff %>%filter(id=="gene"))#genes <- gff %>%filter(id=="mRNA")#genes$gene <- gsub("Pver_gene_split_gene_g", "Pver_split_gene_g", genes$gene) #remove extra "_gene_" from name```Remove cds. and duplication of _gene in the names```{r}#gff$ID <- sub(";.*", "", gff$gene) #move everything before the first ";" to a new column#gff$ID <- gsub("cds.", "", gff$gene) #remove "cds." from the new columngff$gene <- gsub("Pver_gene_g", "Pver_g", gff$gene) #remove "_gene" from the new columngff$gene <- gsub("Pver_gene_split_gene_g", "Pver_split_gene_g", gff$gene) #remove extra "_gene_" from namegff$gene <- gsub("Pver_gene_novel_model_", "Pver_novel_model_", gff$gene) #remove extra "_gene_" from namehead(gff)```Create a Parent column. ```{r}gff$parent_id <- sub(".*Parent=", "", gff$gene)gff$parent_id <- sub(";.*", "", gff$parent_id)gff$parent_id <- gsub("ID=", "", gff$parent_id) #remove ID= head(gff)```Create a transcript ID column```{r}gff$transcript_id <- sub(".*Name=", "", gff$gene)gff$transcript_id <- gsub("ID=", "", gff$transcript_id) # remove IDgff$transcript_id <- gsub("Parent=", "", gff$transcript_id) # remove Parentgff$transcript_id <- sub(".*;", "", gff$transcript_id) #keep everything after semi colonhead(gff)```Now add these values into the gene column separated by semicolons.  ```{r}gff <- gff %>%   mutate(test = ifelse(id != "gene", paste0("ID=", gff$transcript_id, ";parent_id=", gff$parent_id),  paste0(gene)))head(gff)```Check which things are not matching between the gff and annotation file. ```{r}#Read in annotation file to check gene names are the same in the gff and the "Query" column of the annotationAnnot <- readxl::read_xlsx("../../../Downloads/evaa184_supplementary_data/FileS2_Pver_gene_annot_May28.xlsx", skip=4)gff_list<-gff$transcript_idhead(gff_list)annot_list<-Annot$Queryhead(annot_list)missing1 <- setdiff(gff_list, annot_list) #things in gff that are not in annotationmissing1length(missing1)#the gff has 2543 extra things missing2 <- setdiff(annot_list, gff_list) #things in annotation that are not in gffmissing2length(missing2)```Now remove the transcript and parent ID separate columns.  ```{r}gff<-gff %>%  dplyr::select(!transcript_id)%>%  dplyr::select(!parent_id)%>%  dplyr::select(!gene)head(gff)gff<-gff%>%  dplyr::rename(gene=test)head(gff)```Save file. Gzip and then upload this to the server for use in bioinformatic steps.  ```{r}write.table(gff, file="../../Pver_genome_assembly_v1.0_fixed.gff3", sep="\t", col.names = FALSE, row.names=FALSE, quote=FALSE)#gzip the file gzip("../../Pver_genome_assembly_v1.0_fixed.gff3")```
+This script adds transcript and gene id into GFF file for alignment.  Here, I'll be adding transcript_id= and gene_id= to 'gene' column because we needs that label to map our RNAseq data  Load libraries and data.```{r}#Load librarieslibrary(tidyverse)library(R.utils)```Load  gene gff file```{r}gff <- read.csv(file="../../Pver_genome_assembly_v1.0.gff3", header=FALSE, sep="\t", skip=1) #gff <- na.omit(gff)#gff.DB <- read.csv(file="data/Tagseq_zymo_genohub/Pver_genome_assembly_v1.0_modified.gff3", header=FALSE, sep="\t", skip=1)gff.DB <- na.omit(gff.DB)```Rename columns ``{r}colnames(gff) <- c("scaffold", "Gene.Predict", "id", "gene.start","gene.stop", "pos1", "pos2","pos3", "gene")head(gff)unique(gff$scaffold)#shows that #PROT and # PASA_UPDATE # ORIGINAL: lines have been included but only have information in column 1 scaffold```Remove extra #PROT and # PASA_UPDATE and # ORIGINAL:check the number of genes against the number in the genome```{r}#genes in the Pverrucosa genome 27,439# remove any rows with NAgff <- na.omit(gff)# check the number of genes against the number in the genome# Pverrucosa should return 27439nrow(gff %>%filter(id=="gene"))#genes <- gff %>%filter(id=="mRNA")#genes$gene <- gsub("Pver_gene_split_gene_g", "Pver_split_gene_g", genes$gene) #remove extra "_gene_" from name```Remove cds. and duplication of _gene in the names```{r}#gff$ID <- sub(";.*", "", gff$gene) #move everything before the first ";" to a new column#gff$ID <- gsub("cds.", "", gff$gene) #remove "cds." from the new columngff$gene <- gsub("Pver_gene_g", "Pver_g", gff$gene) #remove "_gene" from the new columngff$gene <- gsub("Pver_gene_split_gene_g", "Pver_split_gene_g", gff$gene) #remove extra "_gene_" from namegff$gene <- gsub("Pver_gene_novel_model_", "Pver_novel_model_", gff$gene) #remove extra "_gene_" from namehead(gff)```Create a Parent column.`{r}gff$parent_id <- sub(".*Parent=", "", gff$gene)gff$parent_id <- sub(";.*", "", gff$parent_id)gff$parent_id <- gsub("ID=", "", gff$parent_id) #remove ID= ha(gff)```Create a transcript ID column```{r}gff$transcript_id <- sub(".*Name=", "", gff$gene)gff$transcript_id <- gsub("ID=", "", gff$transcript_id) # remove IDgff$transcript_id <- gsub("Parent=", "", gff$transcript_id) # remove Parentgff$transcript_id <- sub(".*;", "", gff$transcript_id) #keep everything after semi colonhead(gff)```Now add these values into the gene column separated by semicolons.  ```{r}gff <- gff %>% uate(test = ifelse(id != "gene", paste0("ID=", gff$transcript_id, ";parent_id=", gff$parent_id),  paste0(gene)))head(gff)```Check which things are not matching between the gff and annotation file. ``r#Read in annotation file to check gene names are the same in the gff and the "Query" column of the annotationAnnot <- readxl::read_xlsx("../../../Downloads/evaa184_supplementary_data/FileS2_Pver_gene_annot_May28.xlsx", skip=4)gff_list<-gff$transcript_idhead(gff_list)annot_list<-Annot$Queryhead(annot_list)missing1 <- setdiff(gff_list, annot_list) #things in gff that are not in annotationmissing1length(missing1)#the gff has 2543 extra thingsmsig2 <- setdiff(annot_list, gff_list) #things in annotation that are not in gffmissing2length(missing2)```Now remove the transcript and parent ID separate columns.  ```{r}gff<-gff %>%  dplyr::select(!transcript_id)%>%  dplyr::select(!parent_id)%>%  dplyr::select(!gene)head(gff)gff<-gff%>%  dplyr::rename(gene=test)head(gff)```Save file. Gzip and then upload this to the server for use in bioinformatic steps.  ```{r}write.table(gff, file="../../Pver_genome_assembly_v1.0_fixed.gff3", sep="\t", col.names = FALSE, row.names=FALSE, quote=FALSE)#gzip the file gi(./../Pver_genome_assembly_v1.0_fixed.gff3")```
 
 # Now we have a fixed.gff3 file edited from the original published reef genomics .gff3 that should match our modified.gff3 for all downstream analyses
 
@@ -1171,5 +1171,89 @@ Submitted batch job 322183
 
 
 
+f) Create gene matrix
 
 
+```
+#making a sample txt file with all gtf file names
+
+F=/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/gff3.count.compare/
+
+array2=($(ls *.gtf))
+for i in ${array2[@]}
+do
+echo "${i} $F${i}" >> sample_list.txt
+done
+
+```
+```
+#sample_list.txt document
+
+E9_R1_fixed.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/gff3.count.compare/E9_R1_fixed.gtf
+E9_R1_modified.gtf /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/gff3.count.compare/E9_R1_modified.gtf
+
+```
+
+
+
+```
+# make gene matrix script using updated prepDY.py pyton script
+
+wget https://raw.githubusercontent.com/gpertea/stringtie/master/prepDE.py3
+
+
+nano GTFtoCounts_gff3_compare.sh
+```
+
+```
+#!/bin/bash
+#SBATCH -t 72:00:00
+#SBATCH --nodes=1 --ntasks-per-node=5
+#SBATCH --export=NONE
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu
+#SBATCH --account=putnamlab
+#SBATCH -D /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/gff3.count.compare
+#SBATCH --cpus-per-task=3
+
+module load StringTie/2.2.1-GCC-11.2.0
+module load Python/3.9.6-GCCcore-11.2.0
+
+# Output directory for count matrices
+OUTPUT_DIR="/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/gff3.count.compare"
+
+# Path to prepDE.py script
+PREPDE_SCRIPT="/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/counts/gff3.count.compare/prepDE.py3"
+
+# Ensure output directory exists
+mkdir -p "$OUTPUT_DIR"
+
+# Loop through each line in sample_list.txt
+while IFS= read -r line; do
+    # Extract the GTF filename and its path from the line
+    filename=$(echo "$line" | cut -d ' ' -f 1)
+    filepath=$(echo "$line" | cut -d ' ' -f 2)
+
+    # Extract the sample name (without extension) from the filename
+    sample_name=$(basename "$filename" .gtf)
+
+    # Create a temporary sample list for the current sample
+    echo "$filename $filepath" > temp_sample_list.txt
+
+    # Run prepDE.py for each GTF file
+    python "$PREPDE_SCRIPT" -i temp_sample_list.txt -g "${OUTPUT_DIR}/${sample_name}_gene_count_matrix.csv" -t "${OUTPUT_DIR}/${sample_name}_transcript_count_matrix.csv"
+
+    # Remove the temporary sample list
+    rm temp_sample_list.txt
+
+done < sample_list.txt
+
+echo "Count matrices generated successfully."
+
+
+```
+
+```
+sbatch GTFtoCounts_gff3_compare.sh
+
+```
