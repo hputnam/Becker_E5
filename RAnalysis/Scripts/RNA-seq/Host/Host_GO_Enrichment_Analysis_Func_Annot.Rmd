@@ -47,10 +47,19 @@ GFF3 <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/rename_structure_gff3.csv"
 # Load go terms from functional annotation file
 annot_GO <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/annot_GO.terms.host.csv")[-1]
 
+# Remove rows where 'GO.ID' is 'unknown'
+annot_GO <- subset(annot_GO, GO.ID != 'unknown')
+
 # Check if all gene IDs in GFF3 are in annot_GO
 unmatched_genes <- setdiff(GFF3$gene_id, annot_GO$gene_id)
 # Print the unmatched gene IDs
 print(unmatched_genes)
+
+# edit annot_GO to list GO terms all in one row per gene
+annot_GO <- annot_GO %>%
+  group_by(gene_id) %>%
+  summarise(GO.ID = paste(GO.ID, collapse = ";")) %>%
+  ungroup()
 
 ```
 
@@ -81,7 +90,7 @@ Match up genes in gene list file to annotation file
 ```{r}
 names(annot_GO)
 
-gcount_filt2annot = match(gcount_filt$gene_id, annot_GO$gene_id) #match genes in datExpr to genes in annotation file, note I removed the # before query in this file before loading
+gcount_filt2annot = match(gcount_filt$gene_id, annot_GO$gene_id) #match genes in gcount_filt to annot_GO
 
 # The following is the number of probes without annotation 
 sum(is.na(gcount_filt2annot))
@@ -92,20 +101,16 @@ row_nas<-which(is.na(gcount_filt2annot))
 missing<-as.data.frame(gcount_filt[row_nas])
 #print(missing)
 ```
+1,663 genes in gcount_filt do not have GO annotations
 
 Reduce annotation file to only contain genes detected in our dataset.  
-
 ```{r}
 filtered_Pverr.annot <- annot_GO[annot_GO$gene_id %in% gcount_filt$gene_id, ]
 dim(filtered_Pverr.annot)
 
-# Count unique genes based on gene_id
-unique_genes <- unique(filtered_Pverr.annot$gene_id)
-num_unique_genes <- length(unique_genes)
-
 ```
 
-The annotation file now only contains genes that were detected in our dataset that have annotation information. This is 19821 out of the 27439 genes in our dataset. 
+The annotation file now only contains genes that were detected in our dataset that have annotation information. This is 18158 out of the 27439 genes in our dataset. 
 
 Add in length to the annotation file.    
 
@@ -117,6 +122,58 @@ which(is.na(filtered_Pverr.annot$length)) #all genes have lengths
 
 All have length information. 
 
+
+Conduct at biological process level. Filter for adjusted p-value <0.05.  
+```{r}
+  
+    ### Generate vector with names of all genes detected in our dataset 
+    ALL.vector <- c(filtered_Pverr.annot$gene_id)
+  
+    ### Generate length vector for all genes 
+    LENGTH.vector <- as.integer(filtered_Pverr.annot$length)
+    
+    ### Generate vector with names in just the contrast we are analyzing
+    ID.vector <- DEG.res %>%
+      #filter(cluster==cluster_id) %>%
+      pull(gene_id)
+    
+    ##Get a list of GO Terms for all genes detected in our dataset 
+    GO.terms <- filtered_Pverr.annot%>%
+      dplyr::select(gene_id, GO.ID)
+    
+    ##Format to have one goterm per row with gene ID repeated
+    split <- strsplit(as.character(GO.terms$GO.ID), ";") 
+    split2 <- data.frame(v1 = rep.int(GO.terms$gene_id, sapply(split, length)), v2 = unlist(split)) 
+    colnames(split2) <- c("gene_id", "GO.ID")
+    GO.terms<-split2
+
+    ##Construct list of genes with 1 for genes in contrast and 0 for genes not in the contrast
+    gene.vector=as.integer(ALL.vector %in% ID.vector) 
+    names(gene.vector)<-ALL.vector#set names
+
+    #weight gene vector by bias for length of gene: load in the gene.vector(a list of all genes with 1 indicating it is a DEG in the group of interest and 0 meaning it is not a DEG) and bias.data (list of lengths for all genes)
+    pwf<-nullp(gene.vector, bias.data=LENGTH.vector) 
+    
+    #run goseq using Wallenius method for all categories of GO terms: load in the pwf object (gene name, a 1 or 0 to indicate DEG, the length, and the pwf function; generated from pwf above), and the list of GO terms for all genes
+    GO.wall<-goseq(pwf, gene2cat=GO.terms, test.cats=c("GO:BP", "GO:MF", "GO:CC"), method="Wallenius", use_genes_without_cat=TRUE)
+
+    GO <- GO.wall[order(GO.wall$over_represented_pvalue),]
+    colnames(GO)[1] <- "GOterm"
+    
+    #adjust p-values 
+    GO$bh_adjust <- p.adjust(GO$over_represented_pvalue, method="BH") #add adjusted p-values
+  
+    #Filtering for p < 0.05
+    GO <- GO %>%
+        dplyr::filter(bh_adjust<0.05) %>%
+        dplyr::arrange(., ontology, bh_adjust)
+
+    #Write file of results 
+    #write_csv(GO, file = paste0("Mcap2020/Output/TagSeq/GenomeV3/DESeq/functional_enrichment/goseq_cluster", cluster_id, ".csv"))
+    
+
+```
+
 # Set ID and gene length vectors, and make a binary matrix indicating which genes are differentially expressed. These are used as input to nullp, which for calculates a Probability Weighting Function for each set of DEGs.
 #Build GOSEQ vector 
 #GOseq requires a vector of all genes, all differentially expressed genes, and gene lengths
@@ -124,7 +181,7 @@ All have length information.
 #Make ID and length vectors for all genes, UPREG and DOWNREG
 #all genes
 DEG <- filtered_Pverr.annot[filtered_Pverr.annot$gene_id %in% DEG.res$gene_id, ]
-dim(DEG) # 252 x 10
+dim(DEG) 
 DEG_names <- as.vector(DEG$gene_id)
 gene_vector <- as.integer(filtered_Pverr.annot$gene_id%in%DEG_names)
 names(gene_vector) <- filtered_Pverr.annot$gene_id
@@ -149,9 +206,6 @@ DEG_names.down <- as.vector(DEG.down$gene_id)
 gene_vector.down <- as.integer(GFF3$gene_id%in%DEG_names.down)
 names(gene_vector.down) <- GFF3$gene_id
 
-# Make ID vector 
-IDvector <- filtered_Pverr.annot$gene_id
-
 # Make length vector 
 lengthVector <- filtered_Pverr.annot$length
 
@@ -159,9 +213,9 @@ lengthVector <- filtered_Pverr.annot$length
 
 #Calculate Probability Weighting Function
 ```{r}
-pwf<-nullp(gene_vector, IDvector, bias.data=lengthVector) #weight vector by length of gene
-pwf.up<-nullp(gene_vector.up, IDvector, bias.data=lengthVector) #weight vector by length of gene for upreg
-pwf.down<-nullp(gene_vector.down, IDvector, bias.data=lengthVector) #weight vector by length of gene for downreg
+pwf<-nullp(gene_vector, bias.data=lengthVector) #weight vector by length of gene
+pwf.up<-nullp(gene_vector.up, bias.data=lengthVector) #weight vector by length of gene for upreg
+pwf.down<-nullp(gene_vector.down, bias.data=lengthVector) #weight vector by length of gene for downreg
 ```
 
 
@@ -171,7 +225,7 @@ pwf.down<-nullp(gene_vector.down, IDvector, bias.data=lengthVector) #weight vect
 ### Perform GOseq for all, upreg and down reg
 ## Perform GOseq for all genes
 # Find enriched GO terms, "selection-unbiased testing for category enrichment amongst differentially expressed (DE) genes for RNA-seq data"
-GO.wall<-goseq(pwf, IDvector, gene2cat=annot_GO, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
+GO.wall<-goseq(pwf, gene2cat=annot_GO, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
 #adjust p-values 
 GO.wall$bh_adjust <-  p.adjust(GO.wall$over_represented_pvalue, method="BH") 
   
