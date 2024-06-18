@@ -67,12 +67,10 @@ sample.info <- read.csv("RAnalysis/Data/WGBS/metadata.WGBS.csv", header=T, sep="
 #samp <- gsub("[_]", "-", samp) #remove extra characters
 
 #load genes gff 
-Genes <- read.csv("RAnalysis/Genome/Pver_genome_assembly_v1.0.gene.gff3", head = TRUE, sep= " ") #read in data fill
-Genes <- Genes[,c(9,1,4,5)] #select desired columns only
-colnames(Genes) <- c("gene","scaffold", "start", "stop" ) #rename columns
-Genes$gene <- gsub(";.*","",Genes$gene) #remove extra characters
-Genes$gene <- gsub("ID=","",Genes$gene) #remove extra characters
-Genes$length <- Genes$stop-Genes$start # calculated lengths from start and stop
+Genes <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/rename_structure_gff3.csv") #read in data fill
+Genes <- Genes[,c(10,2,5,6, 11)] #select desired columns only
+colnames(Genes) <- c("gene","scaffold", "start", "stop", "length") #rename columns
+Genes$gene <-  gsub("_","_gene_", Genes$gene) #add _gene_g#
 
 #Load annotation file
 Annot <- read.csv("Functional_Annotation/Final_Annotations/pver_annot_full.csv", row.names = 1)
@@ -82,11 +80,9 @@ colnames(Annot)[1] <- "gene"
 Annot$gene <-  gsub("\\..*","",Annot$gene) #remove the all after . "t#" number after the dash
 Annot$gene <-  gsub("_","_gene_",Annot$gene) #add _gene_g#
 
-
 #load all gene GO IDs organized and split
-
 Gene.GO.IDs <- read.csv("Functional_Annotation/Final_Annotations/pver_GOterms_interprot_swissprot_blast_trembl_20211203.csv", row.names = 1)
-colnames(Gene.GO.IDs) <- c("gene", "GO.IDs", "database") #rename columns
+colnames(Gene.GO.IDs) <- c("gene", "GO.IDs") #rename columns
 
 #edit gene ID to match GFF3
 Gene.GO.IDs$gene <-  gsub("\\..*","",Gene.GO.IDs$gene) #remove the all after . "t#" number after the dash
@@ -95,29 +91,26 @@ Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
 GO.IDs <-unique(Gene.GO.IDs$GO.IDs) #removes duplicates from columns, compiles both lists to get all GO terms without duplicates
 ```
 
-#Load filtered methylation counts 10x 
+#Load filtered methylation counts 10x (only need to run initially, commented out as we updated in the next section with the filtered SNPs data)
 ```{r}
-#Merge final .bed files at 10x coverage
-meth.data.10x <- list.files(path = "RAnalysis/Data/WGBS/10x_methcounts/", pattern = ".bed$", full.names=TRUE) %>%
-  purrr::set_names(.) %>% 
-  map_dfr(read.csv,.id="Sample.ID", header=FALSE, sep="\t", na.string="NA", stringsAsFactors = FALSE) %>% 
-  dplyr::select(-c(V3,V7:V14)) %>%
-  group_by(Sample.ID)
-colnames(meth.data.10x) <- c("Sample.ID", "scaffold", "position","per.meth","meth","unmeth","gene")
-meth.data.10x$gene <- gsub(";.*","",meth.data.10x$gene) #remove extra characters
-meth.data.10x$gene <- gsub("ID=","",meth.data.10x$gene) #remove extra characters
-meth.data.10x$Sample.ID <- gsub("RAnalysis/Data/WGBS/10x_methcounts//","",meth.data.10x$Sample.ID) #remove extra characters
-meth.data.10x$Sample.ID <- gsub("_.*","",meth.data.10x$Sample.ID) #remove extra characters 
-#meth.data.10x$Sample.ID <- gsub("-","_",meth.data.10x$Sample.ID) #remove extra characters
-#meth.data.10x$Sample.ID <- gsub("/","",meth.data.10x$Sample.ID) #remove extra characters (backslash from sample.ID name)
-MD.10x <- merge(meth.data.10x,sample.info, by="Sample.ID") #combine sample info and 10x coverage megafile
+# #Merge final .bed files at 10x coverage
+# meth.data.10x <- list.files(path = "RAnalysis/Data/WGBS/10x_methcounts/", pattern = ".bed$", full.names=TRUE) %>%
+#   purrr::set_names(.) %>% 
+#   map_dfr(read.csv,.id="Sample.ID", header=FALSE, sep="\t", na.string="NA", stringsAsFactors = FALSE) %>% 
+#   dplyr::select(-c(V3,V7:V14)) %>%
+#   group_by(Sample.ID)
+# colnames(meth.data.10x) <- c("Sample.ID", "scaffold", "position","per.meth","meth","unmeth","gene")
+# meth.data.10x$gene <- gsub(";.*","",meth.data.10x$gene) #remove extra characters
+# meth.data.10x$gene <- gsub("ID=","",meth.data.10x$gene) #remove extra characters
+# meth.data.10x$Sample.ID <- gsub("RAnalysis/Data/WGBS/10x_methcounts//","",meth.data.10x$Sample.ID) #remove extra characters
+# meth.data.10x$Sample.ID <- gsub("_.*","",meth.data.10x$Sample.ID) #remove extra characters 
+# #meth.data.10x$Sample.ID <- gsub("-","_",meth.data.10x$Sample.ID) #remove extra characters
+# #meth.data.10x$Sample.ID <- gsub("/","",meth.data.10x$Sample.ID) #remove extra characters (backslash from sample.ID name)
+# MD.10x <- merge(meth.data.10x,sample.info, by="Sample.ID") #combine sample info and 10x coverage megafile
+# 
+# #save sample info and percent methylation
+# saveRDS(MD.10x, "RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata")
 
-#save sample info and percent methylation
-saveRDS(MD.10x, "RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata")
-
-#MD.10x.original <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.original.Rdata") #read in info
-
-#head(MD.10x.original)
 ```
 
 # Filter out any SNPs that could impact our methylation data and use updated and filtered data frame for next steps
@@ -125,7 +118,6 @@ saveRDS(MD.10x, "RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata")
 # Filtering SNPs found from BS-SNper, following this workflow: https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2024-02-12-Testing-BS-SNPer-Molec-Underpinnings-WGBS.md and this script: https://github.com/hputnam/Becker_E5/blob/master/RAnalysis/Scripts/WGBS/BS-SNPer.filter.Rmd
 
 # Use the new MD.10x file that has now been filtered for SNPs
-
 MD.10x <- readRDS("RAnalysis/Data/WGBS/BS-SNPer/filtered_bed_SNP_file.Rdata") #read in info
 
 head(MD.10x)
@@ -151,33 +143,33 @@ results.10x <- data.frame()
 gs.10x <- unique(sub_meth_table.10x$gene)
 
 
-#all code below is commented out because only need to run this for the initial step
-#first subset the unique dataframes and second run the GLMs
-
- for(i in 1:length(sub_meth_table.10x$gene)){
-
-   #subset the dataframe gene by gene
-   sub_meth_table.10x1 <- subset(sub_meth_table.10x, gene ==gs.10x[i])
-
-  # fit glm position model
-  #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
-   fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment,
-              data=sub_meth_table.10x1, family=binomial)
-   a <- anova(fit, test="Chisq")
-
-   # capture summary stats to data frame
-   df <- data.frame(gene = sub_meth_table.10x1[1,7],
-                    pval.treatment = a$`Pr(>Chi)`[2],
-                    #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
-                    #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
-                   stringsAsFactors = F)
-
-   # bind rows of temporary data frame to the results data frame
-   results.10x <- rbind(results.10x, df)
-
- }
- 
- write.csv(results.10x, "RAnalysis/Output/WGBS/meth.results.10x.csv")
+#all code below is commented out because only need to run this for the initial step, can just load Rdata below to move to next sections
+# #first subset the unique dataframes and second run the GLMs
+# 
+#  for(i in 1:length(sub_meth_table.10x$gene)){
+# 
+#    #subset the dataframe gene by gene
+#    sub_meth_table.10x1 <- subset(sub_meth_table.10x, gene ==gs.10x[i])
+# 
+#   # fit glm position model
+#   #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
+#    fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment,
+#               data=sub_meth_table.10x1, family=binomial)
+#    a <- anova(fit, test="Chisq")
+# 
+#    # capture summary stats to data frame
+#    df <- data.frame(gene = sub_meth_table.10x1[1,7],
+#                     pval.treatment = a$`Pr(>Chi)`[2],
+#                     #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
+#                     #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
+#                    stringsAsFactors = F)
+# 
+#    # bind rows of temporary data frame to the results data frame
+#    results.10x <- rbind(results.10x, df)
+# 
+#  }
+#  
+#  write.csv(results.10x, "RAnalysis/Output/WGBS/meth.results.10x.csv")
 
 # An error will be generated here for contrasts. 
 #This potential for contrasts (interactions) is included in the case one wants to examine the role of position of CpG within a gene
@@ -207,119 +199,6 @@ write.table(DMG.sig.annot.10x, 'RAnalysis/Output/WGBS/Treatment_sig_annot.10x.ts
 
 ```
 
-#plot global, DMG, and DMG per DEG for bar plots between enriched and control
-```{r}
-#Sanity check plotting of DMGs by treatment
-subdf.DMG <- MD.10x  %>%	
-  filter(gene == DMG.sig.annot.10x$gene[i])
-means.DMG <- aggregate(per.meth ~ treatment, data=subdf.DMG, FUN=mean)
-ses.DMG <- aggregate(per.meth ~ treatment, data=subdf.DMG, FUN=std.error)
-means.DMG$ses <- ses.DMG$per.meth
-means.DMG$per.meth <- means.DMG$per.meth
-
-# build the linear model to see if tretaments differ and check assumptions
-model  <- lm(per.meth ~ treatment, data = subdf.DMG)
-
-# Create a QQ plot of residuals
-ggqqplot(residuals(model))
-#not normal, use kruskall willis test
-
-# use Kruskal-Wallis test by rank which is a non-parametric alternative to one-way ANOVA test, which extends the two-samples Wilcoxon test in the situation where there are more than two groups. It’s recommended when the assumptions of one-way ANOVA test are not met.
-
-DMG.mod <- kruskal.test(per.meth ~ treatment, data = subdf.DMG)
-
-DMG.mod
-
-#results: Kruskal-Wallis chi-squared = 3.9272, df = 1, p-value < 0.04751, significantly higher percent meth in DMGs in enriched treatment
-
-#make bar plot of means DMG
-plot.DMG <- ggplot(means.DMG, aes(x=treatment, y=per.meth, fill = treatment)) +
-  geom_bar(stat="identity",
-             position=position_dodge(), show.legend = FALSE) +
-    geom_errorbar(aes(ymin=per.meth-ses, ymax=per.meth+ses), width=.2,
-                  position=position_dodge(.9)) +
-    xlab("Treatment") + #plot x axis label
-    ylab("Percent Methylation in DMG") + #plot y axis label
-    scale_fill_manual(values = c(control="black", enriched="cadetblue3")) +
-    scale_y_continuous(limits = c(0,12.5), expand = c(0, 0)) +
-    ggtitle("Kruskal-Wallis, p < 2.2e-16") +
-    theme_bw();plot.DMG
-
-
-ggsave("RAnalysis/Output/WGBS/per.meth.10x.DMG.pdf", plot.DMG)
-ggsave("RAnalysis/Output/WGBS/per.meth.10x.DMG.png", plot.DMG)
-
-
-#Sanity check plotting of DMGs by treatment
-subdf.global <- MD.10x # %>%	
-  #filter(gene== DMG.sig.annot.10x$gene[2])
-means.global <- aggregate(per.meth ~ treatment, data=subdf.global, FUN=mean)
-ses.global <- aggregate(per.meth ~ treatment, data=subdf.global, FUN=std.error)
-means.global$ses <- ses.global$per.meth
-means.global$per.meth <- means.global$per.meth
-
-plot.global <- ggplot(means.global, aes(x=treatment, y=per.meth, fill = treatment)) +
-  geom_bar(stat="identity",
-             position=position_dodge(), show.legend = FALSE) +
-    geom_errorbar(aes(ymin=per.meth-ses, ymax=per.meth+ses), width=.2,
-                  position=position_dodge(.9)) +
-    xlab("Treatment") + #plot x axis label
-    ylab("Percent Methylation in Global") + #plot y axis label
-    scale_fill_manual(values = c(control="black", enriched="cadetblue3")) +
-    scale_y_continuous(expand = expansion(mult = c(0, .1)))+
-    theme_bw();plot.global
-
-ggsave("RAnalysis/Output/WGBS/per.meth.10x.global.pdf", plot.global)
-ggsave("RAnalysis/Output/WGBS/per.meth.10x.global.png", plot.global)
-
-#compare dmg and deg, create plot compared %dmgs in DEGs, load deg data
-deg <- read.csv("RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.results.host.csv")
-
-#make gene list for gene_id in deg dataframe
-gene_list <-c(deg$gene_id)
-
-#remove _gene_ in gene name from MD.10x
-#MD.10x$gene <- gsub("_gene","", MD.10x$gene) #remove extra characters
-
-#looking at percent methylation in DEG
-subdf.dmg.deg <- MD.10x %>%	
-  filter(gene %in% gene_list)
-means.dmg.deg <- aggregate(per.meth ~ treatment, data=subdf.dmg.deg, FUN=mean)
-ses.dmg.deg <- aggregate(per.meth ~ treatment, data=subdf.dmg.deg, FUN=std.error)
-means.dmg.deg$ses <- ses.dmg.deg$per.meth
-means.dmg.deg$per.meth <- means.dmg.deg$per.meth
-
-plot.dmg.deg <- ggplot(means.dmg.deg, aes(x=treatment, y=per.meth, fill = treatment)) +
-  geom_bar(stat="identity",
-             position=position_dodge(), show.legend = FALSE) +
-    geom_errorbar(aes(ymin=per.meth-ses, ymax=per.meth+ses), width=.2,
-                  position=position_dodge(.9)) +
-    xlab("Treatment") + #plot x axis label
-    ylab("Percent Methylation in DEG") + #plot y axis label
-    scale_fill_manual(values = c(control="black", enriched="cadetblue3")) +
-    scale_y_continuous(expand = expansion(mult = c(0, .1)))+
-    ggtitle("Kruskal-Wallis, p = 0.04") +
-    theme_bw(); plot.dmg.deg
-
-ggsave("RAnalysis/Output/WGBS/per.meth.in.DEG.pdf", plot.dmg.deg)
-ggsave("RAnalysis/Output/WGBS/per.meth.in.DEG.png", plot.dmg.deg)
-
-
-# build the linear model to see if tretaments differ and check assumptions
-model  <- lm(per.meth ~ treatment, data = subdf.dmg.deg)
-
-# Create a QQ plot of residuals
-ggqqplot(residuals(model))
-#not normal, use kruskall willis test
-
-# use Kruskal-Wallis test by rank which is a non-parametric alternative to one-way ANOVA test, which extends the two-samples Wilcoxon test in the situation where there are more than two groups. It’s recommended when the assumptions of one-way ANOVA test are not met.
-
-dmg.deg.mod <- kruskal.test(per.meth ~ treatment, data = subdf.dmg.deg)
-
-dmg.deg.mod
-
-
-```
 
 #Calculate hyper- and hypo- methylation from data using limma package in significant DMGs
 
@@ -327,7 +206,6 @@ dmg.deg.mod
 #set up dataframe for limma analysis
 # Assume you have a data frame 'methylation_data' with columns: Gene, Condition1, Condition2
 # 'Gene' column contains gene names, 'Condition1' and 'Condition2' contain methylation values
-
 #select certain columns
 methylation_data <- MD.10x %>%
   filter(gene %in% DMG.sig.annot.10x$gene)
@@ -361,7 +239,6 @@ num_hyper_genes <- length(hyper_genes) #203
 num_hypo_genes <- length(hypo_genes) #164
 
 ```
-
 
 
 # Conduct PERMANOVA and PCA on global methylation and DMG
@@ -500,9 +377,7 @@ ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DMG.PCA.v
 ```
 
 
-
-# Conduct PERMANOVA and PCA on differential expression 
-
+# Conduct PERMANOVA on differential methylation
 Export data for PERMANOVA test.  
 ```{r}
 test<-t(assay(gvst)) #export as matrix
@@ -534,11 +409,12 @@ There are significant differences between treatments for control and enriched si
 
 adonis2(formula = vegan ~ treatment, data = test1, method = "eu")
           Df SumOfSqs      R2      F Pr(>F)   
-treatment  1     4191 0.03839 1.0778  0.003 **
+treatment  1     4191 0.03839 1.0778  0.004 **
 Residual  27   104981 0.96161                 
 Total     28   109172 1.00000                 
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
 
 ## Visualize differentially methylated genes
 ```{r}
@@ -558,7 +434,6 @@ DMG <- unique(DMG) # select only unique gene names
 DMG_list <- gdds[which(rownames(gdds) %in% DMG)] # filter gdds DMG object by unique gene names
 dim(DMG_list) # 15 x 15
 print(counts(DMG_list))
-
 
 # As determined above, size factors all less than 4, so proceed with VST
 # apply a variance stabilizing transformation to minimize effects of small counts and normalize library size
@@ -624,7 +499,6 @@ ggsave("RAnalysis/Output/Final_Figures/Host/DMG_PCA_plot_host.pdf", DMG_PCA_plot
 ```
 
 # Conduct PERMANOVA and DMG
-
 Export data for PERMANOVA test.  
 ```{r}
 test2<-t(assay(DMGvst)) #export as matrix
@@ -638,11 +512,11 @@ test2$treatment <- samp.info$treatment[match(test2$fragment.ID, samp.info$fragme
 Build PERMANOVA model.  
 ```{r}
 #last column with treatment metadata test[370] and test[369], need to start at third to last column for the numeric error issue
-scaled_test2 <-prcomp(test2[c(1:368)], center = TRUE, scale. = TRUE)
+scaled_test2 <-prcomp(test2[c(1:367)], center = TRUE, scale. = TRUE)
 fviz_eig(scaled_test2)
 
 # scale data
-vegan <- scale(test2[c(1:368)])
+vegan <- scale(test2[c(1:367)])
 
 # PerMANOVA 
 permanova <- adonis2(vegan ~ treatment, data = test2, method='eu')

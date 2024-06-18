@@ -1,51 +1,39 @@
 ---
-title: "DEG_DMG_pathway_analysis"
-author: "daniellembecker"
-date: "2023-01-20"
+title: "METH_GE_COMPARE"
+author: "Danielle M. Becker"
+date: "20220720"
 output: html_document
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
+#### Gene Expression and DNA Methylation comparison ####
+## Used to compare general relationship between DNA methylation and gene expression
+## Code developed from Javier A Rodriguez-Casariego paper: https://onlinelibrary.wiley.com/doi/pdf/10.1111/mec.16246?casa_token=DGoNlwKZByAAAAAA:i6JDcylh98txNEMQnr6dUTFxKd1sX7xotbSMZJq-DDOyqZGUPHObc30PhaWOAqpEufHMcJJ_wlQbQvbG
+## https://github.com/jarcasariego/ACER_clonal_divergence/blob/main/GE_GbM_association/rmd/GE_DNAm_control.Rmd
 
-# Molecular Underpinnings Chronic Nutrient Enrichment Project
+```{r load packages}
 
-## Analysis of comparisons between gene ontology enrichment from differentially methylated genes and differentially expressed genes.
-## Previous steps for gene expression include RNAseq workflow in Bioinformatics>RNAseq>RNAseq workflow and Differential Gene Expression statistical analysis in RAnalysis>Scripts>RNAseq_Differential_Gene_Expression to make DEG statistical data sheet
-## Previous steps for DNA methylation include WGBS workflow in Bioinformatics>WGBS>WGBS workflow and Differential Methylated Genes statistical analysis in RAnalysis>Scripts>WGBS_WGBS.rmd to make DMG statistical dataframe
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
-# Load libraries
-
-library("tidyverse")
-library("RColorBrewer")
-library("gridExtra")
-library("ComplexHeatmap")
-library("dplyr")
-library("clusterProfiler")
-library("pheatmap")
-library("magrittr")
-library("rtracklayer")
-library("GenomicRanges")
-library("png")
-library("GSEABase")
-library("GOSim")
-library("VennDiagram")
-library("stats")
-library("GO.db")
-library("rrvgo")
-library("GOSemSim")
-library("AnnotationDbi")
-library("janitor")
+## load packages
+library(ComplexHeatmap)
+library(clusterProfiler)
+library(pheatmap)
+library(magrittr)
+library(rtracklayer)
+library(GenomicRanges)
+library(png)
+library(GSEABase)
+library(GOSim)
+library(stats)
+library(GO.db)
+library(rrvgo)
+library(AnnotationDbi)
+library(janitor)
 library(rtracklayer) # on bioconducter
 library(dplyr)
 library(edgeR)
 library(factoextra)
 library(cowplot)
-library(wesanderson)
-library(viridis)
 library(adegenet)
 library(ggplot2)
 library(matrixStats)
@@ -58,6 +46,245 @@ library(tidyverse)
 library(ggpubr)
 pal <- brewer.pal(n = 3, name = "PRGn")
 ```
+
+#### Functions ####
+```{r}
+# Function for subset 'mat' for the target expression,DNA methylation, and gene attributes modified from @adowneywall
+subMat_control <- function(x){
+  y <- data.frame(gene_length=log2(x$gene_length),
+                  exon=log2(x$exon_count),totalCpG=log2(x$all_count),
+                  Methylation=x$mean_Cc,Methylation_CV=x$cv_Cc,
+                  Gene_Expression=x$gene_mean_Cc,Gene_Expression_CV=x$gene_cv_Cc)
+  return(y)
+}
+get_density <- function(x, y, ...) {
+  dens <- MASS::kde2d(x, y, ...)
+  ix <- findInterval(x, dens$x)
+  iy <- findInterval(y, dens$y)
+  ii <- cbind(ix, iy)
+  return(dens$z[ii])
+}
+perCentCpGCoverage <- function(x){sum(c(mat$cov5_count/mat$all_count)*100 > x)}
+# Function for generating three panel contribution plot for the different PCs
+suppContriFig <- function(x){
+  temp <- list()
+  for(i in 1:3){
+    temp[[i]] <- fviz_contrib(x, choice = "var", axes = i, top = 10,color = "black",fill = "grey",
+                              sort.val = "none")
+  }
+  return(temp)
+}
+```
+
+Load metadata
+```{r}
+#### Data ####
+# Read in metadata
+meta.data <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/metadata.RNAseq.csv", header=T, sep=",", na.string="NA", stringsAsFactors = F) #read in info
+colnames(meta.data) <- c("colonyID","treatment","block","Sample_ID")
+ID <- meta.data$Sample_ID
+```
+
+Processing expression data
+```{r}
+counts <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/Poc_gene_count_matrix.csv", header = TRUE, row.names = 1) #read in genes count matrix
+colnames(counts) <- str_sub(colnames(counts), 1, 3) #remove everything after the first _ to just have the sample names
+# Order columns by sample name
+colnames(counts) <- c("C17","C18","C19","C20","C21","C22","C23","C24","C25","C26","C27","C28","C29","C30","C31","C32","E10","E11","E12","E13","E14","E15","E16","E1","E2","E3", "E4", "E5", "E6", "E7", "E8", "E9")
+counts <- counts[, colnames(counts) %in% ID] #intersect with ID to maintain only samples a
+counts <- counts[, order(colnames(counts))]
+dge_gene <- DGEList(counts,genes = rownames(counts))
+test <- as.data.frame(dge_gene)
+saveRDS(dge_gene, "RAnalysis/Data/GE_meth_compare/RNA_gene_preNormalization_DGEListObj.Rdata")
+```
+
+
+```{r}
+# Create Methylation Summary Table
+#SAMPLES E2, E16, AND C19 WERE EXCLUDED DUE TO DEDUPLICATION AND LOW COUNTS
+# Read in gene methylation data
+gene_dnam <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
+
+#rename sample.ID to include corresponding E and C in front for enriched and control for later analysis
+gene_dnam <- gene_dnam %>%
+    mutate(Sample.ID = recode(Sample.ID, '1' = 'E1', '3' = 'E3', '4' = 'E4', '5' = 'E5', '6' = 'E6', '7' = 'E7', '8' = 'E8', '9' = 'E9','10' = 'E10', '11' = 'E11', '12' = 'E12','13' = 'E13', '14' = 'E14', '15' = 'E15', '16' = 'E16', '17' = 'C17', '18' = 'C18', '20' = 'C20', '21' = 'C21', '22' = 'C22', '23' = 'C23', '24' = 'C24', '25' = 'C25', '26' = 'C26', '27' = 'C27', '28' = 'C28', '29' = 'C29', '30' = 'C30', '31' = 'C31', '32' = 'C32'))
+
+#check to see all where renamed correctly
+unique(gene_dnam$Sample.ID)
+
+#change from long to wide format
+meth <- data.frame (gene_dnam %>%
+                   group_by(Sample.ID, gene) %>%
+                   summarise(mean = mean(per.meth), n = n()) %>%
+                   spread(., key = Sample.ID, value = mean))
+
+#filter for a min 5 Cpg per gene
+meth <- meth[which(meth$n > 5),]
+cpg10xgene <- meth[,1:2]  
+colnames(cpg10xgene) <- c("gene_id", "cov10_count")
+rownames(meth) <- meth$gene
+meth <- meth[,-1]
+meth <- as.matrix(meth)
+meth <- meth/100
+saveRDS(meth, "RAnalysis/Data/GE_meth_compare/meth_dataset.RData")
+
+meth.test <- data_frame(meth)
+
+## Create a summary of methylation for each gene ##
+mean_meth <- rowMeans(meth)
+
+meta.data <- na.omit(meta.data)
+
+# mean gene meth enriched 
+subset_meth_E <- meth[, colnames(meth)%in%list_E] #subset data from main m matrix for just enriched data
+
+#test <- subset_meth_E %>% summarise_at(vars(E1:E9), mean, na.rm = TRUE)
+
+mean_meth_E <- rowMeans(subset_meth_E)
+
+# Mean gene meth control
+subset_meth_C <- meth[, colnames(meth)%in%list_C] #subset data from main m matrix for just control data
+
+mean_meth_C <- rowMeans(subset_meth_C)
+
+# Coefficient of Variation for enriched samples
+sd_meth_E <- rowSds(subset_meth_E)
+cv_meth_E <- sd_meth_E/mean_meth_E
+ 
+# Coefficient of Variation for control
+sd_meth_C <- rowSds(subset_meth_C)
+cv_meth_C <- sd_meth_C/mean_meth_C
+
+
+# Coefficient of Variation among treatments
+meanAmongTrt_meth <- cbind(mean_meth_E,mean_meth_C)
+sd_meanAmongTrt_meth <- rowSds(meanAmongTrt_meth)
+mean_meanAmongTrt_meth <- rowMeans(meanAmongTrt_meth)
+cv_mean_AmongTrt_meth <- sd_meanAmongTrt_meth/mean_meanAmongTrt_meth
+
+# Difference in gene methylation between treatments
+diff_Trt_meth <- mean_meth_E-mean_meth_C
+
+# Creat matrix of all CpG summary stats
+meth_summary <- cbind(mean_meth,mean_meth_E,mean_meth_C,cv_meth_E,cv_meth_C,cv_mean_AmongTrt_meth,
+                      diff_Trt_meth) # bind all data frames with summary stats
+meth_summary[is.na(meth_summary)]<-0 #filter for all methylation data over 0
+meth_summary <- data.frame(gene_id = rownames(meth_summary),meth_summary) #change gene ID column name
+meth_annot <- left_join(cpg10xgene, meth_summary) #join Cpg and meth summary
+
+# Saving full meth_annot data.frame
+saveRDS(meth_annot,"RAnalysis/Data/GE_meth_compare/meth_annot_full.RData")
+
+#### Summarize the gene expression data ####
+expression <- dge_gene$counts
+subset_expression <- expression[, colnames(expression)%in%list_E] 
+subset_expression <- subset_expression[rowSums(subset_expression[])>0,]
+expression <- expression[rownames(expression) %in% rownames(subset_expression),]
+expression_cpm_log <- log2(cpm(expression)+ 1) # log2 cpm transformation
+expression <- expression_cpm_log
+
+# Mean gene expression all samples
+mean_express <- rowMeans(expression)
+
+# mean gene expression enriched 
+subset_express_E <- expression[, colnames(expression)%in%list_E] #subset data from main m matrix for just enriched data
+
+mean_express_E <- rowMeans(subset_express_E) #take mean per gene ID
+
+# Mean gene expression control
+subset_express_C <- expression[, colnames(expression)%in%list_C] #subset data from main m matrix for just control data
+
+mean_express_C <- rowMeans(subset_express_C) #take mean per gene ID
+
+# Coefficient of Variation for control gene expression
+sd_express_C <- rowSds(subset_express_C)
+cv_express_C <- sd_express_C/mean_express_C
+
+# Coefficient of Variation for enriched gene expression
+sd_express_E <- rowSds(subset_express_E)
+cv_express_E <- sd_express_E/mean_express_E
+
+# Standard Error for control gene expression
+se_express_C <- sd_express_C/sqrt(length((subset_express_C)))
+
+# Standard Error for enriched gene expression
+se_express_E <- sd_express_E/sqrt(length((subset_express_E)))
+
+# Coefficient of Variation among treatments
+meanAmongTrt_express <- cbind(mean_express_E,mean_express_C)
+sd_meanAmongTrt_express <- rowSds(meanAmongTrt_express)
+mean_meanAmongTrt_express <- rowMeans(meanAmongTrt_express)
+cv_mean_AmongTrt_express <- sd_meanAmongTrt_express/mean_meanAmongTrt_express
+
+# Difference in gene expression between Trt
+diff_Trt_express <- mean_express_E-mean_express_C
+
+# Create matrix of all gene expression summary stats
+gene_summary <- cbind(mean_express,mean_express_E,mean_express_C, se_express_C, se_express_E, cv_express_E,cv_express_C,cv_mean_AmongTrt_express,
+                      diff_Trt_express)
+gene_summary[is.na(gene_summary)]<-0
+colnames(gene_summary) <- paste0("gene_",colnames(gene_summary))
+gene_summary <- data.frame(gene_id = rownames(gene_summary),gene_summary)
+
+# transcriptomic data
+transcriptomic <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/rename_structure_gff3.csv") #load annotation GFF3 file
+
+#remove first three columns in data frame
+transcriptomic <- transcriptomic[,-(1:3),drop=FALSE]
+transcriptomic <- transcriptomic[,-(4:6),drop=FALSE]
+
+#add gene between Pver_g to match gene_summary
+transcriptomic$gene_id <-  gsub("Pver_g","Pver_gene_g", transcriptomic$gene_id)
+
+#combine gene summmary and gene IDs from annot
+gene_annot <- left_join(gene_summary, transcriptomic)
+
+#delete length and gene information that is unnecessary
+gene_annot <- gene_annot[,-(9:13),drop=FALSE]
+
+# Saving full gene_annot data.frame
+saveRDS(gene_annot,"RAnalysis/Data/GE_meth_compare/gene_annot_full.RData")
+
+# Combine gene expression, exon count and CpG (DNA mehtylation data)
+gSum <- left_join(meth_annot, gene_annot)
+
+# Reducing the data.frame to include places were we have all the data.
+gSum_red<-gSum[!is.na(gSum$cov10_count),]
+gSum_red<-gSum_red[!is.na(gSum_red$gene_mean_express),]
+
+# Saving reduced data.frame
+saveRDS(gSum,"RAnalysis/Data/GE_meth_compare/Multi_geneSummaryComplete.RData")
+
+# Saving the reduced data.frame
+saveRDS(gSum_red,"RAnalysis/Data/GE_meth_compare/Multi_geneSummaryReduced.RData")
+```
+
+#compare global mean meth vs express overall
+```{r}
+mat <- readRDS("RAnalysis/Data/GE_meth_compare/Multi_geneSummaryReduced.RData")
+
+## Mean Methylation vs Gene Expression following Liew et al
+df <- mat
+
+#log gene expression x % methylation
+df$log_gene <- log(df$gene_mean_express+1)
+df$per_meth <- df$mean_meth * 100
+
+#plot of global express x meth
+meth.express.compare <- ggplot(df, aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + ylim(0,2) + 
+    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+  stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
+    theme_cowplot();meth.express.compare
+
+### Figure Mean Methylation vs Gene Expression###
+ggsave(meth.express.compare, filename="RAnalysis/Output/Final_Figures/Host/global_express_meth_correlation.png", height = 7, width = 10)
+
+```
+
+## Analysis of comparisons between gene ontology enrichment from differentially methylated genes and differentially expressed genes.
 
 # Import the data files 
 ```{r}
@@ -84,7 +311,6 @@ DMG <- DMG %>% add_column(type = "DMG.GO.terms")
 
 #adjust p-values 
 DMG$bh_adjust <-  p.adjust(DMG$over_represented_pvalue, method="BH") 
-
 
 #write csv with bh_adjust
 write.csv(DMG, file = "RAnalysis/Output/WGBS/GO.DMG.parent.terms.csv")
@@ -135,8 +361,6 @@ ggsave("RAnalysis/Output/WGBS/DMG.complete.slimterms.png", GO.plot.DMG.complete,
 ```
 
 
-
-
 ```{r}
 #upload complete parent term dataframe DMGs and make figures
 
@@ -146,11 +370,8 @@ DEG.complete <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/DEG_GO_parent_
 #add column to specific type of measure
 #DEG.complete <- DEG.complete %>% add_column(type = "DEG.GO.terms")
 
-
 #adjust p-values 
 DEG.complete$bh_adjust <-  p.adjust(DEG.complete$over_represented_pvalue, method="BH") 
-
-
 
 GO.plot.DEG.complete <-  ggplot(DEG.complete, aes(x = ontology, y = term)) + 
     geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
@@ -401,7 +622,6 @@ ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DMG.pdf")
 
 
 
-
 #facet by ontology, x axis of dot plots could be genes and methylation to see which are shared and each ontology level what is overlap in each
 #see next is how gene and meth functions overlap facet grouping by parent term and which gives you overlap in parent terms
 #DEG go plot
@@ -460,7 +680,6 @@ GO.plot.BP.DEG.DMG <-  ggplot(BP.df, aes(x = type, y = term)) +
 ggsave("RAnalysis/Output/Final_Figures/Host/GO.BP.DEG.DMG.pdf", GO.plot.BP.DEG.DMG , width = 35, height = 49, units = c("in"))
 
 ```
-
 
 
 #make final DMG DEG molecular function comparison plot
@@ -562,38 +781,6 @@ colnames(express.annot)[2:8] <-  sub(".*gene_", "", colnames(express.annot)[2:8]
 
 ```
 
-# Make full gene and meth datframe and plot correlation for all genes
-```{r}
-## Mean Methylation vs Gene Expression following Liew et al
-meth.express.all <- meth.express
-
-meth.express.all  %>% drop_na()
-
-#control log gene expression x % methylation
-meth.express.all$log_gene <- log(meth.express.all$gene_mean_express+1)
-meth.express.all$per_meth <- meth.express.all$mean_meth * 100
-
-#make plot with correlation tests
-#decide between pearson, kendall, or spearman
-#first test normality
-shapiro.test(meth.express.all$gene_mean_express) # <0.05
-shapiro.test(meth.express.all$mean_meth) # <0.05
-#both variables are less then 0.05 indicating data do not follow normal distribution
-
-#use kendall test for correlation, Kendall’s is more robust and generally the preferred method between spearman and kendall
-
-meth.express.all <- ggplot(meth.express.all,aes(x=per_meth, y=log_gene,)) + 
-    geom_point() + 
-    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
-    scale_color_viridis() +
-    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-  stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
-    theme_cowplot();meth.express.all
-
-### Figure Mean Methylation vs Gene Expression###
-
-ggsave(meth.express.all, filename="RAnalysis/Output/meth_express_compare/global.express.meth.png", height = 7, width = 10)
-```
 
 #Filter dataframes for gene ontology groups that are involved in nitrogen pathways, stress pathways to see if expression and methylation are correlated
 ```{r}
@@ -643,10 +830,8 @@ long.pathway.DMG$gene_id <- gsub(' Pver', 'Pver', long.pathway.DMG$gene_id)
 
 ```
 
-
+# Combine DMG and DEG data frames, by binding below so all rows are present
 ```{r}
-#combine DMG and DEG data frames, by binding below so all rows are present
-
 #add column to specific type of measure
 long.pathway.DEG <- long.pathway.DEG %>% add_column(type = "DEG.GO.terms")
 
@@ -707,9 +892,6 @@ meth.express.specific <- ggplot(df,aes(x=per_meth, y=log_gene,)) +
 
 ggsave(meth.express.specific, filename="RAnalysis/Output/meth_express_compare/pathway.specific.express.meth.png", height = 7, width = 10)
 ```
-
-
-
 
 
 ```{r}
@@ -1258,3 +1440,4 @@ ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/glut.oxy.
 ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/full.fig.png"), plot=Figure5, dpi=300, width=60, height=55, units="in", limitsize = FALSE)
 ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/full.fig.pdf"), plot=Figure5, dpi=300, width=60, height=55, units="in", limitsize = FALSE)
 ```
+
