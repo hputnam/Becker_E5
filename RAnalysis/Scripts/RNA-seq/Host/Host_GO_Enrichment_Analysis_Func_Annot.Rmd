@@ -134,7 +134,7 @@ Conduct at biological process level. Filter for adjusted p-value <0.05.
     
     ### Generate vector with names in just the contrast we are analyzing
     ID.vector <- DEG.res %>%
-      #filter(cluster==cluster_id) %>%
+      filter(direction=="Downregulated") %>%
       pull(gene_id)
     
     ##Get a list of GO Terms for all genes detected in our dataset 
@@ -161,12 +161,12 @@ Conduct at biological process level. Filter for adjusted p-value <0.05.
     colnames(GO)[1] <- "GOterm"
     
     #adjust p-values 
-    GO$bh_adjust <- p.adjust(GO$over_represented_pvalue, method="BH") #add adjusted p-values
+    GO$bh_adjust <- p.adjust(GO$over_represented_pvalue, method="none") #add adjusted p-values
   
     #Filtering for p < 0.05
     GO <- GO %>%
-        dplyr::filter(bh_adjust<0.05) %>%
-        dplyr::arrange(., ontology, bh_adjust)
+        dplyr::filter(over_represented_pvalue<0.05) %>%
+        dplyr::arrange(., ontology, over_represented_pvalue)
 
     #Write file of results 
     #write_csv(GO, file = paste0("Mcap2020/Output/TagSeq/GenomeV3/DESeq/functional_enrichment/goseq_cluster", cluster_id, ".csv"))
@@ -174,121 +174,6 @@ Conduct at biological process level. Filter for adjusted p-value <0.05.
 
 ```
 
-# Set ID and gene length vectors, and make a binary matrix indicating which genes are differentially expressed. These are used as input to nullp, which for calculates a Probability Weighting Function for each set of DEGs.
-#Build GOSEQ vector 
-#GOseq requires a vector of all genes, all differentially expressed genes, and gene lengths
-```{r}
-#Make ID and length vectors for all genes, UPREG and DOWNREG
-#all genes
-DEG <- filtered_Pverr.annot[filtered_Pverr.annot$gene_id %in% DEG.res$gene_id, ]
-dim(DEG) 
-DEG_names <- as.vector(DEG$gene_id)
-gene_vector <- as.integer(filtered_Pverr.annot$gene_id%in%DEG_names)
-names(gene_vector) <- filtered_Pverr.annot$gene_id
-
-# Filter for upregulated genes
-DEG.up <- DEG.res[DEG.res$direction == "Upregulated", ]
-
-# Upregulated ID and length vectors
-DEG.up <- GFF3[GFF3$gene_id %in% DEG.up$gene_id, ][-1]
-dim(DEG.up) # 174 x 10
-DEG_names.up <- as.vector(DEG.up$gene_id)
-gene_vector.up <- as.integer(GFF3$gene_id%in%DEG_names.up)
-names(gene_vector.up) <- GFF3$gene_id
-
-# Filter for downregulated genes
-DEG.down <- DEG.res[DEG.res$direction == "Downregulated", ]
-
-# Downregulated ID and length vectors
-DEG.down <- GFF3[GFF3$gene_id %in% DEG.down$gene_id, ][-1]
-dim(DEG.down) # 78 x 10
-DEG_names.down <- as.vector(DEG.down$gene_id)
-gene_vector.down <- as.integer(GFF3$gene_id%in%DEG_names.down)
-names(gene_vector.down) <- GFF3$gene_id
-
-# Make length vector 
-lengthVector <- filtered_Pverr.annot$length
-
-```
-
-#Calculate Probability Weighting Function
-```{r}
-pwf<-nullp(gene_vector, bias.data=lengthVector) #weight vector by length of gene
-pwf.up<-nullp(gene_vector.up, bias.data=lengthVector) #weight vector by length of gene for upreg
-pwf.down<-nullp(gene_vector.down, bias.data=lengthVector) #weight vector by length of gene for downreg
-```
-
-
-# Perform GOseq
-## Find enriched GO terms, "selection-unbiased testing for category enrichment amongst differentially expressed (DE) genes for RNA-seq data"
-```{r}
-### Perform GOseq for all, upreg and down reg
-## Perform GOseq for all genes
-# Find enriched GO terms, "selection-unbiased testing for category enrichment amongst differentially expressed (DE) genes for RNA-seq data"
-GO.wall<-goseq(pwf, gene2cat=annot_GO, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
-#adjust p-values 
-GO.wall$bh_adjust <-  p.adjust(GO.wall$over_represented_pvalue, method="BH") 
-  
-## Perform GOseq for upreg genes  
-GO.wall.up<-goseq(pwf.up, IDvector, gene2cat=annot_GO, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
-#adjust p-values 
-GO.wall.up$bh_adjust <-  p.adjust(GO.wall.up$over_represented_pvalue, method="BH") 
-   
-## Perform GOseq for downreg genes   
-GO.wall.down<-goseq(pwf.down, IDvector, gene2cat=annot_GO, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
-GO.wall.down$bh_adjust <-  p.adjust(GO.wall.down$over_represented_pvalue, method="BH") 
-    
-# Using manually entered categories.
-# Calculating the p-values...
-# 'select()' returned 1:1 mapping between keys and columns
-#write.csv(GO.wall, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_GO_ALL_host.csv")
-#write.csv(GO.wall.up, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_GO_UPREG_host.csv")
-#write.csv(GO.wall.down, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_GO_DOWNREG_host.csv")
-
-# Find significantly enriched GO terms in all genes
-enriched.GO.05 <-GO.wall$category[GO.wall$bh_adjust<.05]
-enriched.GO.05 <-data.frame(enriched.GO.05)
-colnames(enriched.GO.05) <- c("category")
-enriched.GO.05 <- merge(enriched.GO.05, GO.wall, by="category")
-enriched.GO.05 <- enriched.GO.05[order(-enriched.GO.05$numDEInCat),]
-enriched.GO.05$term <- as.factor(enriched.GO.05$term)
-head(enriched.GO.05)
-
-# Find significantly enriched GO terms in upregulated genes
-enriched.GO.05.up <-GO.wall.up$category[GO.wall.up$over_represented_pvalue<.05]
-enriched.GO.05.up <-data.frame(enriched.GO.05.up)
-colnames(enriched.GO.05.up) <- c("category")
-enriched.GO.05.up <- merge(enriched.GO.05.up, GO.wall.up, by="category")
-enriched.GO.05.up <- enriched.GO.05.up[order(-enriched.GO.05.up$numDEInCat),]
-enriched.GO.05.up$term <- as.factor(enriched.GO.05.up$term)
-head(enriched.GO.05.up)
-
-# Find significantly enriched GO terms in downregulated genes
-enriched.GO.05.down <-GO.wall.down$category[GO.wall.down$over_represented_pvalue<.05]
-enriched.GO.05.down <-data.frame(enriched.GO.05.down)
-colnames(enriched.GO.05.down) <- c("category")
-enriched.GO.05.down <- merge(enriched.GO.05.down, GO.wall.down, by="category")
-enriched.GO.05.down <- enriched.GO.05.down[order(-enriched.GO.05.down$numDEInCat),]
-enriched.GO.05.down$term <- as.factor(enriched.GO.05.down$term)
-head(enriched.GO.05.down)
-
-# Subset enriched GO terms by ontology (BP, CC, MF) and save as csv. 
-MF <- subset(enriched.GO.05, ontology=="MF")
-MF <- MF[order(-MF$numDEInCat),]
-CC <- subset(enriched.GO.05, ontology=="CC") 
-CC <- CC[order(-CC$numDEInCat),] 
-BP <- subset(enriched.GO.05, ontology=="BP")
-BP <- BP[order(-BP$numDEInCat),]
-write.csv(MF, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_MF_Sig_Enriched_GO.05.host.csv")
-write.csv(CC, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_CC_Sig_Enriched_GO.05.host.csv") 
-write.csv(BP, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_BP_Sig_Enriched_GO.05.host.csv")
-write.csv(enriched.GO.05, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_Sig_Enriched_GO.05_ALL_host.csv")
-
-nrow(enriched.GO.05) # 312
-nrow(filter(enriched.GO.05, ontology=="BP")) #number sig BP terms 211
-nrow(filter(enriched.GO.05, ontology=="MF")) #number sig MF terms 76
-nrow(filter(enriched.GO.05, ontology=="CC")) #number sig CC terms 22
-```
 
 ## Merge DEG gene ids and GO info
 ```{r}
