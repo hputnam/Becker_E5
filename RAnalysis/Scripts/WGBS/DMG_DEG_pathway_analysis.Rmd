@@ -263,7 +263,7 @@ ggsave(meth.express.compare, filename="RAnalysis/Output/Final_Figures/Host/globa
 # Import the data files 
 ```{r}
 #upload go enrichment summary for DEGs
-DEG <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/DEG_GO_parent_terms_complete.csv", header = TRUE)
+DEG <- read.csv("RAnalysis/Data/RNA-seq/Host/", header = TRUE)
 
 #adjust p-values 
 DEG$bh_adjust <-  p.adjust(DEG$over_represented_pvalue, method="BH") 
