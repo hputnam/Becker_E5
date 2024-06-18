@@ -555,9 +555,18 @@ DMG.pwf<-nullp(gene.vector, ID.vector, bias.data=LENGTH.vector) #weight vector b
 #Find enriched GO terms, 
 GO.wall<-goseq(DMG.pwf, ID.vector, gene2cat=Gene.GO.IDs, test.cats=c("GO:CC", "GO:BP", "GO:MF"), method="Wallenius", use_genes_without_cat=TRUE)
 
-GO.sig.trt <- GO.wall %>%
-  filter(over_represented_pvalue <0.05) %>%
+#order by significance
+GO <- GO.wall[order(GO.wall$over_represented_pvalue),]
+colnames(GO)[1] <- "GOterm"
+  
+# run false discovery method for DMGs to adjust p value
+GO$bh_adjust <-  p.adjust(GO$over_represented_pvalue, method="BH")
+
+#Filtering for p < 0.05
+GO.sig.trt <- GO %>%
+  filter(bh_adjust <0.05) %>%
   arrange(., ontology)
+
 write.csv(GO.sig.trt , file = "RAnalysis/Output/WGBS/GO.sig.trt.10x.csv")
 
 #GO.sig.trt$term <- as.factor(GO.sig.trt$term)

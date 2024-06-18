@@ -161,12 +161,12 @@ Conduct at biological process level. Filter for adjusted p-value <0.05.
     colnames(GO)[1] <- "GOterm"
     
     #adjust p-values 
-    GO$bh_adjust <- p.adjust(GO$over_represented_pvalue, method="none") #add adjusted p-values
+    GO$bh_adjust <- p.adjust(GO$over_represented_pvalue, method="BH") #add adjusted p-values
   
     #Filtering for p < 0.05
     GO <- GO %>%
-        dplyr::filter(over_represented_pvalue<0.05) %>%
-        dplyr::arrange(., ontology, over_represented_pvalue)
+        dplyr::filter(bh_adjust<0.1) %>%
+        dplyr::arrange(., ontology, bh_adjust)
 
     #Write file of results 
     #write_csv(GO, file = paste0("Mcap2020/Output/TagSeq/GenomeV3/DESeq/functional_enrichment/goseq_cluster", cluster_id, ".csv"))
