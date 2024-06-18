@@ -33,13 +33,13 @@ library("cowplot")
 # Load in treatment info and gene count matrix data files 
 ```{r}
 #treatment information
-treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/metadata.RNAseq.csv", header = TRUE, sep = ",")
+treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
 
 #view treatment information
 head(treatmentinfo)
 
 #load gene count matrix
-gcount <- as.data.frame(read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/Poc_gene_count_matrix.csv", row.names="gene_id"), colClasses = double)
+gcount <- as.data.frame(read.csv("RAnalysis/Data/RNA-seq/Host/Poc_gene_count_matrix.csv", row.names="gene_id"), colClasses = double)
 
 #confirm expectations of 32 samples by 27439 genes
 dim(gcount)
@@ -239,6 +239,7 @@ row.names(treatmentinfo_ordered)
 treatmentinfo_ordered$sample_id
 colnames(gcount_edited)
 
+
 #all are now in the same order 
 ```
 
@@ -265,6 +266,9 @@ gcount_filt <- as.data.frame(gcount_edited[which(rownames(gcount_edited) %in% gn
 head(gcount_filt)
 dim(gcount_filt)
 dim(gcount)
+
+# save filtered gene count file
+write.csv(gcount_filt, file = "RAnalysis/Output/RNA-seq/DEG/gene_count_matrix_filtered.csv")
 
 # We now have 19,821 genes after filtering, reduced from 27,439 genes before filtering.
 ```
