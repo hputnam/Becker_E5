@@ -135,13 +135,12 @@ sub_meth_table.10x$group <- paste0(sub_meth_table.10x$Sample.ID, sub_meth_table.
 
 #filter for genes with >5 methylated positions
 min.filt.10x <- dplyr::count(sub_meth_table.10x, vars = c( group))
-newdata.10x <- min.filt.10x[ which(min.filt.10x$n > 4), ]
+newdata.10x <- min.filt.10x[ which(min.filt.10x$n > 5), ]
 sub_meth_table.10x <- sub_meth_table.10x[sub_meth_table.10x$group %in% newdata.10x$vars,]
 
 # create data frame to stored results
 results.10x <- data.frame()
 gs.10x <- unique(sub_meth_table.10x$gene)
-
 
 #all code below is commented out because only need to run this for the initial step, can just load Rdata below to move to next sections
 # #first subset the unique dataframes and second run the GLMs

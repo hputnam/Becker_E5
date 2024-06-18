@@ -28,6 +28,7 @@ library(stats)
 library(GO.db)
 library(rrvgo)
 library(AnnotationDbi)
+library(viridis)
 library(janitor)
 library(rtracklayer) # on bioconducter
 library(dplyr)
@@ -45,35 +46,6 @@ library(stringr)
 library(tidyverse)
 library(ggpubr)
 pal <- brewer.pal(n = 3, name = "PRGn")
-```
-
-#### Functions ####
-```{r}
-# Function for subset 'mat' for the target expression,DNA methylation, and gene attributes modified from @adowneywall
-subMat_control <- function(x){
-  y <- data.frame(gene_length=log2(x$gene_length),
-                  exon=log2(x$exon_count),totalCpG=log2(x$all_count),
-                  Methylation=x$mean_Cc,Methylation_CV=x$cv_Cc,
-                  Gene_Expression=x$gene_mean_Cc,Gene_Expression_CV=x$gene_cv_Cc)
-  return(y)
-}
-get_density <- function(x, y, ...) {
-  dens <- MASS::kde2d(x, y, ...)
-  ix <- findInterval(x, dens$x)
-  iy <- findInterval(y, dens$y)
-  ii <- cbind(ix, iy)
-  return(dens$z[ii])
-}
-perCentCpGCoverage <- function(x){sum(c(mat$cov5_count/mat$all_count)*100 > x)}
-# Function for generating three panel contribution plot for the different PCs
-suppContriFig <- function(x){
-  temp <- list()
-  for(i in 1:3){
-    temp[[i]] <- fviz_contrib(x, choice = "var", axes = i, top = 10,color = "black",fill = "grey",
-                              sort.val = "none")
-  }
-  return(temp)
-}
 ```
 
 Load metadata
@@ -98,9 +70,8 @@ test <- as.data.frame(dge_gene)
 saveRDS(dge_gene, "RAnalysis/Data/GE_meth_compare/RNA_gene_preNormalization_DGEListObj.Rdata")
 ```
 
-
+Create Methylation Summary Table
 ```{r}
-# Create Methylation Summary Table
 #SAMPLES E2, E16, AND C19 WERE EXCLUDED DUE TO DEDUPLICATION AND LOW COUNTS
 # Read in gene methylation data
 gene_dnam <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
@@ -119,7 +90,7 @@ meth <- data.frame (gene_dnam %>%
                    spread(., key = Sample.ID, value = mean))
 
 #filter for a min 5 Cpg per gene
-meth <- meth[which(meth$n > 5),]
+meth <- meth[which(meth$n >= 5), ]
 cpg10xgene <- meth[,1:2]  
 colnames(cpg10xgene) <- c("gene_id", "cov10_count")
 rownames(meth) <- meth$gene
@@ -135,10 +106,14 @@ mean_meth <- rowMeans(meth)
 
 meta.data <- na.omit(meta.data)
 
+# create list for sample IDs from metadata and select from that list with filtering, pipe, row means
+list_E <- filter(meta.data, treatment == "enriched") #filter only enriched data from metadata
+list_C <- filter(meta.data, treatment == "control") #filter only control data from metadata
+list_E <- as.list(list_E$Sample_ID) #make list of just enriched IDs
+list_C <- as.list(list_C$Sample_ID) #make list of just control IDs
+
 # mean gene meth enriched 
 subset_meth_E <- meth[, colnames(meth)%in%list_E] #subset data from main m matrix for just enriched data
-
-#test <- subset_meth_E %>% summarise_at(vars(E1:E9), mean, na.rm = TRUE)
 
 mean_meth_E <- rowMeans(subset_meth_E)
 
@@ -285,7 +260,6 @@ ggsave(meth.express.compare, filename="RAnalysis/Output/Final_Figures/Host/globa
 ```
 
 ## Analysis of comparisons between gene ontology enrichment from differentially methylated genes and differentially expressed genes.
-
 # Import the data files 
 ```{r}
 #upload go enrichment summary for DEGs
