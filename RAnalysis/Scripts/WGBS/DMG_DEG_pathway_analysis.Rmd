@@ -646,7 +646,7 @@ DEG.DMG.BP <- DEG.DMG %>%
 filter(ontology == "BP")
 
 #output csv of shared DMG and DEG terms
-write.csv(DEG.DMG, "RAnalysis/Output/meth_express_compare/global.DEG.DMG.goterms.csv")
+write.csv(DEG.DMG, "RAnalysis/Output/WGBS/global.DEG.DMG.goterms.csv")
 
 BP.df <- na.omit(DEG.DMG.BP)
 
@@ -840,7 +840,7 @@ DMG.DEG.dat <- rbind(long.pathway.DEG, long.pathway.DMG)
 #yes rows equal estimate
 
 #write hypothesis driven csv
-write.csv(DMG.DEG.dat, "RAnalysis/Output/meth_express_compare/hypothesis.DEG.DMG.goterms.csv")
+write.csv(DMG.DEG.dat, "RAnalysis/Output/WGBS/hypothesis.DEG.DMG.goterms.csv")
 ```
 
 
@@ -890,7 +890,7 @@ meth.express.specific <- ggplot(df,aes(x=per_meth, y=log_gene,)) +
 
 ### Figure Mean Methylation vs Gene Expression###
 
-ggsave(meth.express.specific, filename="RAnalysis/Output/meth_express_compare/pathway.specific.express.meth.png", height = 7, width = 10)
+ggsave(meth.express.specific, filename="RAnalysis/Output/Final_Figures/Host/pathway.specific.express.meth.png", height = 7, width = 10)
 ```
 
 
