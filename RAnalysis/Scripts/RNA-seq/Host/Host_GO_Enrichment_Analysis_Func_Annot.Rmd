@@ -77,17 +77,57 @@ names(gcount_filt)[names(gcount_filt) == "X"] <- "gene_id"
 
 ```
 
+Match up genes in gene list file to annotation file
+```{r}
+names(annot_GO)
+
+gcount_filt2annot = match(gcount_filt$gene_id, annot_GO$gene_id) #match genes in datExpr to genes in annotation file, note I removed the # before query in this file before loading
+
+# The following is the number of probes without annotation 
+sum(is.na(gcount_filt2annot))
+
+row_nas<-which(is.na(gcount_filt2annot))
+
+#view the genes that do not have a match in the annotation file
+missing<-as.data.frame(gcount_filt[row_nas])
+#print(missing)
+```
+
+Reduce annotation file to only contain genes detected in our dataset.  
+
+```{r}
+filtered_Pverr.annot <- annot_GO[annot_GO$gene_id %in% gcount_filt$gene_id, ]
+dim(filtered_Pverr.annot)
+
+# Count unique genes based on gene_id
+unique_genes <- unique(filtered_Pverr.annot$gene_id)
+num_unique_genes <- length(unique_genes)
+
+```
+
+The annotation file now only contains genes that were detected in our dataset that have annotation information. This is 19821 out of the 27439 genes in our dataset. 
+
+Add in length to the annotation file.    
+
+```{r}
+filtered_Pverr.annot$length <- GFF3$length[match(filtered_Pverr.annot$gene_id, GFF3$gene_id)]
+
+which(is.na(filtered_Pverr.annot$length)) #all genes have lengths 
+```
+
+All have length information. 
+
 # Set ID and gene length vectors, and make a binary matrix indicating which genes are differentially expressed. These are used as input to nullp, which for calculates a Probability Weighting Function for each set of DEGs.
 #Build GOSEQ vector 
 #GOseq requires a vector of all genes, all differentially expressed genes, and gene lengths
 ```{r}
 #Make ID and length vectors for all genes, UPREG and DOWNREG
 #all genes
-DEG <- gcount_filt[gcount_filt$gene_id %in% DEG.res$gene_id, ][-1]
+DEG <- filtered_Pverr.annot[filtered_Pverr.annot$gene_id %in% DEG.res$gene_id, ]
 dim(DEG) # 252 x 10
 DEG_names <- as.vector(DEG$gene_id)
-gene_vector <- as.integer(gcount_filt$gene_id%in%DEG_names)
-names(gene_vector) <-gcount_filt$gene_id
+gene_vector <- as.integer(filtered_Pverr.annot$gene_id%in%DEG_names)
+names(gene_vector) <- filtered_Pverr.annot$gene_id
 
 # Filter for upregulated genes
 DEG.up <- DEG.res[DEG.res$direction == "Upregulated", ]
@@ -110,10 +150,10 @@ gene_vector.down <- as.integer(GFF3$gene_id%in%DEG_names.down)
 names(gene_vector.down) <- GFF3$gene_id
 
 # Make ID vector 
-IDvector <- gcount_filt$gene_id
+IDvector <- filtered_Pverr.annot$gene_id
 
 # Make length vector 
-lengthVector <- GFF3$length
+lengthVector <- filtered_Pverr.annot$length
 
 ```
 
@@ -147,12 +187,12 @@ GO.wall.down$bh_adjust <-  p.adjust(GO.wall.down$over_represented_pvalue, method
 # Using manually entered categories.
 # Calculating the p-values...
 # 'select()' returned 1:1 mapping between keys and columns
-write.csv(GO.wall, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_GO_ALL_host.csv")
-write.csv(GO.wall.up, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_GO_UPREG_host.csv")
-write.csv(GO.wall.down, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_GO_DOWNREG_host.csv")
+#write.csv(GO.wall, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_GO_ALL_host.csv")
+#write.csv(GO.wall.up, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_GO_UPREG_host.csv")
+#write.csv(GO.wall.down, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/pver_GO_DOWNREG_host.csv")
 
 # Find significantly enriched GO terms in all genes
-enriched.GO.05 <-GO.wall$category[GO.wall$over_represented_pvalue<.05]
+enriched.GO.05 <-GO.wall$category[GO.wall$bh_adjust<.05]
 enriched.GO.05 <-data.frame(enriched.GO.05)
 colnames(enriched.GO.05) <- c("category")
 enriched.GO.05 <- merge(enriched.GO.05, GO.wall, by="category")
