@@ -95,7 +95,7 @@ saveRDS(dge_gene, "RAnalysis/Data/GE_meth_compare/RNA_gene_preNormalization_DGEL
 
 #SAMPLES E2, E16, AND C19 WERE EXCLUDED DUE TO DEDUPLICATION AND LOW COUNTS
 # Read in gene methylation data
-gene_dnam <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_5x.Rdata") #read in info
+gene_dnam <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
 
 
 #rename sample.ID to include corresponding E and C in front for enriched and control for later analysis
@@ -342,10 +342,6 @@ express.mod
 #results: Kruskal-Wallis chi-squared = 118.91, df = 1, p-value < 2.2e-16, significantly higher percent meth in DMGs in enriched treatment
 
 ```
-
-
-
-
 
 
 #compare global mean meth vs express for control and enriched
@@ -672,13 +668,7 @@ zou2007: Zou's (2007) confidence interval
 
 
 
-
-
-
-
-
 Differential methylation/gene expression correlation
-
 ```{r}
 
 #Subset DM/GE dataset

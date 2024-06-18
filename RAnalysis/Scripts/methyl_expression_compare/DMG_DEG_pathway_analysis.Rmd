@@ -74,7 +74,7 @@ colnames(DEG)[3] ="GOterm" #rename columns
 write.csv(DEG, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/GO.DEG.parent.terms.host.csv")
 
 #upload go enrichment summary for DMGs
-DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.5x.csv", header = TRUE, row.names = 1)
+DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv", header = TRUE, row.names = 1)
 
 #rename category to GOterm
 colnames(DMG)[3] ="GOterm" #rename columns
