@@ -42,18 +42,18 @@ library(org.Ce.eg.db)
 # Import the data files 
 ```{r, echo=FALSE}
 # Structural annotation GFF3 file
-GFF3 <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/rename_structure_gff3.csv")
+GFF3 <- read.csv("RAnalysis/Output/RNA-seq/DEG/Host/rename_structure_gff3.csv")
 
 # Load go terms from functional annotation file
-annot_GO <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/annot_GO.terms.host.csv")[-1]
-
-# Remove rows where 'GO.ID' is 'unknown'
-annot_GO <- subset(annot_GO, GO.ID != 'unknown')
+annot_GO <- read.csv("RAnalysis/Output/RNA-seq/DEG/Host/annot_GO.terms.host.csv")[-1]
 
 # Check if all gene IDs in GFF3 are in annot_GO
 unmatched_genes <- setdiff(GFF3$gene_id, annot_GO$gene_id)
 # Print the unmatched gene IDs
 print(unmatched_genes)
+
+# Remove rows where 'GO.ID' is 'unknown'
+annot_GO <- subset(annot_GO, GO.ID != 'unknown')
 
 # edit annot_GO to list GO terms all in one row per gene
 annot_GO <- annot_GO %>%
@@ -98,7 +98,7 @@ sum(is.na(gcount_filt2annot))
 row_nas<-which(is.na(gcount_filt2annot))
 
 #view the genes that do not have a match in the annotation file
-missing<-as.data.frame(gcount_filt[row_nas])
+missing<-as.data.frame(gcount_filt2annot[row_nas])
 #print(missing)
 ```
 1,663 genes in gcount_filt do not have GO annotations
@@ -122,54 +122,102 @@ which(is.na(filtered_Pverr.annot$length)) #all genes have lengths
 
 All have length information. 
 
-
-Conduct at biological process level. Filter for adjusted p-value <0.05.  
+Conduct at bp,mf, and cc level for upregulated genes. Filter for BH adjusted p-value <0.05.  
 ```{r}
+### Generate vector with names of all genes detected in our dataset 
+ALL.vector <- c(filtered_Pverr.annot$gene_id)
   
-    ### Generate vector with names of all genes detected in our dataset 
-    ALL.vector <- c(filtered_Pverr.annot$gene_id)
-  
-    ### Generate length vector for all genes 
-    LENGTH.vector <- as.integer(filtered_Pverr.annot$length)
+### Generate length vector for all genes 
+LENGTH.vector <- as.integer(filtered_Pverr.annot$length)
     
-    ### Generate vector with names in just the contrast we are analyzing
-    ID.vector <- DEG.res %>%
-      filter(direction=="Downregulated") %>%
+### Generate vector with names in just the contrast we are analyzing
+ID.vector <- DEG.res %>%
+      filter(direction=="Upregulated") %>%
       pull(gene_id)
     
-    ##Get a list of GO Terms for all genes detected in our dataset 
+##Get a list of GO Terms for all genes detected in our dataset 
     GO.terms <- filtered_Pverr.annot%>%
       dplyr::select(gene_id, GO.ID)
     
-    ##Format to have one goterm per row with gene ID repeated
+##Format to have one goterm per row with gene ID repeated
     split <- strsplit(as.character(GO.terms$GO.ID), ";") 
     split2 <- data.frame(v1 = rep.int(GO.terms$gene_id, sapply(split, length)), v2 = unlist(split)) 
     colnames(split2) <- c("gene_id", "GO.ID")
     GO.terms<-split2
 
-    ##Construct list of genes with 1 for genes in contrast and 0 for genes not in the contrast
+##Construct list of genes with 1 for genes in contrast and 0 for genes not in the contrast
     gene.vector=as.integer(ALL.vector %in% ID.vector) 
     names(gene.vector)<-ALL.vector#set names
 
-    #weight gene vector by bias for length of gene: load in the gene.vector(a list of all genes with 1 indicating it is a DEG in the group of interest and 0 meaning it is not a DEG) and bias.data (list of lengths for all genes)
-    pwf<-nullp(gene.vector, bias.data=LENGTH.vector) 
+#weight gene vector by bias for length of gene: load in the gene.vector(a list of all genes with 1 indicating it is a DEG in the group of interest and 0 meaning it is not a DEG) and bias.data (list of lengths for all genes)
+    pwf.up<-nullp(gene.vector, bias.data=LENGTH.vector) 
     
-    #run goseq using Wallenius method for all categories of GO terms: load in the pwf object (gene name, a 1 or 0 to indicate DEG, the length, and the pwf function; generated from pwf above), and the list of GO terms for all genes
-    GO.wall<-goseq(pwf, gene2cat=GO.terms, test.cats=c("GO:BP", "GO:MF", "GO:CC"), method="Wallenius", use_genes_without_cat=TRUE)
+#run goseq using Wallenius method for all categories of GO terms: load in the pwf object (gene name, a 1 or 0 to indicate DEG, the length, and the pwf function; generated from pwf above), and the list of GO terms for all genes
+    GO.wall.up<-goseq(pwf.up, gene2cat=GO.terms, test.cats=c("GO:BP", "GO:MF", "GO:CC"), method="Wallenius", use_genes_without_cat=TRUE)
 
-    GO <- GO.wall[order(GO.wall$over_represented_pvalue),]
-    colnames(GO)[1] <- "GOterm"
+    GO.up <- GO.wall.up[order(GO.wall.up$over_represented_pvalue),]
+    colnames(GO.up)[1] <- "GOterm"
     
     #adjust p-values 
-    GO$bh_adjust <- p.adjust(GO$over_represented_pvalue, method="BH") #add adjusted p-values
+    GO.up$bh_adjust <- p.adjust(GO.up$over_represented_pvalue, method="BH") #add adjusted p-values
   
     #Filtering for p < 0.05
-    GO <- GO %>%
-        dplyr::filter(bh_adjust<0.1) %>%
+    GO.up <- GO.up %>%
+        dplyr::filter(bh_adjust<0.05) %>%
         dplyr::arrange(., ontology, bh_adjust)
 
-    #Write file of results 
-    #write_csv(GO, file = paste0("Mcap2020/Output/TagSeq/GenomeV3/DESeq/functional_enrichment/goseq_cluster", cluster_id, ".csv"))
+#Write file of results 
+write_csv(GO.up, "RAnalysis/Output/RNA-seq/func.enrich.upregulated.csv")
+    
+
+```
+
+Conduct at bp,mf, and cc level for downregulated genes. Filter for BH adjusted p-value <0.05.  
+```{r}
+### Generate vector with names of all genes detected in our dataset 
+ALL.vector <- c(filtered_Pverr.annot$gene_id)
+  
+### Generate length vector for all genes 
+LENGTH.vector <- as.integer(filtered_Pverr.annot$length)
+    
+### Generate vector with names in just the contrast we are analyzing
+ID.vector <- DEG.res %>%
+      filter(direction=="Downregulated") %>%
+      pull(gene_id)
+    
+##Get a list of GO Terms for all genes detected in our dataset 
+    GO.terms <- filtered_Pverr.annot%>%
+      dplyr::select(gene_id, GO.ID)
+    
+##Format to have one goterm per row with gene ID repeated
+    split <- strsplit(as.character(GO.terms$GO.ID), ";") 
+    split2 <- data.frame(v1 = rep.int(GO.terms$gene_id, sapply(split, length)), v2 = unlist(split)) 
+    colnames(split2) <- c("gene_id", "GO.ID")
+    GO.terms<-split2
+
+##Construct list of genes with 1 for genes in contrast and 0 for genes not in the contrast
+    gene.vector=as.integer(ALL.vector %in% ID.vector) 
+    names(gene.vector)<-ALL.vector#set names
+
+#weight gene vector by bias for length of gene: load in the gene.vector(a list of all genes with 1 indicating it is a DEG in the group of interest and 0 meaning it is not a DEG) and bias.data (list of lengths for all genes)
+    pwf.down<-nullp(gene.vector, bias.data=LENGTH.vector) 
+    
+#run goseq using Wallenius method for all categories of GO terms: load in the pwf object (gene name, a 1 or 0 to indicate DEG, the length, and the pwf function; generated from pwf above), and the list of GO terms for all genes
+    GO.wall.down<-goseq(pwf.down, gene2cat=GO.terms, test.cats=c("GO:BP", "GO:MF", "GO:CC"), method="Wallenius", use_genes_without_cat=TRUE)
+
+    GO.down <- GO.wall.down[order(GO.wall.down$over_represented_pvalue),]
+    colnames(GO.down)[1] <- "GOterm"
+    
+    #adjust p-values 
+    GO.down$bh_adjust <- p.adjust(GO.down$over_represented_pvalue, method="BH") #add adjusted p-values
+  
+    #Filtering for p < 0.05
+    GO.down <- GO.down %>%
+        dplyr::filter(bh_adjust<0.05) %>%
+        dplyr::arrange(., ontology, bh_adjust)
+
+#Write file of results 
+write_csv(GO.down, "RAnalysis/Output/RNA-seq/func.enrich.downregulated.csv")
     
 
 ```
@@ -272,39 +320,6 @@ GO.CC <- right_join(CCslim, filter(enriched.GO.05, ontology=="CC"), by="category
 ```
 
 
-## Make heatmap
-```{r}
-BPplot <- GO.BP %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
-    ggplot(aes(x = ontology, y = term)) + 
-    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
-      scale_y_discrete(position = "right") +
-      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
-      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-      strip.text.y.left = element_text(angle=0, size = 20, face = "bold"),
-      strip.text.x = element_text(size = 30, face = "bold"),
-      axis.title = element_blank(),
-      axis.text.x = element_text(size = 30),
-      axis.text = element_text(size = 14), legend.title = element_text(size = 20), legend.text =     
-      element_text(size = 20))
-
-MFplot <- GO.MF %>% mutate(term = fct_reorder(term, -over_represented_pvalue)) %>%
-    ggplot(aes(x = ontology, y = term)) + 
-    geom_tile(aes(fill=over_represented_pvalue, width = 1)) + 
-      scale_y_discrete(position = "right") +
-      facet_grid(slim_term~ ., scales = "free_y", labeller = label_wrap_gen(width = 10, multi_line = TRUE))+
-      theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-      strip.text.y.left = element_text(angle=0, size = 20, face = "bold"),
-      strip.text.x = element_text(size = 30, face = "bold"),
-      axis.title = element_blank(),
-      axis.text.x = element_text(size = 30),
-      axis.text = element_text(size = 14), legend.title = element_text(size = 20), legend.text =     
-      element_text(size = 20))
-fig5 <- BPplot + MFplot
-
-ggsave("RAnalysis/Output/Final_Figures/Host/GO_enrichment_DEG_heatmap_host.pdf", fig5, width = 30, height = 30, units = c("in"))
-```
 
 ## Make supplemental table summarizing GO enrichment
 ```{r}
@@ -604,11 +619,11 @@ ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/down.upre
 ```{r}
 
 #Load in KO term functional annotation and edit to match GFF3 and annotation file
-KFS.KO.orig <- read_tsv("../../../Desktop/Pver_KO_annot.tsv.zip", col_names = TRUE)
+KFS.KO.orig <- read_tsv("../../../Desktop/Pver_KO_annot.tsv", col_names = TRUE)
 
-KFS.KO <- KFS.KO.orig[-1,c(1,2,3)]
+KFS.KO <- KFS.KO.orig[c(1,2,3)]
 colnames(KFS.KO) <- c("sig", "gene_id", "ko")
-KFS.KO <- filter(KFS.KO, sig=="*")
+KFS.KO <- filter(KFS.KO, sig=="*") #filter for significant genes 9,300 total
 KFS.KO <- KFS.KO[,c(2:3)]
 
 #need to apply the same changes from Pver_annot file to the KFS.KO for gene_id
@@ -626,23 +641,84 @@ KO.terms <- KFS.KO
 KO.terms <- unique(KO.terms)
 str(KO.terms)
 head(KO.terms)
-colnames(KO.terms) <- c("gene_id", "GO.ID")
-
-#Bind KO and GO references
-GO.terms <- read_csv("RAnalysis/Output/RNA-seq/GOSeq/Host/annot_GO.terms.host.csv")[-1]
-
-GOKO.terms <- bind_rows(GO.terms, KO.terms)
+colnames(KO.terms) <- c("gene_id", "KEGG.ID")
 
 ```
 
+Reduce annotation file to only contain genes detected in our dataset.  
+```{r}
+filtered_Pverr.KEGG <- annot_GO[annot_GO$gene_id %in% KO.terms$gene_id, ]
+dim(filtered_Pverr.KEGG)
+
+```
+
+The annotation file now only contains genes that were detected in our dataset that have annotation information. This is 8122 out of the 27439 genes in our dataset. 
+
+Add in length to the annotation file.    
+
+```{r}
+filtered_Pverr.KEGG$length <- GFF3$length[match(filtered_Pverr.KEGG$gene_id, GFF3$gene_id)]
+
+which(is.na(filtered_Pverr.KEGG$length)) #all genes have lengths 
+```
+
+Conduct at KEGG process level for upregulated. Filter for adjusted p-value <0.05.  
+```{r}
+### Generate vector with names of all genes detected in our dataset 
+ALL.vector <- c(filtered_Pverr.KEGG$gene_id)
+  
+### Generate length vector for all genes 
+LENGTH.vector <- as.integer(filtered_Pverr.KEGG$length)
+    
+### Generate vector with names in just the contrast we are analyzing
+ID.vector <- KFS.KO %>%
+      #filter(direction=="Downregulated") %>%
+      pull(gene_id)
+    
+##Get a list of GO Terms for all genes detected in our dataset 
+    KEGG.terms <- filtered_Pverr.KEGG%>%
+      dplyr::select(gene_id, GO.ID)
+    
+##Format to have one goterm per row with gene ID repeated
+    split <- strsplit(as.character(KEGG.terms$GO.ID), ";") 
+    split2 <- data.frame(v1 = rep.int(KEGG.terms$gene_id, sapply(split, length)), v2 = unlist(split)) 
+    colnames(split2) <- c("gene_id", "KO.ID")
+    KEGG.terms<-split2
+
+##Construct list of genes with 1 for genes in contrast and 0 for genes not in the contrast
+    gene.vector=as.integer(ALL.vector %in% ID.vector) 
+    names(gene.vector)<-ALL.vector#set names
+
+#weight gene vector by bias for length of gene: load in the gene.vector(a list of all genes with 1 indicating it is a DEG in the group of interest and 0 meaning it is not a DEG) and bias.data (list of lengths for all genes)
+    pwf.KEGG<-nullp(gene.vector, bias.data=LENGTH.vector) 
+    
+#run goseq using Wallenius method for all categories of GO terms: load in the pwf object (gene name, a 1 or 0 to indicate DEG, the length, and the pwf function; generated from pwf above), and the list of GO terms for all genes
+    KEGG.wall<-goseq(pwf.KEGG, gene2cat=KEGG.terms, test.cats=c("KEGG", "GO:BP", "GO:MF", "GO:CC"), method="Wallenius", use_genes_without_cat=TRUE)
+
+    KEGG <- KEGG.wall[order(KEGG.wall$over_represented_pvalue),]
+    colnames(KEGG)[1] <- "KEGG.term"
+    
+    #adjust p-values 
+    KEGG$bh_adjust <- p.adjust(KEGG$over_represented_pvalue, method="BH") #add adjusted p-values
+  
+    #Filtering for p < 0.05
+    GO <- GO %>%
+        dplyr::filter(bh_adjust<0.1) %>%
+        dplyr::arrange(., ontology, bh_adjust)
+
+    #Write file of results 
+    #write_csv(GO, file = paste0("Mcap2020/Output/TagSeq/GenomeV3/DESeq/functional_enrichment/goseq_cluster", cluster_id, ".csv"))
+    
+
+```
 
 ## Perform Kegg enrichment with goseq package
 ```{r}
 #used str() to see that GOKO.terms was a tibble not a dataframe, convert to dataframe
-GOKO.terms <- as.data.frame(GOKO.terms)
+#GOKO.terms <- as.data.frame(GOKO.terms)
 
 #Perform goseq
-KOwall.up <- goseq(pwf.up, GFF3$gene_id, gene2cat=GOKO.terms, test.cats=c("KEGG"), method="Wallenius", use_genes_without_cat=TRUE)
+KOwall.up <- goseq(pwf.up, gene2cat=filtered_Pverr.KEGG, test.cats=c("KEGG"), method="Wallenius", use_genes_without_cat=TRUE)
 KOwall.down <- goseq(pwf.down, GFF3$gene_id, gene2cat=GOKO.terms, test.cats=c("KEGG"), method="Wallenius", use_genes_without_cat=TRUE)
 ```
 
