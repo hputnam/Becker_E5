@@ -131,7 +131,7 @@ ALL.vector <- c(filtered_Pverr.annot$gene_id)
 LENGTH.vector <- as.integer(filtered_Pverr.annot$length)
     
 ### Generate vector with names in just the contrast we are analyzing
-ID.vector <- DEG.res %>%
+ID.vector.up <- DEG.res %>%
       filter(direction=="Upregulated") %>%
       pull(gene_id)
     
@@ -146,11 +146,11 @@ ID.vector <- DEG.res %>%
     GO.terms<-split2
 
 ##Construct list of genes with 1 for genes in contrast and 0 for genes not in the contrast
-    gene.vector=as.integer(ALL.vector %in% ID.vector) 
-    names(gene.vector)<-ALL.vector#set names
+    gene.vector.up=as.integer(ALL.vector %in% ID.vector.up) 
+    names(gene.vector.up)<-ALL.vector#set names
 
 #weight gene vector by bias for length of gene: load in the gene.vector(a list of all genes with 1 indicating it is a DEG in the group of interest and 0 meaning it is not a DEG) and bias.data (list of lengths for all genes)
-    pwf.up<-nullp(gene.vector, bias.data=LENGTH.vector) 
+    pwf.up<-nullp(gene.vector.up, bias.data=LENGTH.vector) 
     
 #run goseq using Wallenius method for all categories of GO terms: load in the pwf object (gene name, a 1 or 0 to indicate DEG, the length, and the pwf function; generated from pwf above), and the list of GO terms for all genes
     GO.wall.up<-goseq(pwf.up, gene2cat=GO.terms, test.cats=c("GO:BP", "GO:MF", "GO:CC"), method="Wallenius", use_genes_without_cat=TRUE)
@@ -181,7 +181,7 @@ ALL.vector <- c(filtered_Pverr.annot$gene_id)
 LENGTH.vector <- as.integer(filtered_Pverr.annot$length)
     
 ### Generate vector with names in just the contrast we are analyzing
-ID.vector <- DEG.res %>%
+ID.vector.down <- DEG.res %>%
       filter(direction=="Downregulated") %>%
       pull(gene_id)
     
@@ -196,11 +196,11 @@ ID.vector <- DEG.res %>%
     GO.terms<-split2
 
 ##Construct list of genes with 1 for genes in contrast and 0 for genes not in the contrast
-    gene.vector=as.integer(ALL.vector %in% ID.vector) 
-    names(gene.vector)<-ALL.vector#set names
+    gene.vector.down=as.integer(ALL.vector %in% ID.vector.down) 
+    names(gene.vector.down)<-ALL.vector#set names
 
 #weight gene vector by bias for length of gene: load in the gene.vector(a list of all genes with 1 indicating it is a DEG in the group of interest and 0 meaning it is not a DEG) and bias.data (list of lengths for all genes)
-    pwf.down<-nullp(gene.vector, bias.data=LENGTH.vector) 
+    pwf.down<-nullp(gene.vector.down, bias.data=LENGTH.vector) 
     
 #run goseq using Wallenius method for all categories of GO terms: load in the pwf object (gene name, a 1 or 0 to indicate DEG, the length, and the pwf function; generated from pwf above), and the list of GO terms for all genes
     GO.wall.down<-goseq(pwf.down, gene2cat=GO.terms, test.cats=c("GO:BP", "GO:MF", "GO:CC"), method="Wallenius", use_genes_without_cat=TRUE)
@@ -218,7 +218,9 @@ ID.vector <- DEG.res %>%
 
 #Write file of results 
 write_csv(GO.down, "RAnalysis/Output/RNA-seq/GOSeq/Host/func.enrich.downregulated.csv")
-    
+
+length(ID.vector)
+dim(DEG.res)
 
 ```
 
