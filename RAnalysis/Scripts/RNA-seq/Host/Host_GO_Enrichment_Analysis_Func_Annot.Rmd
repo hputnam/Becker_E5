@@ -167,7 +167,7 @@ ID.vector <- DEG.res %>%
         dplyr::arrange(., ontology, bh_adjust)
 
 #Write file of results 
-write_csv(GO.up, "RAnalysis/Output/RNA-seq/func.enrich.upregulated.csv")
+write_csv(GO.up, "RAnalysis/Output/RNA-seq/GOSeq/Host/func.enrich.upregulated.csv")
     
 
 ```
@@ -217,7 +217,7 @@ ID.vector <- DEG.res %>%
         dplyr::arrange(., ontology, bh_adjust)
 
 #Write file of results 
-write_csv(GO.down, "RAnalysis/Output/RNA-seq/func.enrich.downregulated.csv")
+write_csv(GO.down, "RAnalysis/Output/RNA-seq/GOSeq/Host/func.enrich.downregulated.csv")
     
 
 ```
