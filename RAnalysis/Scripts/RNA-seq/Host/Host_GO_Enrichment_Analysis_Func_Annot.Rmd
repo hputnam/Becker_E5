@@ -26,6 +26,7 @@ library("limma")
 library("spdep") 
 library("patchwork")
 library("adegenet") 
+#if ("goseq" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("goseq")
 library("goseq")
 library("gridExtra")
 library("clusterProfiler")
@@ -201,7 +202,7 @@ ID.vector.down <- DEG.res %>%
     names(gene.vector.down)<-ALL.vector#set names
 
 #weight gene vector by bias for length of gene: load in the gene.vector(a list of all genes with 1 indicating it is a DEG in the group of interest and 0 meaning it is not a DEG) and bias.data (list of lengths for all genes)
-    pwf.down<-goseq::nullp(gene.vector.down, bias.data=LENGTH.vector) 
+    pwf.down<-nullp(gene.vector.down, bias.data=LENGTH.vector) 
     
 #run goseq using Wallenius method for all categories of GO terms: load in the pwf object (gene name, a 1 or 0 to indicate DEG, the length, and the pwf function; generated from pwf above), and the list of GO terms for all genes
     GO.wall.down<-goseq(pwf.down, gene2cat=GO.terms, test.cats=c("GO:BP", "GO:MF", "GO:CC"), method="Wallenius", use_genes_without_cat=TRUE)
@@ -222,6 +223,7 @@ write_csv(GO.down, "RAnalysis/Output/RNA-seq/GOSeq/Host/func.enrich.downregulate
 
 length(ID.vector)
 dim(DEG.res)
+
 
 ```
 
