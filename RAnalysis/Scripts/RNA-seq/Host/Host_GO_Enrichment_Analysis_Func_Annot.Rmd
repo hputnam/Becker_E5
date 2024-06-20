@@ -222,15 +222,19 @@ write_csv(GO.down, "RAnalysis/Output/RNA-seq/GOSeq/Host/func.enrich.downregulate
 
 ```
 
-
 ## Merge DEG gene ids and GO info
 ```{r}
 # #include enrichment information for each category (GO Term)
-colnames(annot_GO) <- c("gene_id", "category")
-merge <- merge(enriched.GO.05, annot_GO, by.x = "category") # contains gene ids and GO info 
+#split into one gene and go term for annot.GO
+annot.GO.split <- annot_GO
+split <- strsplit(as.character(annot.GO.split$GO.ID), ";") 
+split2 <- data.frame(v1 = rep.int(annot.GO.split$gene_id, sapply(split, length)), v2 = unlist(split)) 
+colnames(split2) <- c("gene_id", "GOterm")
+annot.GO.split<-split2
+merge <- merge(GO.down, annot.GO.split, by.y = "GOterm") # contains gene ids and GO info 
 
 # Merge DEG with merge 
-merge_again <- merge(merge, DEG, by = "gene_id") # contains GO info and gene counts for DEGs
+merge_again <- merge(merge, DEG.res, by = "gene_id") # contains GO info and gene counts for DEGs
 ```
 
 
