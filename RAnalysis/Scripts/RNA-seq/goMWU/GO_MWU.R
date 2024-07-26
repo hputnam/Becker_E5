@@ -17,11 +17,14 @@
 # First, press command-D on mac or ctrl-shift-H in Rstudio and navigate to the directory containing scripts and input files. Then edit, mark and execute the following bits of code, one after another.
 
 
+getwd()
+setwd("RAnalysis/Scripts/RNA-seq/goMWU/")
+
 # Edit these to match your data file names: 
-input="heats.csv" # two columns of comma-separated values: gene id, continuous measure of significance. To perform standard GO enrichment analysis based on Fisher's exact test, use binary measure (0 or 1, i.e., either sgnificant or not).
-goAnnotations="amil_defog_iso2go.tab" # two-column, tab-delimited, one line per gene, multiple GO terms separated by semicolon. If you have multiple lines per gene, use nrify_GOtable.pl prior to running this script.
+input="DEGs_all.csv" # two columns of comma-separated values: gene id, continuous measure of significance. To perform standard GO enrichment analysis based on Fisher's exact test, use binary measure (0 or 1, i.e., either sgnificant or not).
+goAnnotations="gene_to_go_DB.tab" # two-column, tab-delimited, one line per gene, multiple GO terms separated by semicolon. If you have multiple lines per gene, use nrify_GOtable.pl prior to running this script.
 goDatabase="go.obo" # download from http://www.geneontology.org/GO.downloads.ontology.shtml
-goDivision="MF" # either MF, or BP, or CC
+goDivision="BP" # either MF, or BP, or CC
 source("gomwu.functions.R")
 
 
@@ -42,7 +45,7 @@ gomwuStats(input, goDatabase, goAnnotations, goDivision,
 
 # ----------- Plotting results
 
-quartz()
+#quartz()
 results=gomwuPlot(input,goAnnotations,goDivision,
  	absValue=-log(0.05,10),  # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
  #	absValue=1, # un-remark this if you are using log2-fold changes
@@ -55,7 +58,7 @@ results=gomwuPlot(input,goAnnotations,goDivision,
  )
  # manually rescale the plot so the tree matches the text 
  # if there are too many categories displayed, try make it more stringent with level1=0.05,level2=0.01,level3=0.001.  
- 
+dev.off()
  # text representation of results, with actual adjusted p-values
  results[[1]]
 
