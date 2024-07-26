@@ -1,0 +1,306 @@
+---
+title: "GO MWU input"
+author: "Danielle Becker"
+date: "2024-07-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r install packages}
+#if ("rtracklayer" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("rtracklayer")
+#BiocManager::install("rrvgo")
+
+library(dplyr)
+library(ggplot2)
+library(rtracklayer)
+library(rrvgo)
+library(GO.db)
+library(tidyr)
+library(forcats)
+library(scales)
+sessionInfo() #list of packages after library-ing these packages
+```
+
+Do I need to do it by treatment comparisons (ie High v Control, High v Mid, Mid v Control)? 
+
+Read in all expressed genes
+```{r}
+filt_counts <- read.csv("../output/DEG/filtered_counts.csv")
+colnames(filt_counts)[1] <- "gene_id"
+```
+
+Read in DEGs. This encompasses all DEGs across all comparisons
+```{r}
+degs <- read.csv("../output/DEG/Unique_DEGs.csv")
+colnames(degs)[1] <- "gene_id"
+```
+
+Read in annotation file 
+```{r}
+annot <- read.delim("../Metadata/Pocillopora_acuta_HIv2.genes.EggNog_results.txt", header = T) %>%
+    dplyr::rename(gene_id = X.query)
+
+names(annot)
+```
+
+This functional annotation has 16,784 genes. There are 33,370 predicted protein-coding genes in the Pacuta genome, according to [Stephens et al. 2022](https://academic.oup.com/gigascience/article/doi/10.1093/gigascience/giac098/6815755). Therefore, the annotated protein coding genes represent approximately 50% of the total predicted protein coding genes described in the publication. 
+
+Match up genes in filtered gene count list to annotation file
+```{r}
+probes <- filt_counts$gene_id
+
+# Match genes in filtered count data to genes in annotation file 
+probes2annot <- match(probes, annot$gene_id)
+
+# The following is the number of probes without annotation
+sum(is.na(probes2annot))
+row_nas<-which(is.na(probes2annot))
+
+# View expressed genes that do not have a match in the annotation file 
+missing<-as.data.frame(probes[row_nas])
+```
+
+There are 9,887 genes that were expressed in our data that are not present in the annotation file. That is ~41% of the total genes expressed. 
+
+Reduce annotation file to only contain genes detected in our dataset
+```{r}
+filtered_annot <- annot[annot$gene_id %in% probes, ]
+dim(filtered_annot)
+```
+
+The annotation file now only contains genes that were detected in our dataset that have annotation information. This is 14298 annotated genes out of the 24185 expressed genes in our dataset. 
+
+Format GO terms. For GO_MWU, one line per gene is needed with the GO terms separated by semicolons. 
+```{r}
+filtered_annot_go <- filtered_annot %>%
+  dplyr::select(gene_id, GOs) %>%
+  mutate_all(~if_else(. == "-", NA_character_, .)) %>%
+  na.omit()
+
+# Change comma to semicolon 
+filtered_annot_go$GOs <- gsub(",", ";", filtered_annot_go$GOs)
+```
+
+8679 genes were retained in the filtered GO dataset. Write table for GO MWU analysis 
+```{r}
+write.table(filtered_annot_go, "GO_MWU/gene_to_go_JA.tab",row.names = FALSE, sep = "\t", quote = FALSE)
+```
+
+Filter the counts by the remaining annotations 
+```{r}
+# Counts 
+filt_counts_annot <- filtered_annot_go %>%
+  left_join(filt_counts, by = "gene_id") %>%
+  dplyr::select(c("gene_id", "GOs"))
+```
+
+Make GO_MWU input csv file 
+```{r}
+# Perform left join and create the "DE" column
+result <- filt_counts_annot %>%
+  left_join(degs, by = "gene_id", suffix = c("", ".y")) %>%
+  mutate(DE = ifelse(is.na(A), 0, 1)) %>%
+  select(c(gene_id, DE))
+sum(result$DE)
+
+write.csv(result, "GO_MWU/DE_Treatment.csv", row.names = FALSE, quote = FALSE)
+```
+
+
+
+### Isolating comparisons and using fold change 
+
+I'm going to isolate comparisons and then use fold change as input to GO MWU rather than a binary of 1 (DE) or 0 (not DE). 
+
+#### High v Control 
+
+Read in High v Control DESeq2 results for expressed genes 
+```{r}
+hvc <- read.csv("../output/DEG/High_v_Control_All.csv") %>%
+  dplyr::rename(gene_id = X) %>%
+  na.omit() 
+```
+
+Match up genes in filtered gene count list to annotation file
+```{r}
+probes <- hvc$gene_id
+
+# Match genes in filtered count data to genes in annotation file 
+probes2annot <- match(probes, annot$gene_id)
+
+# The following is the number of probes without annotation
+sum(is.na(probes2annot))
+row_nas<-which(is.na(probes2annot))
+
+# View expressed genes that do not have a match in the annotation file 
+missing<-as.data.frame(probes[row_nas])
+```
+
+There are 7571 genes that were expressed in our data that are not present in the annotation file. 
+
+Reduce annotation file to only contain genes detected in our dataset
+```{r}
+filtered_annot <- annot[annot$gene_id %in% probes, ]
+dim(filtered_annot)
+```
+
+The annotation file now only contains genes that were detected in our dataset that have annotation information. 
+
+Format GO terms. For GO_MWU, one line per gene is needed with the GO terms separated by semicolons. 
+```{r}
+filtered_annot_go <- filtered_annot %>%
+  dplyr::select(gene_id, GOs) %>%
+  mutate_all(~if_else(. == "-", NA_character_, .)) %>%
+  na.omit()
+
+# Change comma to semicolon 
+filtered_annot_go$GOs <- gsub(",", ";", filtered_annot_go$GOs)
+```
+
+8297 genes were retained in the filtered GO dataset. Write table for GO MWU analysis 
+```{r}
+write.table(filtered_annot_go, "GO_MWU/High_v_Control_gene_to_go.tab",row.names = FALSE, sep = "\t", quote = FALSE)
+```
+
+Filter the counts by the remaining annotations 
+```{r}
+# Counts 
+filt_counts_annot <- filtered_annot_go %>%
+  left_join(hvc, by = "gene_id") %>%
+  dplyr::select(c("gene_id", "log2FoldChange"))
+```
+
+Make GO_MWU input csv file with fold changes 
+```{r}
+write.csv(filt_counts_annot, "GO_MWU/DE_High_v_Control_LFC.csv", row.names = FALSE, quote = FALSE)
+```
+
+#### High v Mid 
+
+Read in High v Mid DESeq2 results for expressed genes 
+```{r}
+hvm <- read.csv("../output/DEG/High_v_Mid_All.csv") %>%
+  dplyr::rename(gene_id = X) %>%
+  na.omit() 
+```
+
+Match up genes in filtered gene count list to annotation file
+```{r}
+probes <- hvm$gene_id
+
+# Match genes in filtered count data to genes in annotation file 
+probes2annot <- match(probes, annot$gene_id)
+
+# The following is the number of probes without annotation
+sum(is.na(probes2annot))
+row_nas<-which(is.na(probes2annot))
+
+# View expressed genes that do not have a match in the annotation file 
+missing<-as.data.frame(probes[row_nas])
+```
+
+There are 9453 genes that were expressed in our data that are not present in the annotation file. 
+
+Reduce annotation file to only contain genes detected in our dataset
+```{r}
+filtered_annot <- annot[annot$gene_id %in% probes, ]
+dim(filtered_annot)
+```
+
+The annotation file now only contains genes that were detected in our dataset that have annotation information. 
+
+Format GO terms. For GO_MWU, one line per gene is needed with the GO terms separated by semicolons. 
+```{r}
+filtered_annot_go <- filtered_annot %>%
+  dplyr::select(gene_id, GOs) %>%
+  mutate_all(~if_else(. == "-", NA_character_, .)) %>%
+  na.omit()
+
+# Change comma to semicolon 
+filtered_annot_go$GOs <- gsub(",", ";", filtered_annot_go$GOs)
+```
+
+8573 genes were retained in the filtered GO dataset. Write table for GO MWU analysis 
+```{r}
+write.table(filtered_annot_go, "GO_MWU/High_v_Mid_gene_to_go.tab",row.names = FALSE, sep = "\t", quote = FALSE)
+```
+
+Filter the counts by the remaining annotations 
+```{r}
+# Counts 
+filt_counts_annot <- filtered_annot_go %>%
+  left_join(hvm, by = "gene_id") %>%
+  dplyr::select(c("gene_id", "log2FoldChange"))
+```
+
+Make GO_MWU input csv file with fold changes 
+```{r}
+write.csv(filt_counts_annot, "GO_MWU/DE_High_v_Mid_LFC.csv", row.names = FALSE, quote = FALSE)
+```
+
+#### Mid v Control 
+
+Read in Mid v Control DESeq2 results for expressed genes 
+```{r}
+mvc <- read.csv("../output/DEG/Mid_v_Control_All.csv") %>%
+  dplyr::rename(gene_id = X) %>%
+  na.omit() 
+```
+
+Match up genes in filtered gene count list to annotation file
+```{r}
+probes <- mvc$gene_id
+
+# Match genes in filtered count data to genes in annotation file 
+probes2annot <- match(probes, annot$gene_id)
+
+# The following is the number of probes without annotation
+sum(is.na(probes2annot))
+row_nas<-which(is.na(probes2annot))
+
+# View expressed genes that do not have a match in the annotation file 
+missing<-as.data.frame(probes[row_nas])
+```
+
+There are 9765 genes that were expressed in our data that are not present in the annotation file. 
+
+Reduce annotation file to only contain genes detected in our dataset
+```{r}
+filtered_annot <- annot[annot$gene_id %in% probes, ]
+dim(filtered_annot)
+```
+
+The annotation file now only contains genes that were detected in our dataset that have annotation information. 
+
+Format GO terms. For GO_MWU, one line per gene is needed with the GO terms separated by semicolons. 
+```{r}
+filtered_annot_go <- filtered_annot %>%
+  dplyr::select(gene_id, GOs) %>%
+  mutate_all(~if_else(. == "-", NA_character_, .)) %>%
+  na.omit()
+
+# Change comma to semicolon 
+filtered_annot_go$GOs <- gsub(",", ";", filtered_annot_go$GOs)
+```
+
+8622 genes were retained in the filtered GO dataset. Write table for GO MWU analysis 
+```{r}
+write.table(filtered_annot_go, "GO_MWU/Mid_v_Control_gene_to_go.tab",row.names = FALSE, sep = "\t", quote = FALSE)
+```
+
+Filter the counts by the remaining annotations 
+```{r}
+# Counts 
+filt_counts_annot <- filtered_annot_go %>%
+  left_join(mvc, by = "gene_id") %>%
+  dplyr::select(c("gene_id", "log2FoldChange"))
+```
+
+Make GO_MWU input csv file with fold changes 
+```{r}
+write.csv(filt_counts_annot, "GO_MWU/DE_Mid_v_Control_LFC.csv", row.names = FALSE, quote = FALSE)
+```
+
