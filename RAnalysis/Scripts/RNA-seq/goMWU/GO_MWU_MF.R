@@ -33,7 +33,7 @@ source("gomwu.functions.R")
 
 gomwuStats(input, goDatabase, goAnnotations, goDivision,
 	perlPath="perl", # replace with full path to perl executable if it is not in your system's PATH already
-	largest=0.1,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
+	largest=0.8,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
 	smallest=5,   # a GO category should contain at least this many genes to be considered
 	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
 #	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
@@ -45,22 +45,31 @@ gomwuStats(input, goDatabase, goAnnotations, goDivision,
 
 # ----------- Plotting results
 
-#quartz()
-results=gomwuPlot(input,goAnnotations,goDivision,
- 	absValue=-log(0.05,10),  # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
- #	absValue=1, # un-remark this if you are using log2-fold changes
- 	level1=0.1, # FDR threshold for plotting. Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
- 	level2=0.05, # FDR cutoff to print in regular (not italic) font.
- 	level3=0.01, # FDR cutoff to print in large bold font.
- 	txtsize=1.2,    # decrease to fit more on one page, or increase (after rescaling the plot so the tree fits the text) for better "word cloud" effect
- 	treeHeight=0.5, # height of the hierarchical clustering tree
- #	colors=c("dodgerblue2","firebrick1","skyblue2","lightcoral") # these are default colors, un-remar and change if needed
- )
- # manually rescale the plot so the tree matches the text 
- # if there are too many categories displayed, try make it more stringent with level1=0.05,level2=0.01,level3=0.001.  
+# Set the output file for the plot
+# Open a PNG device with increased size and resolution
+png("gomwu_plot_MF.png", width = 11000, height = 15000, res = 300)
+
+# Set margins to zero
+par(mar = c(0, 0, 0, 0))
+
+# Generate the plot
+results = gomwuPlot(
+  input, goAnnotations, goDivision,
+  #absValue = -log(0.05, 25),  # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
+   absValue = 0.8, # un-remark this if you are using log2-fold changes
+  level1 = 0.05,  # FDR threshold for plotting. Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
+  level2 = 0.01,  # FDR cutoff to print in regular (not italic) font.
+  level3 = 0.001,  # FDR cutoff to print in large bold font.
+  txtsize = 6,  # decrease to fit more on one page, or increase (after rescaling the plot so the tree fits the text) for better "word cloud" effect
+  treeHeight = 1, # height of the hierarchical clustering tree
+  colors = c("blue", "red", "lightblue", "lightcoral") # these are default colors, un-remark and change if needed
+)
+
+# Close the graphics device
 dev.off()
- # text representation of results, with actual adjusted p-values
- results[[1]]
+
+# Print the text representation of the results
+print(results[[1]])
 
 
 # ------- extracting representative GOs
@@ -71,8 +80,8 @@ pcut=1e-2 # adjusted pvalue cutoff for representative GO
 hcut=0.9 # height at which cut the GO terms tree to get "independent groups". 
 
 # plotting the GO tree with the cut level (un-remark the next two lines to plot)
-# plot(results[[2]],cex=0.6)
-# abline(h=hcut,col="red")
+plot(results[[2]],cex=0.6)
+abline(h=hcut,col="red")
 
 # cutting
 ct=cutree(results[[2]],h=hcut)
