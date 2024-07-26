@@ -27,15 +27,8 @@ sessionInfo() #list of packages after library-ing these packages
 
 # Import the data files 
 ```{r, echo=FALSE}
-# Structural annotation GFF3 file
-GFF3 <- read.csv("RAnalysis/Output/RNA-seq/DEG/Host/rename_structure_gff3.csv")
-
 # Load go terms from functional annotation file
 annot_GO <- read.csv("RAnalysis/Output/RNA-seq/DEG/Host/annot_GO.terms.host.csv")[-1]
-
-# Remove rows where 'GO.ID' is 'unknown'
-# in go mwu analysis, genes with unknown are in the annotation
-#annot_GO <- subset(annot_GO, GO.ID != 'unknown')
 
 # edit annot_GO to list GO terms all in one row per gene
 annot_GO <- annot_GO %>%
@@ -45,24 +38,15 @@ annot_GO <- annot_GO %>%
 
 ```
 
-# Identifying treatment and all expressed pver genes (poverA = 0.50,10)
+# Load in all DEGs and filtered gene count data
 ```{r}
-#treatment information
-treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
-str(treatmentinfo)
-head(treatmentinfo)
-
-# load all DEGs
+# Read in Enriched vs Control DESeq2 results for expressed genes 
 DEG.all <- read.csv("RAnalysis/Output/RNA-seq/DEG/Host/DEGs.all.20240530.csv")
 nrow(DEG.all)
 
 #rename x column to gene_id
 colnames(DEG.all)[1] <-"gene_id" # make colnames a true column called gene_id
 head(DEG.all)
-
-#load DEG significant results
-DEG.sig <- read.csv("RAnalysis/Output/RNA-seq/DEG/Host/DEGs.sig.20240530.csv")[,-1]
-nrow(DEG.sig)
 
 # Load filtered gene count file
 gcount_filt <- read.csv("RAnalysis/Output/RNA-seq/DEG/gene_count_matrix_filtered.csv")
