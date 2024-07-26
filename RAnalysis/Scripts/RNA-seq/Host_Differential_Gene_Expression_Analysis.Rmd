@@ -377,6 +377,9 @@ resultsNames(DEGSeq2_wald)
 DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","enriched","control"))
 #view DEG analysis results 
 
+#save all DEGs
+write.csv(DEGSeq2.results, file = "RAnalysis/Output/RNA-seq/DEG/Host/DEGs.all.20240530.csv")
+
 head(DEGSeq2.results)
 dim(DEGSeq2.results)
 sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #p-values were less than 0.05
@@ -444,7 +447,7 @@ ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DEG.PCA.v
 ```{r}
 dim(DEGSeq2.sig.results) # 252 7
 length(unique(DEGSeq2.sig.results$gene_id)) # 252
-write.csv(DEGSeq2.sig.results, file = "RAnalysis/Output/RNA-seq/DEG/Host/DEGs.all_treatment_20240530_host.csv")
+write.csv(DEGSeq2.sig.results, file = "RAnalysis/Output/RNA-seq/DEG/Host/DEGs.sig.20240530.csv")
 ```
 
 ## Visualize differentially expressed genes from DESeq2
