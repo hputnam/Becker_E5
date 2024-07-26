@@ -1,0 +1,14 @@
+﻿term_name,comparison,percentDEInCat,set_size,cluster
+Binding,Enriched_vs_Control,-30.802019,170,1
+Catalytic activity,Enriched_vs_Control,41.436679,761,1
+DNA binding,Enriched_vs_Control,11.162791,306,2
+Glutamate synthase activity,Enriched_vs_Control,13.253299,263,2
+Glutamine synthetase activity,Enriched_vs_Control,18.78453,181,3
+Heat shock protein binding,Enriched_vs_Control,6.25,80,4
+Lipid binding,Enriched_vs_Control,-20,5,4
+Molecular function regulator activity,Enriched_vs_Control,35.357143,23,5
+Molecular transducer activity,Enriched_vs_Control,14.285714,14,5
+Protein binding,Enriched_vs_Control,62.845304,1452,6
+RNA binding,Enriched_vs_Control,20,5,6
+Transport,Enriched_vs_Control,10,30,6
+Transporter activity,Enriched_vs_Control,18.592779,521,7
