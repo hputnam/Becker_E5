@@ -82,6 +82,13 @@ Reduce annotation file to only contain genes detected in our dataset.
 filtered_Pverr.annot <- annot_GO[annot_GO$gene_id %in% gcount_filt$gene_id, ]
 dim(filtered_Pverr.annot)
 
+# Change comma to semicolon 
+filtered_Pverr.annot$GO.ID <- gsub(";", ";", filtered_Pverr.annot$GO.ID)
+
+# Change remove unknowns from rows with other GO:ID classifications
+filtered_Pverr.annot$GO.ID <- gsub(";unknown", "", filtered_Pverr.annot$GO.ID)
+filtered_Pverr.annot$GO.ID <- gsub("unknown;", "", filtered_Pverr.annot$GO.ID)
+
 ```
 
 The annotation file now only contains genes that were detected in our dataset that have annotation information. This is 19,821 out of the 27439 genes in our dataset. 
@@ -97,6 +104,7 @@ Filter the counts by the remaining annotations
 filt_counts_annot <- filtered_Pverr.annot %>%
   left_join(DEG.all, by = "gene_id") %>%
   dplyr::select(c("gene_id", "log2FoldChange")) %>% na.omit
+
 ```
 19,821 DEGs in filt_counts_annot
 
