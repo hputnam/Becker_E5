@@ -42,24 +42,37 @@ annot_GO <- annot_GO %>%
 # Load in all DEGs and filtered gene count data
 ```{r}
 # Read in Enriched vs Control DESeq2 results for expressed genes 
-DMG.all <- read.csv("RAnalysis/Output/WGBS/DMGs_all.csv")[-1]
-nrow(DMG.all)
+DMG.all <- read.csv("RAnalysis/Output/WGBS/DMGs_all.csv")
 
 #rename x column to gene_id
 colnames(DMG.all)[1] <-"gene_id" # make colnames a true column called gene_id
 head(DMG.all)
 
-# match gene_ID to annotation file
-DMG.all$gene_id <-  gsub("_gene_","_", DMG.all$gene_id) #add _gene_g#
+#remove extra characters to match annotation 
+DMG.all$gene_id <-  gsub("_gene_g","_g",DMG.all$gene_id) #sub gene_g with _g
+DMG.all$gene_id <-  gsub("_gene_","_",DMG.all$gene_id) #remove extra _
+DMG.all$gene_id <- gsub("-.*", "", DMG.all$gene_id) # Modify the gene_id column to remove the dash and anything after it
+DMG.all$gene_id <-  gsub("Pver_split_", "Pver_",DMG.all$gene_id) #remove the extra _gene_ after split
 
-# Load filtered methylation data set
+# Load filtered methylation data set with genes that had methylation data
 meth.dat <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
+head(DMG.all)
 
-# match gene_ID to annotation file
-meth.dat$gene <-  gsub("_gene_","_", meth.dat$gene) #add _gene_g#
+# Select the necessary columns
+selected_df <- meth.dat %>% dplyr::select(Sample.ID, gene, meth)
 
-# rename gene to gene_id
-meth.dat$gene <-  gsub("_gene_","_", meth.dat$gene) #add _gene_g#
+# Transform to wide format
+wide_df <- selected_df %>%
+  group_by(gene, Sample.ID) %>%
+  summarise(sum_meth = sum(meth), .groups = 'drop') %>% # Sum of meth values for each gene per Sample.ID
+  pivot_wider(names_from = Sample.ID, values_from = sum_meth, names_prefix = "Sample_") %>% # Convert to wide format
+  dplyr::rename(gene_id = gene) # Rename column from 'gene' to 'gene_id'
+
+#remove extra characters to match annotation 
+wide_df$gene_id <-  gsub("_gene_g","_g",wide_df$gene_id) #sub gene_g with _g
+wide_df$gene_id <-  gsub("_gene_","_",wide_df$gene_id) #remove extra _
+wide_df$gene_id<- gsub("-.*", "", wide_df$gene_id) # Modify the gene_id column to remove the dash and anything after it
+wide_df$gene_id <-  gsub("Pver_split_", "Pver_",wide_df$gene_id) #remove the extra _gene_ after split
 
 ```
 
@@ -71,7 +84,7 @@ Match up genes in gene list file to annotation file
 ```{r}
 names(annot_GO)
 
-gcount_filt2annot = match(DMG.all$gene_id, DMG.all$gene_id) #match genes in gcount_filt to annot_GO
+gcount_filt2annot = match(annot_GO$gene_id, wide_df$gene_id) #match genes in gcount_filt to annot_GO
 
 # The following is the number of probes without annotation 
 sum(is.na(gcount_filt2annot))
@@ -82,11 +95,11 @@ row_nas<-which(is.na(gcount_filt2annot))
 missing<-as.data.frame(gcount_filt2annot[row_nas])
 #print(missing)
 ```
-0 genes in gcount_filt do not have GO annotations because unknown is allowed to stay in go MWU analysis
+8,501 genes in DMG_filt do not have GO annotations because unknown is allowed to stay in go MWU analysis
 
 Reduce annotation file to only contain genes detected in our dataset.  
 ```{r}
-filtered_Pverr.annot <- annot_GO[annot_GO$gene_id %in% DMG.all$gene_id, ]
+filtered_Pverr.annot <- annot_GO[annot_GO$gene_id %in% wide_df$gene_id, ]
 dim(filtered_Pverr.annot)
 
 # Change comma to semicolon 
@@ -98,9 +111,9 @@ filtered_Pverr.annot$GO.ID <- gsub("unknown;", "", filtered_Pverr.annot$GO.ID)
 
 ```
 
-The annotation file now only contains genes that were detected in our dataset that have annotation information. This is 1,896 out of the 27439 genes in our dataset. 
+The annotation file now only contains genes that were detected in our dataset that have annotation information. This is 18,938 out of the 27439 genes in our dataset. 
 
-1,896 genes were retained in the filtered GO dataset. Write table for GO MWU analysis 
+18,938 genes were retained in the filtered GO dataset. Write table for GO MWU analysis 
 ```{r}
 write.table(filtered_Pverr.annot, "RAnalysis/Scripts/WGBS/goMWU/gene_to_go_DB_DMG.tab",row.names = FALSE, sep = "\t", quote = FALSE)
 ```
@@ -113,7 +126,7 @@ filt_counts_annot <- filtered_Pverr.annot %>%
   dplyr::select(c("gene_id", "log2FoldChange")) %>% na.omit
 
 ```
-1,896 DMGs in filt_counts_annot
+3,895 DMGs in filt_counts_annot
 
 Make GO_MWU input csv file with fold changes 
 ```{r}

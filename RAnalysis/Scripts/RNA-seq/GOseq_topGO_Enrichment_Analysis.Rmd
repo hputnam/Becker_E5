@@ -81,7 +81,7 @@ str(treatmentinfo)
 head(treatmentinfo)
 
 #DEG significant results
-DEG.res <- read.csv("RAnalysis/Output/RNA-seq/DEG/DEGSeq2.sig.results.host.csv")[,-1]
+ DEG.res <- read.csv("RAnalysis/Output/RNA-seq/DEG/DEGs.sig.20240530.csv")[,-1]
 nrow(DEG.res)
 #DEG.res$gene_id <-  gsub("_gene","",DEG.res$gene_id) #remove extra characters
 
@@ -309,8 +309,8 @@ allRes.up$classicKS.up <- as.numeric(allRes.up$classicKS.up)
 allRes.up$weightFisher.up <- as.numeric(allRes.up$weightFisher.up)
 
 #adjust p-values 
-allRes.up$weight_bh_adjust <- p.adjust(allRes.up$classicFisher.up, method="BH") #add adjusted p-values
-allRes.up
+#allRes.up$weight_bh_adjust <- p.adjust(allRes.up$classicFisher.up, method="BH") #add adjusted p-values
+#allRes.up
 ```
 
 Create node figrues of top 5-10 sig terms for upregulated genes

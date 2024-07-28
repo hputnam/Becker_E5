@@ -310,6 +310,10 @@ ggsave(path = "RAnalysis/Output/Final_Figures/", filename = "meth_general_PCA_pl
 ```{r}
 # Run DESeq2 analysis
 dds <- DESeq(gdds)
+DEGSeq2.results <- results(dds, contrast=c("treatment","enriched","control"))
+
+#save all DEGs
+write.csv(DEGSeq2.results, file = "RAnalysis/Output/WGBS/DMGs_all.csv")
 
 # Extract log2fold change values
 results <- results(dds)

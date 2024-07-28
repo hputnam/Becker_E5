@@ -377,9 +377,6 @@ resultsNames(DEGSeq2_wald)
 DEGSeq2.results <- results(DEGSeq2_wald, contrast=c("treatment","enriched","control"))
 #view DEG analysis results 
 
-#save all DEGs
-write.csv(DEGSeq2.results, file = "RAnalysis/Output/RNA-seq/DEG/Host/DEGs.all.20240530.csv")
-
 head(DEGSeq2.results)
 dim(DEGSeq2.results)
 sum(DEGSeq2.results$padj < 0.05, na.rm=TRUE) #p-values were less than 0.05
@@ -544,6 +541,13 @@ sum(DEGSeq2.sig.results$direction == "Downregulated") # DEGs downregulated 78
 sum(DEGSeq2.sig.results$direction == "Upregulated") # DEGs upregulated 174
 
 write.csv(DEGSeq2.sig.results, 'RAnalysis/Output/RNA-seq/DEG/Host/DEGSeq2.sig.results.host.csv')  
+
+# Add a column indicating the direction of differential expression for the entire DEG list as well
+DEGSeq2.results <- DEGSeq2.results %>%
+  mutate(direction = ifelse(log2FoldChange < 0, "Downregulated", "Upregulated"))
+
+#save all DEGs
+write.csv(DEGSeq2.results, file = "RAnalysis/Output/RNA-seq/DEG/Host/DEGs.all.20240530.csv")
 
 ```
 
