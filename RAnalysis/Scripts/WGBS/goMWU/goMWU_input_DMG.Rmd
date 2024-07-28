@@ -1,0 +1,123 @@
+---
+title: "GO MWU input for methylation"
+author: "Danielle Becker"
+date: "2024-07-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r install packages}
+#if ("rtracklayer" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("rtracklayer")
+#BiocManager::install("rrvgo")
+
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(rtracklayer)
+library(rrvgo)
+library(GO.db)
+library(tidyr)
+library(forcats)
+library(scales)
+sessionInfo() #list of packages after library-ing these packages
+```
+
+
+# Import the data files 
+```{r, echo=FALSE}
+# Load go terms from functional annotation file
+annot_GO <- read.csv("RAnalysis/Output/RNA-seq/DEG/annot_GO.terms.host.csv")[-1]
+
+# edit annot_GO to list GO terms all in one row per gene
+annot_GO <- annot_GO %>%
+  group_by(gene_id) %>%
+  summarise(GO.ID = paste(GO.ID, collapse = ";")) %>%
+  ungroup()
+
+```
+
+# Load in all DEGs and filtered gene count data
+```{r}
+# Read in Enriched vs Control DESeq2 results for expressed genes 
+DMG.all <- read.csv("RAnalysis/Output/WGBS/DMGs_all.csv")[-1]
+nrow(DMG.all)
+
+#rename x column to gene_id
+colnames(DMG.all)[1] <-"gene_id" # make colnames a true column called gene_id
+head(DMG.all)
+
+# match gene_ID to annotation file
+DMG.all$gene_id <-  gsub("_gene_","_", DMG.all$gene_id) #add _gene_g#
+
+# Load filtered methylation data set
+meth.dat <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
+
+# match gene_ID to annotation file
+meth.dat$gene <-  gsub("_gene_","_", meth.dat$gene) #add _gene_g#
+
+# rename gene to gene_id
+meth.dat$gene <-  gsub("_gene_","_", meth.dat$gene) #add _gene_g#
+
+```
+
+### Isolating comparisons and using fold change 
+
+I'm going to isolate comparisons and then use fold change as input to GO MWU rather than a binary of 1 (DE) or 0 (not DE). 
+
+Match up genes in gene list file to annotation file
+```{r}
+names(annot_GO)
+
+gcount_filt2annot = match(DMG.all$gene_id, DMG.all$gene_id) #match genes in gcount_filt to annot_GO
+
+# The following is the number of probes without annotation 
+sum(is.na(gcount_filt2annot))
+
+row_nas<-which(is.na(gcount_filt2annot))
+
+#view the genes that do not have a match in the annotation file
+missing<-as.data.frame(gcount_filt2annot[row_nas])
+#print(missing)
+```
+0 genes in gcount_filt do not have GO annotations because unknown is allowed to stay in go MWU analysis
+
+Reduce annotation file to only contain genes detected in our dataset.  
+```{r}
+filtered_Pverr.annot <- annot_GO[annot_GO$gene_id %in% DMG.all$gene_id, ]
+dim(filtered_Pverr.annot)
+
+# Change comma to semicolon 
+filtered_Pverr.annot$GO.ID <- gsub(";", ";", filtered_Pverr.annot$GO.ID)
+
+# Change remove unknowns from rows with other GO:ID classifications
+filtered_Pverr.annot$GO.ID <- gsub(";unknown", "", filtered_Pverr.annot$GO.ID)
+filtered_Pverr.annot$GO.ID <- gsub("unknown;", "", filtered_Pverr.annot$GO.ID)
+
+```
+
+The annotation file now only contains genes that were detected in our dataset that have annotation information. This is 1,896 out of the 27439 genes in our dataset. 
+
+1,896 genes were retained in the filtered GO dataset. Write table for GO MWU analysis 
+```{r}
+write.table(filtered_Pverr.annot, "RAnalysis/Scripts/WGBS/goMWU/gene_to_go_DB_DMG.tab",row.names = FALSE, sep = "\t", quote = FALSE)
+```
+
+Filter the counts by the remaining annotations 
+```{r}
+# Counts 
+filt_counts_annot <- filtered_Pverr.annot %>%
+  left_join(DMG.all, by = "gene_id") %>%
+  dplyr::select(c("gene_id", "log2FoldChange")) %>% na.omit
+
+```
+1,896 DMGs in filt_counts_annot
+
+Make GO_MWU input csv file with fold changes 
+```{r}
+write.csv(filt_counts_annot, "RAnalysis/Scripts/WGBS/goMWU/DMGs_all.csv", row.names = FALSE, quote = FALSE)
+```
+
+
