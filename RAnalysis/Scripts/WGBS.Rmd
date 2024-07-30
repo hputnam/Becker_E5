@@ -176,12 +176,9 @@ gs.10x <- unique(sub_meth_table.10x$gene)
 #Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
 #Continuing the analysis from results line will generate the results in the absence of the contrast (interaction).
 
-results.10x <- read.csv("RAnalysis/Output/WGBS/meth.results.10x.csv", row.names = 1)
+results.10x <- read.csv("RAnalysis/Output/meth.results.10x.csv", row.names = 1)
 results.10x[is.na(results.10x)] <- 0
 results.10x$adj.pval.treatment <- p.adjust(results.10x$pval.treatment, method='BH') #BH is a less conservative Benjamini & Hochberg (1995) correction in which p-values are multiplied by the number of comparisons
-
-# write final df with log2fold change info
-write.csv(results.10x, "RAnalysis/Output/DMGs_all.csv")
 
 #results$adj.pval.position <- p.adjust(results$pval.position, method='BH') #uncomment if you want to include position of CpG within a gene
 #result $adj.pval.treatment_x_position <- p.adjust(results$pval.treatment_x_position, method='BH') #uncomment if you want to include position of CpG within a gene interaction with treatment
@@ -197,7 +194,7 @@ sum(DMG.sig.10x$adj.pval.treatment < 0.05, na.rm=TRUE) #How many adjusted p-valu
 # Annotation of DMG under between treatments 
 DMG.sig.annot.10x <- left_join(DMG.sig.10x , Annot, by="gene")
 #DMG.sig.annot <- DMG.sig.annot[!duplicated(DMG.sig.annot$gene),]
-write.table(DMG.sig.annot.10x, 'RAnalysis/Output/WGBS/Treatment_sig_annot.10x.tsv', sep='\t', row.names=FALSE)
+write.table(DMG.sig.annot.10x, 'RAnalysis/Treatment_sig_annot.10x.tsv', sep='\t', row.names=FALSE)
 
 ```
 
@@ -239,6 +236,12 @@ hypo_genes <- merged_data$gene[merged_data$MeanDifference < 0]
 num_hyper_genes <- length(hyper_genes) #164 Count of hypermethylated genes
 num_hypo_genes <- length(hypo_genes) #203 Count of hypomethylated genes
 
+```
+
+
+# Take all filtered sub_meth_table_10x file and combine with all DMGs results.10x (n=1902) file to keep methylation information to then calculate hyper and hypomethylated genes for topGO analysis
+```{r}
+sub_meth_table.10x 
 ```
 
 
