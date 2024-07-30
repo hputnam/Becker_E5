@@ -1,0 +1,1417 @@
+---
+title: "DMG_DEG_pathway_analysis"
+author: "Danielle M. Becker"
+date: "20220720"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+#### Gene Expression and DNA Methylation comparison ####
+## Used to compare general relationship between DNA methylation and gene expression
+## Code developed from Javier A Rodriguez-Casariego paper: https://onlinelibrary.wiley.com/doi/pdf/10.1111/mec.16246?casa_token=DGoNlwKZByAAAAAA:i6JDcylh98txNEMQnr6dUTFxKd1sX7xotbSMZJq-DDOyqZGUPHObc30PhaWOAqpEufHMcJJ_wlQbQvbG
+## https://github.com/jarcasariego/ACER_clonal_divergence/blob/main/GE_GbM_association/rmd/GE_DNAm_control.Rmd
+
+```{r load packages}
+
+## load packages
+library(ComplexHeatmap)
+library(clusterProfiler)
+library(pheatmap)
+library(magrittr)
+library(rtracklayer)
+library(GenomicRanges)
+library(png)
+library(GSEABase)
+library(GOSim)
+library(stats)
+library(GO.db)
+library(rrvgo)
+library(AnnotationDbi)
+library(viridis)
+library(janitor)
+library(rtracklayer) # on bioconducter
+library(dplyr)
+library(edgeR)
+library(factoextra)
+library(cowplot)
+library(adegenet)
+library(ggplot2)
+library(matrixStats)
+library(grid)
+library(gridExtra)
+library(RColorBrewer)
+library(patchwork)
+library(stringr)
+library(tidyverse)
+library(ggpubr)
+pal <- brewer.pal(n = 3, name = "PRGn")
+```
+
+Load metadata
+```{r}
+#### Data ####
+# Read in metadata
+meta.data <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/metadata.RNAseq.csv", header=T, sep=",", na.string="NA", stringsAsFactors = F) #read in info
+colnames(meta.data) <- c("colonyID","treatment","block","Sample_ID")
+ID <- meta.data$Sample_ID
+```
+
+Processing expression data
+```{r}
+counts <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/Poc_gene_count_matrix.csv", header = TRUE, row.names = 1) #read in genes count matrix
+colnames(counts) <- str_sub(colnames(counts), 1, 3) #remove everything after the first _ to just have the sample names
+# Order columns by sample name
+colnames(counts) <- c("C17","C18","C19","C20","C21","C22","C23","C24","C25","C26","C27","C28","C29","C30","C31","C32","E10","E11","E12","E13","E14","E15","E16","E1","E2","E3", "E4", "E5", "E6", "E7", "E8", "E9")
+counts <- counts[, colnames(counts) %in% ID] #intersect with ID to maintain only samples a
+counts <- counts[, order(colnames(counts))]
+dge_gene <- DGEList(counts,genes = rownames(counts))
+test <- as.data.frame(dge_gene)
+saveRDS(dge_gene, "RAnalysis/Data/GE_meth_compare/RNA_gene_preNormalization_DGEListObj.Rdata")
+```
+
+Create Methylation Summary Table
+```{r}
+#SAMPLES E2, E16, AND C19 WERE EXCLUDED DUE TO DEDUPLICATION AND LOW COUNTS
+# Read in gene methylation data
+gene_dnam <- readRDS("RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata") #read in info
+
+#rename sample.ID to include corresponding E and C in front for enriched and control for later analysis
+gene_dnam <- gene_dnam %>%
+    mutate(Sample.ID = recode(Sample.ID, '1' = 'E1', '3' = 'E3', '4' = 'E4', '5' = 'E5', '6' = 'E6', '7' = 'E7', '8' = 'E8', '9' = 'E9','10' = 'E10', '11' = 'E11', '12' = 'E12','13' = 'E13', '14' = 'E14', '15' = 'E15', '16' = 'E16', '17' = 'C17', '18' = 'C18', '20' = 'C20', '21' = 'C21', '22' = 'C22', '23' = 'C23', '24' = 'C24', '25' = 'C25', '26' = 'C26', '27' = 'C27', '28' = 'C28', '29' = 'C29', '30' = 'C30', '31' = 'C31', '32' = 'C32'))
+
+#check to see all where renamed correctly
+unique(gene_dnam$Sample.ID)
+
+#change from long to wide format
+meth <- data.frame (gene_dnam %>%
+                   group_by(Sample.ID, gene) %>%
+                   summarise(mean = mean(per.meth), n = n()) %>%
+                   spread(., key = Sample.ID, value = mean))
+
+#filter for a min 5 Cpg per gene
+meth <- meth[which(meth$n >= 5), ]
+cpg10xgene <- meth[,1:2]  
+colnames(cpg10xgene) <- c("gene_id", "cov10_count")
+rownames(meth) <- meth$gene
+meth <- meth[,-1]
+meth <- as.matrix(meth)
+meth <- meth/100
+saveRDS(meth, "RAnalysis/Data/GE_meth_compare/meth_dataset.RData")
+
+meth.test <- data_frame(meth)
+
+## Create a summary of methylation for each gene ##
+mean_meth <- rowMeans(meth)
+
+meta.data <- na.omit(meta.data)
+
+# create list for sample IDs from metadata and select from that list with filtering, pipe, row means
+list_E <- filter(meta.data, treatment == "enriched") #filter only enriched data from metadata
+list_C <- filter(meta.data, treatment == "control") #filter only control data from metadata
+list_E <- as.list(list_E$Sample_ID) #make list of just enriched IDs
+list_C <- as.list(list_C$Sample_ID) #make list of just control IDs
+
+# mean gene meth enriched 
+subset_meth_E <- meth[, colnames(meth)%in%list_E] #subset data from main m matrix for just enriched data
+
+mean_meth_E <- rowMeans(subset_meth_E)
+
+# Mean gene meth control
+subset_meth_C <- meth[, colnames(meth)%in%list_C] #subset data from main m matrix for just control data
+
+mean_meth_C <- rowMeans(subset_meth_C)
+
+# Coefficient of Variation for enriched samples
+sd_meth_E <- rowSds(subset_meth_E)
+cv_meth_E <- sd_meth_E/mean_meth_E
+ 
+# Coefficient of Variation for control
+sd_meth_C <- rowSds(subset_meth_C)
+cv_meth_C <- sd_meth_C/mean_meth_C
+
+
+# Coefficient of Variation among treatments
+meanAmongTrt_meth <- cbind(mean_meth_E,mean_meth_C)
+sd_meanAmongTrt_meth <- rowSds(meanAmongTrt_meth)
+mean_meanAmongTrt_meth <- rowMeans(meanAmongTrt_meth)
+cv_mean_AmongTrt_meth <- sd_meanAmongTrt_meth/mean_meanAmongTrt_meth
+
+# Difference in gene methylation between treatments
+diff_Trt_meth <- mean_meth_E-mean_meth_C
+
+# Creat matrix of all CpG summary stats
+meth_summary <- cbind(mean_meth,mean_meth_E,mean_meth_C,cv_meth_E,cv_meth_C,cv_mean_AmongTrt_meth,
+                      diff_Trt_meth) # bind all data frames with summary stats
+meth_summary[is.na(meth_summary)]<-0 #filter for all methylation data over 0
+meth_summary <- data.frame(gene_id = rownames(meth_summary),meth_summary) #change gene ID column name
+meth_annot <- left_join(cpg10xgene, meth_summary) #join Cpg and meth summary
+
+# Saving full meth_annot data.frame
+saveRDS(meth_annot,"RAnalysis/Data/GE_meth_compare/meth_annot_full.RData")
+
+#### Summarize the gene expression data ####
+expression <- dge_gene$counts
+subset_expression <- expression[, colnames(expression)%in%list_E] 
+subset_expression <- subset_expression[rowSums(subset_expression[])>0,]
+expression <- expression[rownames(expression) %in% rownames(subset_expression),]
+expression_cpm_log <- log2(cpm(expression)+ 1) # log2 cpm transformation
+expression <- expression_cpm_log
+
+# Mean gene expression all samples
+mean_express <- rowMeans(expression)
+
+# mean gene expression enriched 
+subset_express_E <- expression[, colnames(expression)%in%list_E] #subset data from main m matrix for just enriched data
+
+mean_express_E <- rowMeans(subset_express_E) #take mean per gene ID
+
+# Mean gene expression control
+subset_express_C <- expression[, colnames(expression)%in%list_C] #subset data from main m matrix for just control data
+
+mean_express_C <- rowMeans(subset_express_C) #take mean per gene ID
+
+# Coefficient of Variation for control gene expression
+sd_express_C <- rowSds(subset_express_C)
+cv_express_C <- sd_express_C/mean_express_C
+
+# Coefficient of Variation for enriched gene expression
+sd_express_E <- rowSds(subset_express_E)
+cv_express_E <- sd_express_E/mean_express_E
+
+# Standard Error for control gene expression
+se_express_C <- sd_express_C/sqrt(length((subset_express_C)))
+
+# Standard Error for enriched gene expression
+se_express_E <- sd_express_E/sqrt(length((subset_express_E)))
+
+# Coefficient of Variation among treatments
+meanAmongTrt_express <- cbind(mean_express_E,mean_express_C)
+sd_meanAmongTrt_express <- rowSds(meanAmongTrt_express)
+mean_meanAmongTrt_express <- rowMeans(meanAmongTrt_express)
+cv_mean_AmongTrt_express <- sd_meanAmongTrt_express/mean_meanAmongTrt_express
+
+# Difference in gene expression between Trt
+diff_Trt_express <- mean_express_E-mean_express_C
+
+# Create matrix of all gene expression summary stats
+gene_summary <- cbind(mean_express,mean_express_E,mean_express_C, se_express_C, se_express_E, cv_express_E,cv_express_C,cv_mean_AmongTrt_express,
+                      diff_Trt_express)
+gene_summary[is.na(gene_summary)]<-0
+colnames(gene_summary) <- paste0("gene_",colnames(gene_summary))
+gene_summary <- data.frame(gene_id = rownames(gene_summary),gene_summary)
+
+# transcriptomic data
+transcriptomic <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/rename_structure_gff3.csv") #load annotation GFF3 file
+
+#remove first three columns in data frame
+transcriptomic <- transcriptomic[,-(1:3),drop=FALSE]
+transcriptomic <- transcriptomic[,-(4:6),drop=FALSE]
+
+#add gene between Pver_g to match gene_summary
+transcriptomic$gene_id <-  gsub("Pver_g","Pver_gene_g", transcriptomic$gene_id)
+
+#combine gene summmary and gene IDs from annot
+gene_annot <- left_join(gene_summary, transcriptomic)
+
+#delete length and gene information that is unnecessary
+gene_annot <- gene_annot[,-(9:13),drop=FALSE]
+
+# Saving full gene_annot data.frame
+saveRDS(gene_annot,"RAnalysis/Data/GE_meth_compare/gene_annot_full.RData")
+
+# Combine gene expression, exon count and CpG (DNA mehtylation data)
+gSum <- left_join(meth_annot, gene_annot)
+
+# Reducing the data.frame to include places were we have all the data.
+gSum_red<-gSum[!is.na(gSum$cov10_count),]
+gSum_red<-gSum_red[!is.na(gSum_red$gene_mean_express),]
+
+# Saving reduced data.frame
+saveRDS(gSum,"RAnalysis/Data/GE_meth_compare/Multi_geneSummaryComplete.RData")
+
+# Saving the reduced data.frame
+saveRDS(gSum_red,"RAnalysis/Data/GE_meth_compare/Multi_geneSummaryReduced.RData")
+```
+
+#compare global mean meth vs express overall
+```{r}
+mat <- readRDS("RAnalysis/Data/GE_meth_compare/Multi_geneSummaryReduced.RData")
+
+## Mean Methylation vs Gene Expression following Liew et al
+df <- mat
+
+#log gene expression x % methylation
+df$log_gene <- log(df$gene_mean_express+1)
+df$per_meth <- df$mean_meth * 100
+
+#plot of global express x meth
+meth.express.compare <- ggplot(df, aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + ylim(0,2) + 
+    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+  stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
+    theme_cowplot();meth.express.compare
+
+### Figure Mean Methylation vs Gene Expression###
+ggsave(meth.express.compare, filename="RAnalysis/Output/Final_Figures/Host/global_express_meth_correlation.png", height = 7, width = 10)
+
+```
+
+## Analysis of comparisons between gene ontology enrichment from differentially methylated genes and differentially expressed genes.
+# Import the data files 
+```{r}
+#upload go enrichment summary for DEGs
+DEG <- read.csv("RAnalysis/Data/RNA-seq/Host/", header = TRUE)
+
+#adjust p-values 
+DEG$bh_adjust <-  p.adjust(DEG$over_represented_pvalue, method="BH") 
+
+#rename category to GOterm
+colnames(DEG)[3] ="GOterm" #rename columns
+
+#write csv with bh_adjust
+write.csv(DEG, file = "RAnalysis/Output/RNA-seq/GOSeq/Host/GO.DEG.parent.terms.host.csv")
+
+#upload go enrichment summary for DMGs
+DMG <- read.csv("RAnalysis/Output/WGBS/GO.enrichment.summary.table.ontology.10x.csv", header = TRUE, row.names = 1)
+
+#rename category to GOterm
+colnames(DMG)[3] ="GOterm" #rename columns
+
+#add column to specific type of measure
+DMG <- DMG %>% add_column(type = "DMG.GO.terms")
+
+#adjust p-values 
+DMG$bh_adjust <-  p.adjust(DMG$over_represented_pvalue, method="BH") 
+
+#write csv with bh_adjust
+write.csv(DMG, file = "RAnalysis/Output/WGBS/GO.DMG.parent.terms.csv")
+
+```
+
+
+#Filled in all NAs with parent terms for completed data frames below
+#Used QuickGO to search and fill in the remaining NA parent terms https://www.ebi.ac.uk/QuickGO/term/GO:1901363
+#DMG go plot
+```{r}
+#upload complete parent term dataframe DMGs and make figures
+
+#upload complete go enrichment summary for DMGs
+DMG.complete <- read.csv("RAnalysis/Data/WGBS/DMG_GO_parent_terms_complete.10x.csv", header = TRUE)
+
+#adjust p-values 
+DMG.complete$bh_adjust <-  p.adjust(DMG.complete$over_represented_pvalue, method="BH") 
+
+GO.plot.DMG.complete <-  ggplot(DMG.complete, aes(x = ontology, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,2120))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("Ontology Category")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE))+
+    ggtitle("")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0),
+          axis.title.y = element_blank())
+
+ 
+ggsave("RAnalysis/Output/WGBS/DMG.complete.slimterms.pdf", GO.plot.DMG.complete, width = 20, height = 49.5, units = c("in"))
+ggsave("RAnalysis/Output/WGBS/DMG.complete.slimterms.png", GO.plot.DMG.complete, width = 20, height = 49.5, units = c("in"))
+
+
+```
+
+
+```{r}
+#upload complete parent term dataframe DMGs and make figures
+
+#upload complete go enrichment summary for DMGs
+DEG.complete <- read.csv("RAnalysis/Data/RNA-seq/P.verrucosa/Host/DEG_GO_parent_terms_complete.csv", header = TRUE)
+
+#add column to specific type of measure
+#DEG.complete <- DEG.complete %>% add_column(type = "DEG.GO.terms")
+
+#adjust p-values 
+DEG.complete$bh_adjust <-  p.adjust(DEG.complete$over_represented_pvalue, method="BH") 
+
+GO.plot.DEG.complete <-  ggplot(DEG.complete, aes(x = ontology, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,550))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("Ontology Category")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE))+
+    ggtitle("")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0),
+          axis.title.y = element_blank())
+
+ 
+ggsave("RAnalysis/Output/Final_Figures/Host/DEG.complete.slimterms.pdf", GO.plot.DEG.complete , width = 25, height = 49, units = c("in"))
+
+
+```
+
+
+#load png image of DEG PCA and DMG PCA to combine for each figure
+```{r}
+DEG.PCA <- readPNG("RAnalysis/Output/Final_Figures/Host/DEGSeq2_DEG_PCA_plot_host.png")
+PCA.DEG <- rasterGrob(DEG.PCA, interpolate=TRUE)
+
+DMG.PCA <- readPNG("RAnalysis/Output/Final_Figures/Host/DMG_PCA_plot_host.png")
+PCA.DMG <- rasterGrob(DMG.PCA, interpolate=TRUE)
+
+```
+
+#make DEG plot figure 2 manuscript
+```{r}
+
+#filter for numincat sum per term and remove CC ontology for dataframe before making plot BP
+filter.DEG.BP <-DEG.complete %>%
+  filter(ontology %in% c("BP"))
+
+filt.sum.DEG.BP <- filter.DEG.BP %>% group_by(slim_term) %>% 
+  summarise(sum_num=sum(numInCat))
+
+filt.mean.DEG.BP <- filter.DEG.BP %>% group_by(slim_term) %>% 
+  summarise(pvalue=mean(bh_adjust))
+
+subset.DEG.BP <- left_join(filt.mean.DEG.BP, filt.sum.DEG.BP)
+
+subset.DEG.BP <- subset.DEG.BP %>%
+  mutate(ontology = "Biological Process")
+
+GO.plot.DEG.BP <-  ggplot(subset.DEG.BP, aes(x = ontology, y = slim_term)) + 
+    geom_point(aes(size=sum_num, fill=pvalue, colour=pvalue)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,800))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE), switch="y")+
+    ggtitle("")+
+    theme_bw() + 
+    #scale_y_discrete(limits=rev) +
+    theme(strip.text.y.left = element_text(angle = 0),
+          panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 30, face="bold"),
+          axis.text.x = element_text(size = 30, face="bold"),
+          axis.text.y=element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.title.x = element_text(size = 30, face="bold"),
+          legend.text=element_text(size=30, face="bold"),
+          title=element_text(size=30, face="bold"),
+          plot.title = element_text(hjust = 0, face="bold"),
+          axis.title.y = element_blank())
+
+ggsave("RAnalysis/Output/RNA-seq/DEG/Host/DEG.BP.png", GO.plot.DEG.BP, width = 20, height = 40, units = c("in"))
+ggsave("RAnalysis/Output/RNA-seq/DEG/Host/DEG.BP.pdf", GO.plot.DEG.BP, width = 20, height = 20, units = c("in"))
+
+
+#filter for numincat sum per term and remove CC ontology for dataframe before making plot BP
+filter.DEG.MF <-DEG.complete %>%
+  filter(ontology %in% c("MF"))
+
+filt.sum.DEG.MF <- filter.DEG.MF%>% group_by(slim_term) %>% 
+  summarise(sum_num=sum(numInCat))
+
+filt.mean.DEG.MF <- filter.DEG.MF %>% group_by(slim_term) %>% 
+  summarise(pvalue=mean(bh_adjust))
+
+subset.DEG.MF <- left_join(filt.mean.DEG.MF, filt.sum.DEG.MF)
+
+subset.DEG.MF <- subset.DEG.MF %>%
+  mutate(ontology = "Molecular Function")
+
+GO.plot.DEG.MF <-  ggplot(subset.DEG.MF, aes(x = ontology, y = slim_term)) + 
+    geom_point(aes(size=sum_num, fill=pvalue, colour=pvalue)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,1455))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE), switch="y")+
+    ggtitle("")+
+    theme_bw() + 
+    #scale_y_discrete(limits=rev) +
+    theme(strip.text.y.left = element_text(angle = 0),
+          panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 30, face="bold"),
+          axis.text.x = element_text(size = 30, face="bold"),
+          axis.text.y=element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.title.x = element_text(size = 30, face="bold"),
+          legend.text=element_text(size=30, face="bold"),
+          title=element_text(size=30, face="bold"),
+          plot.title = element_text(hjust = 0, face="bold"),
+          axis.title.y = element_blank())
+
+ggsave("RAnalysis/Output/RNA-seq/DEG/Host/DEG.MF.png", GO.plot.DEG.MF, width = 10, height = 10, units = c("in"))
+ggsave("RAnalysis/Output/RNA-seq/DEG/Host/DEG.MF.pdf", GO.plot.DEG.MF, width = 10, height = 10, units = c("in"))
+
+```
+
+#make DMG figure 3 for manuscript 
+```{r}
+
+#filter for numincat sum per term and remove CC ontology for dataframe before making plot BP
+filter.DMG.BP <-DMG.complete %>%
+  filter(ontology %in% c("BP"))
+
+filt.sum.BP <- filter.DMG.BP %>% group_by(slim_term) %>% 
+  summarise(sum_num=sum(numInCat))
+
+filt.mean.BP <- filter.DMG.BP %>% group_by(slim_term) %>% 
+  summarise(pvalue=mean(bh_adjust))
+
+subset.BP <- left_join(filt.mean.BP, filt.sum.BP)
+
+subset.BP <- subset.BP %>%
+  mutate(ontology = "Biological Process")
+
+GO.plot.DMG.BP <-  ggplot(subset.BP, aes(x = ontology, y = slim_term)) + 
+    geom_point(aes(size=sum_num, fill=pvalue, colour=pvalue)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,1528))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE), switch="y")+
+    ggtitle("")+
+    theme_bw() + 
+    #scale_y_discrete(limits=rev) +
+    theme(strip.text.y.left = element_text(angle = 0),
+          panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 30, face="bold"),
+          axis.text.x = element_text(size = 30, face="bold"),
+          axis.text.y=element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.title.x = element_text(size = 30, face="bold"),
+          legend.text=element_text(size=30, face="bold"),
+          title=element_text(size=30, face="bold"),
+          plot.title = element_text(hjust = 0, face="bold"),
+          axis.title.y = element_blank())
+
+ggsave("RAnalysis/Output/WGBS/DMG.BP.png", GO.plot.DMG.BP, width = 20, height = 35, units = c("in"))
+ggsave("RAnalysis/Output/WGBS/DMG.BP.pdf", GO.plot.DMG.BP, width = 20, height = 20, units = c("in"))
+
+
+#filter for numincat sum per term and remove CC ontology for dataframe before making plot BP
+filter.DMG.MF <-DMG.complete %>%
+  filter(ontology %in% c("MF"))
+
+filt.sum.MF <- filter.DMG.MF%>% group_by(slim_term) %>% 
+  summarise(sum_num=sum(numInCat))
+
+filt.mean.MF <- filter.DMG.MF %>% group_by(slim_term) %>% 
+  summarise(pvalue=mean(bh_adjust))
+
+subset.MF <- left_join(filt.mean.MF, filt.sum.MF)
+
+subset.MF <- subset.MF %>%
+  mutate(ontology = "Molecular Function")
+
+GO.plot.DMG.MF <-  ggplot(subset.MF, aes(x = ontology, y = slim_term)) + 
+    geom_point(aes(fill=pvalue, colour=pvalue, size=sum_num)) + 
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,5600))+
+    xlab("")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE), switch="y")+
+    ggtitle("")+
+    theme_bw() + 
+    #scale_y_discrete(limits=rev) +
+    theme(strip.text.y.left = element_text(angle = 0),
+          panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 30, face="bold"),
+          axis.text.x = element_text(size = 30, face="bold"),
+          axis.text.y=element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.title.x = element_text(size = 30, face="bold"),
+          legend.text=element_text(size=30, face="bold"),
+          title=element_text(size=30, face="bold"),
+          plot.title = element_text(hjust = 0, face="bold"),
+          axis.title.y = element_blank())
+
+ggsave("RAnalysis/Output/WGBS/DMG.MF.png", GO.plot.DMG.MF, width = 10, height = 10, units = c("in"))
+ggsave("RAnalysis/Output/WGBS/DMG.MF.pdf", GO.plot.DMG.MF, width = 10, height = 10, units = c("in"))
+
+
+
+```
+
+#use patchwork to make figure 2 and 3 wiht PCA as a, BP as B and MF as C for DEG and DMG
+
+```{r}
+
+bottom_row.DEG <- plot_grid(GO.plot.DEG.BP, GO.plot.DEG.MF, label_size = 60)
+Figure2 <- plot_grid(PCA.DEG, bottom_row.DEG, labels = c('A', ''), label_size = 60, ncol = 1) 
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DEG.png"), plot=Figure2, dpi=300,width=50, height=60, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DEG.pdf"), plot=Figure2, dpi=300, width=50, height=60, units="in", limitsize = FALSE)
+
+bottom_row.DMG <- plot_grid(GO.plot.DMG.BP, GO.plot.DMG.MF, label_size = 60)
+Figure3 <- plot_grid(PCA.DMG, bottom_row.DMG, labels = c('A', ''), label_size = 60, ncol = 1)
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DMG.png"), plot=Figure3, dpi=300,width=50, height=60, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/DMG.pdf"), plot=Figure3, dpi=300, width=50, height=60, units="in", limitsize = FALSE)
+```
+
+
+
+#facet by ontology, x axis of dot plots could be genes and methylation to see which are shared and each ontology level what is overlap in each
+#see next is how gene and meth functions overlap facet grouping by parent term and which gives you overlap in parent terms
+#DEG go plot
+```{r}
+#add column for deg dmg specific category to each dataframe
+DMG.complete <- DMG.complete %>% add_column(type = "DMG.GO.terms")
+
+#rename column from genes to gene
+DEG.complete <- DEG.complete %>% 
+       dplyr::rename("GOterm" = "category")
+
+#rename column from genes to gene
+DMG.complete <- DMG.complete %>% 
+       dplyr::rename("GOterm" = "category")
+
+
+#combine two dataframes to have both DEG and DMG terms in same data frame
+DEG.DMG <- rbind(DMG.complete, DEG.complete)
+
+#filter for just the biological process ontology
+DEG.DMG.BP <- DEG.DMG %>%
+filter(ontology == "BP")
+
+#output csv of shared DMG and DEG terms
+write.csv(DEG.DMG, "RAnalysis/Output/WGBS/global.DEG.DMG.goterms.csv")
+
+BP.df <- na.omit(DEG.DMG.BP)
+
+
+#make biological process DEG DMG comparison figure
+GO.plot.BP.DEG.DMG <-  ggplot(BP.df, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,550))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("Method")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 80, multi_line = TRUE))+
+    ggtitle("Biological Process")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.5),
+          axis.title.y = element_blank());GO.plot.BP.DEG.DMG
+
+ 
+
+ggsave("RAnalysis/Output/Final_Figures/Host/GO.BP.DEG.DMG.pdf", GO.plot.BP.DEG.DMG , width = 35, height = 49, units = c("in"))
+
+```
+
+
+#make final DMG DEG molecular function comparison plot
+```{r}
+#filter for just the molecular function ontology
+DEG.DMG.MF <- DEG.DMG %>%
+filter(ontology == "MF")
+
+#make biological process DEG DMG comparison figure
+GO.plot.MF.DEG.DMG <-  ggplot(DEG.DMG.MF, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,550))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("Method")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE))+
+    ggtitle("Molecular Function")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.5),
+          axis.title.y = element_blank());GO.plot.MF.DEG.DMG
+
+ 
+
+ggsave("RAnalysis/Output/Final_Figures/Host/GO.MF.DEG.DMG.pdf", GO.plot.MF.DEG.DMG , width = 20, height = 49, units = c("in"))
+
+```
+
+
+#make final DMG DEG cellular component comparison plot
+```{r}
+#filter for just the molecular function ontology
+DEG.DMG.CC <- DEG.DMG %>%
+filter(ontology == "CC")
+
+#make biological process DEG DMG comparison figure
+GO.plot.CC.DEG.DMG <-  ggplot(DEG.DMG.CC, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,550))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("Method")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE))+
+    ggtitle("Cellular Component")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.5),
+          axis.title.y = element_blank());GO.plot.CC.DEG.DMG
+
+ 
+
+ggsave("RAnalysis/Output/Final_Figures/Host/GO.CC.DEG.DMG.pdf", GO.plot.CC.DEG.DMG , width = 20, height = 30, units = c("in"))
+
+```
+
+#compare gene lists for correlation, DEG, DMG need to bring in statistic data frame
+```{r}
+#methylation and expression dataframe calculated and complete in meth_GE_compare.Rmd script, found here: https://github.com/hputnam/Becker_E5/blob/master/RAnalysis/Scripts/methyl_expression_compare/meth_GE_compare.Rmd
+#this data frame lists only the genes found in meth and express data frames
+meth.express <- readRDS("RAnalysis/Data/GE_meth_compare/Multi_geneSummaryComplete.RData")
+
+#remove _gene_ in gene id to match other data frames
+meth.express$gene_id <-  gsub("_gene_","_", meth.express$gene_id)
+
+#this data frame lists all methylated genes found 
+methyl.annot <- readRDS("RAnalysis/Data/GE_meth_compare/meth_annot_full.RData")
+
+#remove _gene_ in gene id to match other data frames
+methyl.annot$gene_id <-  gsub("_gene_","_", methyl.annot$gene_id)
+
+#this data frame lists all expressed genes found
+express.annot <- readRDS("RAnalysis/Data/GE_meth_compare/gene_annot_full.RData")
+
+#remove _gene_ in gene id to match other data frames
+express.annot$gene_id <-  gsub("_gene_","_", express.annot$gene_id)
+
+#remove gene_ from column 2 to 8
+colnames(express.annot)[2:8] <-  sub(".*gene_", "", colnames(express.annot)[2:8])
+
+```
+
+
+#Filter dataframes for gene ontology groups that are involved in nitrogen pathways, stress pathways to see if expression and methylation are correlated
+```{r}
+#filter by any category that contained the word, could do anything that has the word nitrogen, stress, and heat 
+
+vector1 <- c("nitrogen compound metabolic process", "response to nitrogen compound", "response to nutrient levels", "heat shock protein binding", "response to stress", "cellular nitrogen compound", "glutamate", "glutamine", "protein metabolic proces", "amino acid")
+
+phenotype.pathways.DEG <-DEG.complete%>%
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+phenotype.pathways.DMG <- DMG.complete %>% 
+      filter(grepl(paste(vector1, collapse="|"), paste(slim_term, term))) 
+
+```
+
+#change data frames from wide to long format
+```{r}
+#change data frames from wide to long so each gene has a row 
+long.pathway.DEG <- phenotype.pathways.DEG %>% 
+    mutate(genes = strsplit(as.character(genes), ",")) %>% #defines what character separates the list
+    unnest(genes) #unnests and makes each gene have its own row
+
+#rename column from genes to gene
+long.pathway.DEG <- long.pathway.DEG %>% 
+       dplyr::rename("gene_id" = "genes")
+
+#remove type column from data frame to match DMG 
+long.pathway.DEG = subset(long.pathway.DEG, select = -c(type) )
+
+#remove extra first space in gene_id names in column 
+long.pathway.DEG$gene_id <- gsub(' Pver', 'Pver', long.pathway.DEG$gene_id)
+
+#change data frames from wide to long so each gene has a row
+long.pathway.DMG <- phenotype.pathways.DMG %>% 
+    mutate(genes = strsplit(as.character(genes), ",")) %>% 
+    unnest(genes)
+
+#remove the _gene_ in the DMG gene list to match DEG gene numbers
+long.pathway.DMG$genes <-  gsub("_gene_","_", long.pathway.DMG$genes)
+
+#rename column from genes to gene
+long.pathway.DMG <- long.pathway.DMG %>% 
+       dplyr::rename("gene_id" = "genes")
+
+#remove extra first space in gene_id names in column 
+long.pathway.DMG$gene_id <- gsub(' Pver', 'Pver', long.pathway.DMG$gene_id)
+
+```
+
+# Combine DMG and DEG data frames, by binding below so all rows are present
+```{r}
+#add column to specific type of measure
+long.pathway.DEG <- long.pathway.DEG %>% add_column(type = "DEG.GO.terms")
+
+#DMG columns = 12 rows and DEG = 435 rows, total rows should be 447
+DMG.DEG.dat <- rbind(long.pathway.DEG, long.pathway.DMG)
+#yes rows equal estimate
+
+#write hypothesis driven csv
+write.csv(DMG.DEG.dat, "RAnalysis/Output/WGBS/hypothesis.DEG.DMG.goterms.csv")
+```
+
+
+```{r}
+#combine all meth express data frame with DMG.DEG data frame
+#this will merge only genes found in both DMG and DEG
+meth.exp.filt <- merge(meth.express, DMG.DEG.dat, by = 'gene_id')
+
+#this will merge to list all DEG and DMG express and meth statistics
+meth.merge <- merge(methyl.annot, long.pathway.DMG)
+
+express.merge <- merge(express.annot, long.pathway.DEG, by = 'gene_id')
+
+#the reason some expressed or methylated genes do not merge with stats are due to filtering for >3 CpG in methylation and >0 mean expression
+
+
+```
+
+
+# Look at correlation for mean methylation and gene expression in hypothesis driven approach
+```{r}
+## Mean Methylation vs Gene Expression following Liew et al
+df <- meth.exp.filt
+
+df %>% drop_na()
+
+#control log gene expression x % methylation
+df$log_gene <- log(df$gene_mean_express+1)
+df$per_meth <- df$mean_meth * 100
+
+#make plot with correlation tests
+#decide between pearson, kendall, or spearman
+#first test normality
+shapiro.test(df$gene_mean_express) # <0.05
+shapiro.test(df$mean_meth) # <0.05
+#both variables are less then 0.05 indicating data do not follow normal distribution
+
+#use kendall test for correlation, Kendall’s is more robust and generally the preferred method between spearman and kendall
+
+meth.express.specific <- ggplot(df,aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + 
+    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+  stat_cor(method = "kendall", digits = 3, label.x = 60, label.y = 0.5 ) +
+    theme_cowplot();meth.express.specific
+
+### Figure Mean Methylation vs Gene Expression###
+
+ggsave(meth.express.specific, filename="RAnalysis/Output/Final_Figures/Host/pathway.specific.express.meth.png", height = 7, width = 10)
+```
+
+
+```{r}
+#find unique GO slim terms that overlap between DEG and DMG lists
+#DEG
+unique.DEG <- DEG.complete %>%
+  distinct(slim_term, ontology) %>%
+  tibble::as_tibble()  # Convert to tibble
+
+#filter NAs
+unique.DEG <- unique.DEG %>%
+  filter(!is.na(slim_term) & !is.na(ontology))
+
+#DMG
+unique.DMG <- DMG.complete %>%
+  distinct(slim_term, ontology) %>%
+  tibble::as_tibble()  # Convert to tibble
+
+#filter NAs
+unique.DMG <- unique.DMG %>%
+  filter(!is.na(slim_term) & !is.na(ontology))
+
+#merge to show overlapping terms
+overlap <- merge(unique.DEG, unique.DMG, on="slim_term")
+#32 unique terms
+
+#make biological process DEG DMG comparison figure
+hypo.DEG.DMG <-  ggplot(df, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,2000))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    xlab("Method")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 55, multi_line = TRUE))+
+    #ggtitle()+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.5),
+          axis.title.y = element_blank());hypo.DEG.DMG
+
+ggsave("RAnalysis/Output/Final_Figures/Host/GO.hypo.DEG.DMG.pdf", hypo.DEG.DMG , width = 20, height = 30, units = c("in"))
+ggsave("RAnalysis/Output/Final_Figures/Host/GO.hypo.DEG.DMG.png", hypo.DEG.DMG , width = 20, height = 30, units = c("in"))
+
+
+```
+
+#make dataframes and figures for specific hypothesis driven pathways and responses from DEGs and DMGs
+
+#nutrient response
+```{r}
+
+nutrient <- c("nutrient")
+
+nutrient.DEG <-DEG.complete%>%
+      filter(grepl(paste(nutrient, collapse="|"), paste(slim_term, term))) 
+
+nutrient.DMG <- DMG.complete %>% 
+      filter(grepl(paste(nutrient, collapse="|"), paste(slim_term, term)))
+
+nutrient.dat <- rbind(nutrient.DEG,nutrient.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  nutrient.GO.plot <-  ggplot(nutrient.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,50))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 6, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Nutrient Response")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.6),
+          axis.title.y = element_blank())
+  
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/nutrient.DMG.DEG.png"), plot=nutrient.GO.plot, dpi=300, width=15, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/nutrient.DMG.DEG.pdf"), plot=nutrient.GO.plot, dpi=300, width=15, height=10, units="in")
+
+```
+
+#nitrogen metabolism
+```{r}
+
+nitrogen <- c("nitrogen")
+
+nitrogen.DEG <-DEG.complete%>%
+      filter(grepl(paste(nitrogen, collapse="|"), paste(slim_term, term))) 
+
+nitrogen.DMG <- DMG.complete %>% 
+      filter(grepl(paste(nitrogen, collapse="|"), paste(slim_term, term)))
+
+nitrogen.dat <- rbind(nitrogen.DEG,nitrogen.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  nitrogen.GO.plot <-  ggplot(nitrogen.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,100))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 8, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Nitrogen Metabolism")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.6),
+          axis.title.y = element_blank())
+  
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/nitrogen.DMG.DEG.png"), plot=nitrogen.GO.plot, dpi=300, width=15, height=15, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/nitrogen.DMG.DEG.pdf"), plot=nitrogen.GO.plot, dpi=300, width=15, height=15, units="in")
+
+```
+
+#heat stress response
+```{r}
+
+heat <- c("heat", "DNA replication", "DNA repair", "immune", "protein folding", "stress", "DNA")
+
+heat.DEG <-DEG.complete%>%
+      filter(grepl(paste(heat, collapse="|"), paste(slim_term, term))) 
+
+heat.DMG <- DMG.complete %>% 
+      filter(grepl(paste(heat, collapse="|"), paste(slim_term, term)))
+
+heat.dat <- rbind(heat.DEG,heat.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  heat.GO.plot <-  ggplot(heat.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,1500))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 50, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Heat Stress Response")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.6),
+          axis.title.y = element_blank())
+  
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/heat.DMG.DEG.png"), plot=heat.GO.plot, dpi=300, width=22, height=15, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/heat.DMG.DEG.pdf"), plot=heat.GO.plot, dpi=300, width=22, height=15, units="in")
+
+
+```
+
+
+#carbohydrate metabolism
+```{r}
+
+carb <- c("carbohydrate")
+
+carb.DEG <-DEG.complete%>%
+      filter(grepl(paste(carb, collapse="|"), paste(slim_term, term))) 
+
+carb.DMG <- DMG.complete %>% 
+      filter(grepl(paste(carb, collapse="|"), paste(slim_term, term)))
+
+carb.dat <- rbind(carb.DEG,carb.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  carb.GO.plot <-  ggplot(carb.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,50))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 8, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Carbohydrate Metabolism")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.6),
+          axis.title.y = element_blank())
+  
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/carb.DMG.DEG.png"), plot=carb.GO.plot, dpi=300, width=15, height=15, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/carb.DMG.DEG.pdf"), plot=carb.GO.plot, dpi=300, width=15, height=15, units="in")
+ 
+
+```
+
+#amino acid metabolism
+```{r}
+
+amino <- c("amino acid", "amino")
+
+amino.DEG <-DEG.complete%>%
+      filter(grepl(paste(amino, collapse="|"), paste(slim_term, term))) 
+
+amino.DMG <- DMG.complete %>% 
+      filter(grepl(paste(amino, collapse="|"), paste(slim_term, term)))
+
+amino.dat <- rbind(amino.DEG,amino.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  amino.GO.plot <-  ggplot(amino.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,35))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 8, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Amino Acid Metabolism")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/amino.DMG.DEG.png"), plot=amino.GO.plot, dpi=300, width=14, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/amino.DMG.DEG.pdf"), plot=amino.GO.plot, dpi=300, width=14, height=10, units="in")
+
+```
+
+#oxidoreductase activity
+```{r}
+
+oxy <- c("oxygen", "oxidative", "oxidoreductase activity")
+
+oxy.DEG <-DEG.complete%>%
+      filter(grepl(paste(oxy, collapse="|"), paste(slim_term, term))) 
+
+oxy.DMG <- DMG.complete %>% 
+      filter(grepl(paste(oxy, collapse="|"), paste(slim_term, term)))
+
+oxy.dat <- rbind(oxy.DEG,oxy.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  oxy.GO.plot <-  ggplot(oxy.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,534))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 8, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Oxidoreductase Activity")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/oxy.DMG.DEG.png"), plot=oxy.GO.plot, dpi=300, width=18, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/oxy.DMG.DEG.pdf"), plot=oxy.GO.plot, dpi=300, width=18, height=10, units="in")
+
+```
+
+#protein synthesis
+```{r}
+
+protein <- c("protein metabolic process", "protein folding", "protein", "protein modification process", "protein transport")
+
+protein.DEG <-DEG.complete%>%
+      filter(grepl(paste(protein, collapse="|"), paste(slim_term, term))) 
+
+protein.DMG <- DMG.complete %>% 
+      filter(grepl(paste(protein, collapse="|"), paste(slim_term, term)))
+
+protein.dat <- rbind(protein.DEG,protein.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  protein.GO.plot <-  ggplot(protein.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,1500))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 30, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Protein Synthesis")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/protein.DMG.DEG.png"), plot=protein.GO.plot, dpi=300, width=20, height=24, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/protein.DMG.DEG.pdf"), plot=protein.GO.plot, dpi=300, width=20, height=24, units="in")
+
+```
+
+#glucose metabolism
+```{r}
+
+glucose <- c("glucose", "glucagon", "glucokinase", "glucocorticoid", "glucosinolate")
+
+glucose.DEG <-DEG.complete%>%
+      filter(grepl(paste(glucose, collapse="|"), paste(slim_term, term))) 
+
+glucose.DMG <- DMG.complete %>% 
+      filter(grepl(paste(glucose, collapse="|"), paste(slim_term, term)))
+
+glucose.dat <- rbind(glucose.DEG,glucose.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  glucose.GO.plot <-  ggplot(glucose.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,20))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 30, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Glucose Metabolism")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/glucose.DMG.DEG.png"), plot=glucose.GO.plot, dpi=300, width=18, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/glucose.DMG.DEG.pdf"), plot=glucose.GO.plot, dpi=300, width=18, height=10, units="in")
+
+```
+
+#glutamate metabolism
+```{r}
+
+glutamate <- c("glutamate", "glutathione", "glutamylcyclotransferase", "hydroxymethylglutaryl", "glutathione")
+
+glutamate.DEG <-DEG.complete%>%
+      filter(grepl(paste(glutamate, collapse="|"), paste(slim_term, term))) 
+
+glutamate.DMG <- DMG.complete %>% 
+      filter(grepl(paste(glutamate, collapse="|"), paste(slim_term, term)))
+
+glutamate.dat <- rbind(glutamate.DEG,glutamate.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  glutamate.GO.plot <-  ggplot(glutamate.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,200))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 30, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Glutamine Synthetase and Glutamate Synthase Pathway")+
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/glutamate.DMG.DEG.png"), plot=glutamate.GO.plot, dpi=300, width=18, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/glutamate.DMG.DEG.pdf"), plot=glutamate.GO.plot, dpi=300, width=18, height=10, units="in") 
+
+```
+
+#cellular energy metabolism
+```{r}
+
+cell <- c("sugar", "fatty acid", "lipid", "fatty")
+
+cell.DEG <-DEG.complete%>%
+      filter(grepl(paste(cell, collapse="|"), paste(slim_term, term))) 
+
+cell.DMG <- DMG.complete %>% 
+      filter(grepl(paste(cell, collapse="|"), paste(slim_term, term)))
+
+cell.dat <- rbind(cell.DEG,cell.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+  cell.GO.plot <-  ggplot(cell.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,40))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 40, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Cellular Energy Metabolism") +
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/cell.DMG.DEG.png"), plot=cell.GO.plot, dpi=300, width=18, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/cell.DMG.DEG.pdf"), plot=cell.GO.plot, dpi=300, width=18, height=10, units="in")
+
+```
+
+
+#methithionie pathway
+```{r}
+
+methionine <- c("methionine", "methionyl", "methionine", "methyl", "SAM", "aden")
+
+methionine.DEG <-DEG.complete%>%
+      filter(grepl(paste(methionine, collapse="|"), paste(slim_term, term))) 
+
+methionine.DMG <- DMG.complete %>% 
+      filter(grepl(paste(methionine, collapse="|"), paste(slim_term, term)))
+
+methionine.dat <- rbind(methionine.DEG,methionine.DMG)
+
+  #plot significantly enriched GO terms by Slim Category faceted by slim term 
+methionine.GO.plot <-  ggplot(methionine.dat, aes(x = type, y = term)) + 
+    geom_point(aes(size=numInCat, fill=bh_adjust, colour=bh_adjust)) + 
+    scale_size(name="Number of Genes", range=c(5,12), limits=c(1,300))+
+    scale_fill_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    scale_colour_gradient(name = "Adjusted p-value", low="black", high="gray")+
+    facet_grid(slim_term ~ ., scales = "free", space='free', labeller = label_wrap_gen(width = 40, multi_line = TRUE))+
+    xlab("Analysis")+
+    ggtitle("Methionine Pathway") +
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+          strip.background =element_rect(fill="white"),
+          strip.text.y = element_text(angle=0, size = 18, face="bold"),
+          strip.text.x = element_text(size = 16),
+          axis.text.x = element_text(size = 20, angle=45, hjust=1),
+          axis.text.y = element_text(size = 16),
+          axis.title.x = element_text(size = 22, face="bold"),
+          legend.text=element_text(size=16),
+          title=element_text(size=22, face="bold"),
+          plot.title = element_text(hjust = 0.4),
+          axis.title.y = element_blank())
+  
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/methionine.DMG.DEG.png"), plot=methionine.GO.plot, dpi=300, width=18, height=10, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/specific_pathways/methionine.DMG.DEG.pdf"), plot=methionine.GO.plot, dpi=300, width=18, height=10, units="in")
+
+```
+
+#use patchwork to combine figures and add labels
+
+```{r}
+
+Figure4 <- glucose.GO.plot + glutamate.GO.plot + oxy.GO.plot + plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 50))
+Figure5 <- nutrient.GO.plot + nitrogen.GO.plot + carb.GO.plot + heat.GO.plot + amino.GO.plot + protein.GO.plot + cell.GO.plot + methionine.GO.plot + plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 50))
+#Figure5 <- heat.GO.plot + amino.GO.plot + protein.GO.plot + cell.GO.plot + plot_annotation(tag_levels = 'A')
+ 
+#ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/nitrogen.carb_pathways.png"), plot=Figure3, dpi=300, width=40, height=15, units="in")
+#ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/nitrogen.carb_pathways.pdf"), plot=Figure3, dpi=300, width=40, height=15, units="in")
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/glut.oxy.pathways.png"), plot=Figure4, dpi=300, width=49, height=20, units="in")
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/glut.oxy.pathways.pdf"), plot=Figure4, dpi=300, width=49, height=20, units="in")
+
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/full.fig.png"), plot=Figure5, dpi=300, width=60, height=55, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/Final_Figures/Host/manuscript/full.fig.pdf"), plot=Figure5, dpi=300, width=60, height=55, units="in", limitsize = FALSE)
+```
+

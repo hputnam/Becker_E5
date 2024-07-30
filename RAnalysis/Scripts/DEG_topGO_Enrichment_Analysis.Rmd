@@ -1,0 +1,468 @@
+---
+title: "GO_Term_Enrichment_Analysis"
+author: "daniellembecker"
+edited by: "daniellembecker"
+date: "9/20/2021"
+output: html_document
+---
+
+# Molecular Underpinnings Chronic Nutrient Enrichment Project
+
+## RNAseq Gene Ontology (GO) Enrichment Analysis 
+## Previous steps include RNAseq workflow in Bioinformatics>RNAseq>RNAseq workflow and Differential Gene Expression statistical analysis in RAnalysis>Scripts>RNAseq_Differential_Gene_Expression to make DEG statistical data sheet
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load libraries
+if (!requireNamespace("DESeq2", quietly = TRUE)) { BiocManager::install("DESeq2") }
+library("DESeq2")
+library("tidyr")
+library("tidyverse")
+library("dplyr")
+library("pheatmap")
+library("RColorBrewer")
+if (!requireNamespace("genefilter", quietly = TRUE)) { BiocManager::install("genefilter") }
+library("genefilter")
+library("ggplot2")
+library("gplots")
+if (!requireNamespace("limma", quietly = TRUE)) { BiocManager::install("limma") }
+library("limma")
+library("spdep") 
+library("patchwork")
+library("adegenet") 
+if (!requireNamespace("goseq", quietly = TRUE)) { BiocManager::install("goseq") }
+library("goseq")
+library("gridExtra")
+if (!requireNamespace("clusterProfiler", quietly = TRUE)) { BiocManager::install("clusterProfiler") }
+library("clusterProfiler")
+library("DataCombine")
+library("VennDiagram")
+if (!requireNamespace("GSEABase", quietly = TRUE)) { BiocManager::install("GSEABase") }
+library("GSEABase")
+library("data.table")
+if ("rrvgo" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("rrvgo")
+library("rrvgo")
+if ("org.Ce.eg.db" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("org.Ce.eg.db")
+library(org.Ce.eg.db)
+if ("topGO" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("topGO")
+library(topGO)
+if ("Rgraphviz" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("Rgraphviz")
+library(Rgraphviz)
+```
+
+# Import the data files 
+```{r, echo=FALSE}
+# Structural annotation GFF3 file
+GFF3 <- read.csv("RAnalysis/Output/rename_structure_gff3.csv")
+
+# Load go terms from functional annotation file
+annot_GO <- read.csv("RAnalysis/Output/annot_GO.terms.host.csv")[-1]
+
+# Check if all gene IDs in GFF3 are in annot_GO
+unmatched_genes <- setdiff(GFF3$gene_id, annot_GO$gene_id)
+# Print the unmatched gene IDs
+print(unmatched_genes)
+
+# Remove rows where 'GO.ID' is 'unknown'
+annot_GO <- subset(annot_GO, GO.ID != 'unknown')
+
+# edit annot_GO to list GO terms all in one row per gene
+annot_GO <- annot_GO %>%
+  group_by(gene_id) %>%
+  summarise(GO.ID = paste(GO.ID, collapse = ";")) %>%
+  ungroup()
+
+```
+
+# Identifying treatment and all expressed pver genes (poverA = 0.50,10)
+```{r}
+#treatment information
+treatmentinfo <- read.csv("RAnalysis/Data/metadata.RNAseq.csv", header = TRUE, sep = ",")
+str(treatmentinfo)
+head(treatmentinfo)
+
+#DEG results
+DEG.res <- read.csv("RAnalysis/Output/DEGs.all.20240530.csv")
+#nrow(DEG.res)
+#DEG.res$gene_id <-  gsub("_gene","",DEG.res$gene_id) #remove extra characters
+
+colnames(DEG.res)[1] <-"gene_id" # make colnames a true column called gene_id
+head(DEG.res)
+
+# Load filtered gene count file
+gcount_filt <- read.csv("RAnalysis/Output/gene_count_matrix_filtered.csv")
+
+# Rename first column X to gene_id
+names(gcount_filt)[names(gcount_filt) == "X"] <- "gene_id"
+
+```
+
+Match up genes in gene list file to annotation file
+```{r}
+names(annot_GO)
+
+gcount_filt2annot = match(gcount_filt$gene_id, annot_GO$gene_id) #match genes in gcount_filt to annot_GO
+
+# The following is the number of probes without annotation 
+sum(is.na(gcount_filt2annot))
+
+row_nas<-which(is.na(gcount_filt2annot))
+
+#view the genes that do not have a match in the annotation file
+missing<-as.data.frame(gcount_filt2annot[row_nas])
+#print(missing)
+```
+1,663 genes in gcount_filt do not have GO annotations
+
+Reduce annotation file to only contain genes detected in our dataset.  
+```{r}
+filtered_Pverr.annot <- annot_GO[annot_GO$gene_id %in% gcount_filt$gene_id, ]
+dim(filtered_Pverr.annot)
+
+```
+
+The annotation file now only contains genes that were detected in our dataset that have annotation information. This is 18158 out of the 27439 genes in our dataset. 
+
+Biological Processes topGO
+
+Use topGO for enrichment analysis on upregulated data
+```{r}
+### Generate vector with names in just the contrast we are analyzing
+ID.vector.up <- DEG.res %>%
+      filter(direction=="Upregulated") %>%
+      pull(gene_id)
+    
+# Get a list of GO Terms for all genes detected in our dataset
+GO.terms <- filtered_Pverr.annot %>%
+  dplyr::select(gene_id, GO.ID) %>%
+  separate_rows(GO.ID, sep = ";")
+
+# Create a gene-to-GO mapping list
+geneID2GO <- split(as.character(GO.terms$GO.ID), GO.terms$gene_id)
+geneNames <- unique(GO.terms$gene_id)
+
+# Create a named vector for allGenes
+allGenes.up <- factor(as.integer(geneNames %in% ID.vector.up))
+names(allGenes.up) <- geneNames
+
+# Create a topGOdata object using the custom gene2GO mapping
+GOdata.up_BP <- new("topGOdata",
+              ontology = "BP",
+              allGenes = allGenes.up,
+              nodeSize = 5,
+              annot = annFUN.gene2GO, 
+              gene2GO = geneID2GO)
+
+GOdata.up_BP
+numSigGenes(GOdata.up_BP) #7736
+sum(feasible(GOdata.up_BP)) #15385
+```
+
+------------------------- topGOdata object -------------------------
+
+ Ontology:
+   -  BP 
+
+ 18158 available genes (all genes from the array):
+   - symbol:  Pver_g1 Pver_g10 Pver_g100 Pver_g10000 Pver_g10001  ...
+   - 158  significant genes. 
+
+ 15385 feasible genes (genes that can be used in the analysis):
+   - symbol:  Pver_g1 Pver_g10 Pver_g100 Pver_g10000 Pver_g10001  ...
+   - 137  significant genes. 
+
+ GO graph (nodes with at least  5  genes):
+   - a graph with directed edges
+   - number of nodes = 8152 
+   - number of edges = 17684 
+
+------------------------- topGOdata object -------------------------
+
+Run topGO statistical analyses on compiled upregulated data
+```{r}
+# weight01 is the default algorithm used in Alexa et al. (2006) and Li et al. 2018
+weight01.fisher.up_BP <- runTest(GOdata.up_BP, statistic = "fisher")
+
+# Generate a results table
+allRes_up_BP <- GenTable(GOdata.up_BP, 
+                      classicFisher.up = weight01.fisher.up_BP, 
+                      ranksOf = "classicFisher.up", 
+                      topNodes = length(score(weight01.fisher.up_BP)))
+
+# Convert character columns to numeric
+allRes_up_BP$classicFisher.up <- as.numeric(allRes_up_BP$classicFisher.up)
+
+# only adjust p values if you know your data is independent, multiple testing correction was not applied to the resulting P values as the tests are considered to be nonindependent
+#allRes.up$weight_bh_adjust <- p.adjust(allRes.up$classicFisher.up, method="BH") #add adjusted p-values
+#allRes.up
+
+```
+
+Create node figrues of top 5-10 sig terms for upregulated genes
+```{r}
+# view plot in line first
+showSigOfNodes(GOdata.up_BP, score(weight01.fisher.up_BP), firstSigNodes = 5, useInfo = 'all')
+
+# Set the file path and name
+pdf_file_path <- "RAnalysis/Output/tGO_graph_upregulated_BP.pdf"
+# Open a PDF device
+pdf(pdf_file_path)
+# Call printGraph
+printGraph(GOdata.up_BP, weight01.fisher.up_BP, firstSigNodes = 10, fn.prefix = "tGO", useInfo = "all", pdfSW = FALSE)
+# Close the PDF device
+dev.off()
+```
+
+Use topGO for enrichment analysis on downregulated data
+```{r}
+### Generate vector with names in just the contrast we are analyzing
+ID.vector.down <- DEG.res %>%
+      filter(direction=="Downregulated") %>%
+      pull(gene_id)
+    
+# Create a named vector for allGenes
+allGenes.down <- factor(as.integer(geneNames %in% ID.vector.down))
+names(allGenes.down) <- geneNames
+
+# Create a topGOdata object using the custom gene2GO mapping
+GOdata.down_BP <- new("topGOdata",
+              ontology = "BP",
+              allGenes = allGenes.down,
+              nodeSize = 5,
+              annot = annFUN.gene2GO, 
+              gene2GO = geneID2GO)
+
+GOdata.down_BP
+numSigGenes(GOdata.down_BP) #7736
+sum(feasible(GOdata.down_BP)) #15385
+```
+------------------------- topGOdata object -------------------------
+
+ Description:
+   -   
+
+ Ontology:
+   -  BP 
+
+ 18158 available genes (all genes from the array):
+   - symbol:  Pver_g1 Pver_g10 Pver_g100 Pver_g10000 Pver_g10001  ...
+   - 9053  significant genes. 
+
+ 15385 feasible genes (genes that can be used in the analysis):
+   - symbol:  Pver_g1 Pver_g10 Pver_g100 Pver_g10000 Pver_g10001  ...
+   - 7649  significant genes. 
+
+ GO graph (nodes with at least  5  genes):
+   - a graph with directed edges
+   - number of nodes = 8152 
+   - number of edges = 17684 
+
+------------------------- topGOdata object -------------------------
+
+
+Run topGO statistical analyses on compiled downregulated data
+```{r}
+# weight01 is the default algorithm used in Alexa et al. (2006) and Li et al. 2018
+weight01.fisher.down_BP <- runTest(GOdata.down_BP, statistic = "fisher")
+
+# Generate a results table
+allRes_down_BP <- GenTable(GOdata.down_BP, 
+                      classicFisher.down = weight01.fisher.down_BP, 
+                      ranksOf = "classicFisher.down", 
+                      topNodes = length(score(weight01.fisher.down_BP)))
+
+# Convert character columns to numeric
+allRes_down_BP$classicFisher.down <- as.numeric(allRes_down_BP$classicFisher.down)
+
+# only adjust p values if you know your data is independent, multiple testing correction was not applied to the resulting P values as the tests are considered to be nonindependent
+#allRes.up$weight_bh_adjust <- p.adjust(allRes.up$classicFisher.up, method="BH") #add adjusted p-values
+#allRes.up
+
+```
+
+Create node figrues of top 5-10 sig terms for downregulated genes
+```{r}
+# view plot in line first
+showSigOfNodes(GOdata.down_BP, score(weight01.fisher.down_BP), firstSigNodes = 5, useInfo = 'all')
+
+# Set the file path and name
+pdf_file_path <- "RAnalysis/Output/tGO_graph_downregulated_BP.pdf"
+# Open a PDF device
+pdf(pdf_file_path)
+# Call printGraph
+printGraph(GOdata.down_BP, weight01.fisher.down_BP, firstSigNodes = 10, fn.prefix = "tGO", useInfo = "all", pdfSW = FALSE)
+# Close the PDF device
+dev.off()
+```
+
+
+
+Molecular Functions topGO
+
+Use topGO for enrichment analysis on upregulated data
+```{r}
+# Create a topGOdata object using the custom gene2GO mapping
+GOdata.up_MF <- new("topGOdata",
+              ontology = "MF",
+              allGenes = allGenes.up,
+              nodeSize = 5,
+              annot = annFUN.gene2GO, 
+              gene2GO = geneID2GO)
+
+GOdata.up_MF
+numSigGenes(GOdata.up_MF) #1564
+sum(feasible(GOdata.up_MF)) #2054
+```
+------------------------- topGOdata object -------------------------
+
+ Description:
+   -   
+
+ Ontology:
+   -  MF 
+
+ 18158 available genes (all genes from the array):
+   - symbol:  Pver_g1 Pver_g10 Pver_g100 Pver_g10000 Pver_g10001  ...
+   - 9105  significant genes. 
+
+ 16359 feasible genes (genes that can be used in the analysis):
+   - symbol:  Pver_g1 Pver_g10 Pver_g100 Pver_g10000 Pver_g10001  ...
+   - 8194  significant genes. 
+
+ GO graph (nodes with at least  5  genes):
+   - a graph with directed edges
+   - number of nodes = 1564 
+   - number of edges = 2054 
+
+------------------------- topGOdata object -------------------------
+
+Run topGO statistical analyses on compiled upregulated data
+```{r}
+# weight01 is the default algorithm used in Alexa et al. (2006) and Li et al. 2018
+weight01.fisher.up_MF <- runTest(GOdata.up_MF, statistic = "fisher")
+
+# Generate a results table
+allRes_up_MF <- GenTable(GOdata.up_MF, 
+                      classicFisher.up = weight01.fisher.up_MF, 
+                      ranksOf = "classicFisher.up", 
+                      topNodes = length(score(weight01.fisher.up_MF)))
+
+# Convert character columns to numeric
+allRes_up_MF$classicFisher.up <- as.numeric(allRes_up_MF$classicFisher.up)
+
+# only adjust p values if you know your data is independent, multiple testing correction was not applied to the resulting P values as the tests are considered to be nonindependent
+#allRes.up$weight_bh_adjust <- p.adjust(allRes.up$classicFisher.up, method="BH") #add adjusted p-values
+#allRes.up
+
+```
+
+Create node figrues of top 5-10 sig terms for upregulated genes
+```{r}
+# view plot in line first
+showSigOfNodes(GOdata.up_MF, score(weight01.fisher.up_MF), firstSigNodes = 5, useInfo = 'all')
+
+# Set the file path and name
+pdf_file_path <- "RAnalysis/Output/tGO_graph_upregulated_MF.pdf"
+# Open a PDF device
+pdf(pdf_file_path)
+# Call printGraph
+printGraph(GOdata.up_MF, weight01.fisher.up_MF, firstSigNodes = 10, fn.prefix = "tGO", useInfo = "all", pdfSW = FALSE)
+# Close the PDF device
+dev.off()
+```
+
+Use topGO for enrichment analysis on downregulated data
+```{r}
+# Create a topGOdata object using the custom gene2GO mapping
+GOdata.down_MF <- new("topGOdata",
+              ontology = "MF",
+              allGenes = allGenes.down,
+              nodeSize = 5,
+              annot = annFUN.gene2GO, 
+              gene2GO = geneID2GO)
+
+GOdata.down_MF
+numSigGenes(GOdata.down_MF) #8165
+sum(feasible(GOdata.down_MF)) #16359
+```
+------------------------- topGOdata object -------------------------
+
+ Description:
+   -   
+
+ Ontology:
+   -  MF 
+
+ 18158 available genes (all genes from the array):
+   - symbol:  Pver_g1 Pver_g10 Pver_g100 Pver_g10000 Pver_g10001  ...
+   - 9053  significant genes. 
+
+ 16359 feasible genes (genes that can be used in the analysis):
+   - symbol:  Pver_g1 Pver_g10 Pver_g100 Pver_g10000 Pver_g10001  ...
+   - 8165  significant genes. 
+
+ GO graph (nodes with at least  5  genes):
+   - a graph with directed edges
+   - number of nodes = 1564 
+   - number of edges = 2054 
+
+------------------------- topGOdata object -------------------------
+
+Run topGO statistical analyses on compiled downregulated data
+```{r}
+# weight01 is the default algorithm used in Alexa et al. (2006) and Li et al. 2018
+weight01.fisher.down_MF <- runTest(GOdata.down_MF, statistic = "fisher")
+
+# Generate a results table
+allRes_down_MF <- GenTable(GOdata.down_MF, 
+                      classicFisher.down = weight01.fisher.down_MF, 
+                      ranksOf = "classicFisher.down", 
+                      topNodes = length(score(weight01.fisher.down_MF)))
+
+# Convert character columns to numeric
+allRes_down_MF$classicFisher.down <- as.numeric(allRes_down_MF$classicFisher.down)
+
+# only adjust p values if you know your data is independent, multiple testing correction was not applied to the resulting P values as the tests are considered to be nonindependent
+#allRes.up$weight_bh_adjust <- p.adjust(allRes.up$classicFisher.up, method="BH") #add adjusted p-values
+#allRes.up
+
+```
+
+Create node figrues of top 5-10 sig terms for downregulated genes
+```{r}
+# view plot in line first
+showSigOfNodes(GOdata.down_MF, score(weight01.fisher.down_MF), firstSigNodes = 5, useInfo = 'all')
+
+# Set the file path and name
+pdf_file_path <- "RAnalysis/Output/tGO_graph_downregulated_MF.pdf"
+# Open a PDF device
+pdf(pdf_file_path)
+# Call printGraph
+printGraph(GOdata.down_MF, weight01.fisher.down_MF, firstSigNodes = 10, fn.prefix = "tGO", useInfo = "all", pdfSW = FALSE)
+# Close the PDF device
+dev.off()
+```
+
+Filter all dataframes for pvalue < 0.05
+Combine all dataframes to make dendograms next, add ontolology column and up vs. downregulated column
+```{r}
+# Filter and add columns in one line for each dataframe
+filt.up.BP <- allRes_up_BP %>% 
+  filter(classicFisher.up < 0.05) %>% 
+  mutate(ontology = "BP", direction = "Up")
+
+filt.up.MF <- allRes_up_MF %>% 
+  filter(classicFisher.up < 0.05) %>% 
+  mutate(ontology = "MF", direction = "Up")
+
+filt.down.BP <- allRes_down_BP %>% 
+  filter(classicFisher.down < 0.05) %>% 
+  mutate(ontology = "BP", direction = "Down")
+
+filt.down.MF <- allRes_down_MF %>% 
+  filter(classicFisher.down < 0.05) %>% 
+  mutate(ontology = "MF", direction = "Down")
+
+```
+
+
