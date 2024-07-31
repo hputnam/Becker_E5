@@ -14,54 +14,51 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 # Load libraries
-if (!requireNamespace("DESeq2", quietly = TRUE)) { BiocManager::install("DESeq2") }
+#if (!requireNamespace("DESeq2", quietly = TRUE)) { BiocManager::install("DESeq2") }
 library("DESeq2")
 library("tidyr")
 library("tidyverse")
 library("dplyr")
 library("pheatmap")
+#if ("rrvgo" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("rrvgo")
+library(rrvgo)
 library("RColorBrewer")
 if (!requireNamespace("genefilter", quietly = TRUE)) { BiocManager::install("genefilter") }
 library("genefilter")
 library("ggplot2")
 library("gplots")
-if (!requireNamespace("limma", quietly = TRUE)) { BiocManager::install("limma") }
+#if (!requireNamespace("limma", quietly = TRUE)) { BiocManager::install("limma") }
 library("limma")
 library("spdep") 
 library("patchwork")
 library("adegenet") 
-if (!requireNamespace("goseq", quietly = TRUE)) { BiocManager::install("goseq") }
+#if (!requireNamespace("goseq", quietly = TRUE)) { BiocManager::install("goseq") }
 library("goseq")
 library("gridExtra")
-if (!requireNamespace("clusterProfiler", quietly = TRUE)) { BiocManager::install("clusterProfiler") }
+#if (!requireNamespace("clusterProfiler", quietly = TRUE)) { BiocManager::install("clusterProfiler") }
 library("clusterProfiler")
 library("DataCombine")
 library("VennDiagram")
-if (!requireNamespace("GSEABase", quietly = TRUE)) { BiocManager::install("GSEABase") }
+#if (!requireNamespace("GSEABase", quietly = TRUE)) { BiocManager::install("GSEABase") }
 library("GSEABase")
 library("data.table")
-if ("rrvgo" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("rrvgo")
+#if ("rrvgo" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("rrvgo")
 library("rrvgo")
-if ("org.Ce.eg.db" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("org.Ce.eg.db")
+#if ("org.Ce.eg.db" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("org.Ce.eg.db")
 library(org.Ce.eg.db)
-if ("topGO" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("topGO")
+#if ("topGO" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("topGO")
 library(topGO)
-if ("Rgraphviz" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("Rgraphviz")
+#if ("Rgraphviz" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("Rgraphviz")
 library(Rgraphviz)
+#if ("ggdendro" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("ddgendro")
+library(ggdendro) # For extracting dendrogram data
+
 ```
 
 # Import the data files 
 ```{r, echo=FALSE}
-# Structural annotation GFF3 file
-GFF3 <- read.csv("RAnalysis/Output/rename_structure_gff3.csv")
-
 # Load go terms from functional annotation file
 annot_GO <- read.csv("RAnalysis/Output/annot_GO.terms.host.csv")[-1]
-
-# Check if all gene IDs in GFF3 are in annot_GO
-unmatched_genes <- setdiff(GFF3$gene_id, annot_GO$gene_id)
-# Print the unmatched gene IDs
-print(unmatched_genes)
 
 # Remove rows where 'GO.ID' is 'unknown'
 annot_GO <- subset(annot_GO, GO.ID != 'unknown')
@@ -74,13 +71,8 @@ annot_GO <- annot_GO %>%
 
 ```
 
-# Identifying treatment and all expressed pver genes (poverA = 0.50,10)
+# Load in significant DEGs and gene count data
 ```{r}
-#treatment information
-treatmentinfo <- read.csv("RAnalysis/Data/metadata.RNAseq.csv", header = TRUE, sep = ",")
-str(treatmentinfo)
-head(treatmentinfo)
-
 #DEG results
 DEG.res <- read.csv("RAnalysis/Output/DEGSeq2.sig.results.host.csv")[-1]
 
@@ -114,7 +106,6 @@ Reduce annotation file to only contain genes detected in our dataset.
 filtered_Pverr.annot <- annot_GO[annot_GO$gene_id %in% gcount_filt$gene_id, ]
 dim(filtered_Pverr.annot)
 ```
-
 The annotation file now only contains genes that were detected in our dataset that have annotation information. This is 18158 out of the 27439 genes in our dataset. 
 
 Biological Processes topGO
@@ -180,12 +171,12 @@ fisher.up_BP <- runTest(GOdata.up_BP, algorithm = "classic", statistic = "fisher
 
 # Generate a results table
 allRes_up_BP <- GenTable(GOdata.up_BP, 
-                      classicFisher.up = fisher.up_BP, 
-                      ranksOf = "classicFisher.up", 
+                      classicFisher = fisher.up_BP, 
+                      ranksOf = "classicFisher", 
                       topNodes = length(score(fisher.up_BP)))
 
 # Convert character columns to numeric
-allRes_up_BP$classicFisher.up <- as.numeric(allRes_up_BP$classicFisher.up)
+allRes_up_BP$classicFisher <- as.numeric(allRes_up_BP$classicFisher)
 
 ```
 
@@ -257,12 +248,12 @@ fisher.down_BP <- runTest(GOdata.down_BP, algorithm = "classic", statistic = "fi
 
 # Generate a results table
 allRes_down_BP <- GenTable(GOdata.down_BP, 
-                      classicFisher.down = fisher.down_BP, 
-                      ranksOf = "classicFisher.down", 
+                      classicFisher = fisher.down_BP, 
+                      ranksOf = "classicFisher", 
                       topNodes = length(score(fisher.down_BP)))
 
 # Convert character columns to numeric
-allRes_down_BP$classicFisher.down <- as.numeric(allRes_down_BP$classicFisher.down)
+allRes_down_BP$classicFisher <- as.numeric(allRes_down_BP$classicFisher)
 
 
 ```
@@ -330,12 +321,12 @@ fisher.up_MF <- runTest(GOdata.up_MF, algorithm = "classic", statistic = "fisher
 
 # Generate a results table
 allRes_up_MF <- GenTable(GOdata.up_MF, 
-                      classicFisher.up = fisher.up_MF, 
-                      ranksOf = "classicFisher.up", 
+                      classicFisher = fisher.up_MF, 
+                      ranksOf = "classicFisher", 
                       topNodes = length(score(fisher.up_MF)))
 
 # Convert character columns to numeric
-allRes_up_MF$classicFisher.up <- as.numeric(allRes_up_MF$classicFisher.up)
+allRes_up_MF$classicFisher <- as.numeric(allRes_up_MF$classicFisher)
 
 ```
 
@@ -397,16 +388,12 @@ fisher.down_MF <- runTest(GOdata.down_MF, algorithm = "classic", statistic = "fi
 
 # Generate a results table
 allRes_down_MF <- GenTable(GOdata.down_MF, 
-                      classicFisher.down = fisher.down_MF, 
-                      ranksOf = "classicFisher.down", 
+                      classicFisher = fisher.down_MF, 
+                      ranksOf = "classicFisher", 
                       topNodes = length(score(fisher.down_MF)))
 
 # Convert character columns to numeric
-allRes_down_MF$classicFisher.down <- as.numeric(allRes_down_MF$classicFisher.down)
-
-# only adjust p values if you know your data is independent, multiple testing correction was not applied to the resulting P values as the tests are considered to be nonindependent
-#allRes.up$weight_bh_adjust <- p.adjust(allRes.up$classicFisher.up, method="BH") #add adjusted p-values
-#allRes.up
+allRes_down_MF$classicFisher <- as.numeric(allRes_down_MF$classicFisher)
 
 ```
 
@@ -472,12 +459,12 @@ fisher.up_CC <- runTest(GOdata.up_CC, algorithm = "classic", statistic = "fisher
 
 # Generate a results table
 allRes_up_CC <- GenTable(GOdata.up_CC, 
-                      classicFisher.up = fisher.up_CC, 
-                      ranksOf = "classicFisher.up", 
+                      classicFisher = fisher.up_CC, 
+                      ranksOf = "classicFisher", 
                       topNodes = length(score(fisher.up_CC)))
 
 # Convert character columns to numeric
-allRes_up_CC$classicFisher.up <- as.numeric(allRes_up_CC$classicFisher.up)
+allRes_up_CC$classicFisher <- as.numeric(allRes_up_CC$classicFisher)
 
 ```
 
@@ -541,12 +528,12 @@ fisher.down_CC <- runTest(GOdata.down_CC, algorithm = "classic", statistic = "fi
 
 # Generate a results table
 allRes_down_CC <- GenTable(GOdata.down_CC, 
-                      classicFisher.down = fisher.down_CC, 
-                      ranksOf = "classicFisher.down", 
+                      classicFisher = fisher.down_CC, 
+                      ranksOf = "classicFisher", 
                       topNodes = length(score(fisher.down_CC)))
 
 # Convert character columns to numeric
-allRes_down_CC$classicFisher.down <- as.numeric(allRes_down_CC$classicFisher.down)
+allRes_down_CC$classicFisher <- as.numeric(allRes_down_CC$classicFisher)
 
 ```
 
@@ -571,35 +558,464 @@ Combine all dataframes to make dendograms next, add ontolology column and up vs.
 ```{r}
 # Filter and add columns in one line for each dataframe in BP
 filt.up.BP <- allRes_up_BP %>% 
-  filter(classicFisher.up < 0.05) %>% 
+  filter(classicFisher < 0.05) %>% 
   mutate(ontology = "BP", direction = "Up")
 
 # Filter and add columns in one line for each dataframe in BP
 filt.down.BP <- allRes_down_BP %>% 
-  filter(classicFisher.down < 0.050) %>% 
+  filter(classicFisher < 0.050) %>% 
   mutate(ontology = "BP", direction = "Down")
 
 # Filter and add columns in one line for each dataframe in MMF
 filt.up.MF <- allRes_up_MF %>% 
-  filter(classicFisher.up < 0.050) %>% 
+  filter(classicFisher < 0.050) %>% 
   mutate(ontology = "MF", direction = "Up")
 
 # Filter and add columns in one line for each dataframe in MF
 filt.down.MF <- allRes_down_MF %>% 
-  filter(classicFisher.down < 0.050) %>% 
+  filter(classicFisher < 0.050) %>% 
   mutate(ontology = "MF", direction = "Down")
 
 # Filter and add columns in one line for each dataframe in CC
 filt.up.CC <- allRes_up_CC %>% 
-  filter(classicFisher.up < 0.050) %>% 
+  filter(classicFisher < 0.050) %>% 
   mutate(ontology = "CC", direction = "Up")
 
 # Filter and add columns in one line for each dataframe in CC
 filt.down.CC <- allRes_down_CC %>% 
-  filter(classicFisher.down < 0.050) %>% 
+  filter(classicFisher < 0.050) %>% 
   mutate(ontology = "CC", direction = "Down")
+
+#Save dataframe with all GO enrichment
+GO.enrich.all <- rbind(filt.up.BP, filt.down.BP, filt.up.MF, filt.down.MF, filt.up.CC, filt.down.CC)
+
+# Rename annotated column to numInCat and significant as numDEI 
+GO.enrich.all <- GO.enrich.all %>%
+  rename(numInCat = Annotated,  # Rename 'annotated' to 'numInCat'
+         numDEI = Significant,
+         num.expected.percent = Expected)  # Rename 'significant' to 'numDEI'
+  
+# write csv
+write.csv(GO.enrich.all, "RAnalysis/Output/DEG_GO_enrichment_terms_all.csv")
+```
+
+Upload all go enrichment data and separate by up and downregulated genes
+```{r}
+# Load in entire go terms dataframe here so that we don't need to run entire script above everytime
+GO.enrich.all <- read.csv("RAnalysis/Output/DEG_GO_enrichment_terms_all.csv")[-1]
+
+# Seperate upregulated and downregulated data from go enrichment
+# Filter for "Up" direction
+GO_up <- GO.enrich.all %>%
+  filter(direction == "Up")
+
+# Filter for "Down" direction 
+GO_down <- GO.enrich.all %>%
+  filter(direction == "Down")
+
+```
+
+Run a loop to filter enrichment for up and downregulated using rrvgo for BP.
+```{r}
+# Initialize an empty dataframe to store results
+direction_go_results_BP <- data.frame()
+
+# Make a list for direction
+direction_list <- c("Up", "Down")
+
+for (direction_id in direction_list) {
+ 
+   # Filter for the current direction
+  go_results <- GO.enrich.all %>%
+    filter(direction == direction_id) %>%
+    filter(ontology == "BP") %>%
+    filter(!is.na(classicFisher)) %>%
+    arrange(classicFisher)
+
+  # Print the current direction and number of unique GO IDs
+  print(direction_id)
+  print(length(unique(go_results$GO.ID)))
+
+  # Reduce/collapse GO term set with the rrvgo package
+  simMatrix <- calculateSimMatrix(go_results$GO.ID,
+                                  orgdb = "org.Ce.eg.db", # c. elegans database
+                                  ont = "BP",
+                                  method = "Rel")
+
+  # Calculate similarity scores
+  scores <- setNames(-log10(go_results$classicFisher), go_results$GO.ID)
+  reducedTerms <- reduceSimMatrix(simMatrix,
+                                  scores,
+                                  threshold = 0.7,
+                                  orgdb = "org.Ce.eg.db")
+
+  # Keep only the GO terms from the reduced list
+  go_results <- go_results %>%
+    filter(GO.ID %in% reducedTerms$go)
+
+  # Add parent terms to the list of GO terms
+  go_results$ParentTerm <- reducedTerms$parentTerm[match(go_results$GO.ID, reducedTerms$go)]
+
+  # Add direction to the results
+  go_results$direction <- direction_id
+
+  # Print the number of unique GO IDs after reduction
+  print(length(unique(go_results$GO.ID)))
+
+  # Append results to the dataframe
+  direction_go_results_BP <- rbind(direction_go_results_BP, go_results)
+}
+
+write.csv(direction_go_results_BP, "RAnalysis/Output/DEG_go_results_BP.csv")
 
 
 ```
 
+Make dendrogram and dot plot for BP using semantic similarity
+
+```{r}
+# Load in BP direction dataframe so you dont need to re run everything above
+direction_go_results_BP <- read.csv("RAnalysis/Output/DEG_go_results_BP.csv")[-1]
+
+# Filter terms less informative to coral studies
+# List of terms to filter out
+terms_to_remove <- c("dendritic spine organization", 
+                      "behavioral response to nicotine", 
+                      "molting cycle, collagen and cuticulin-based cuticle", "circadian rhythm", "GABAergic neuron differentiation")
+
+# Filter the dataset based on numDEI cut off of at least two sig terms and terms to remove
+filtered_direction_go_results_BP <- direction_go_results_BP %>%
+  filter(!ParentTerm %in% terms_to_remove, numDEI >= 2)
+
+# Combine similarity matrices for both directions
+combined_simMatrix_BP <- calculateSimMatrix(filtered_direction_go_results_BP$GO.ID,
+                                         orgdb = "org.Ce.eg.db",
+                                         ont = "BP",
+                                         method = "Rel")
+
+# Convert similarity matrix to distance matrix
+distMatrix_BP <- as.dist(1 - combined_simMatrix_BP)
+
+# Create dendrogram
+dendrogram_BP <- as.dendrogram(hclust(distMatrix_BP))
+
+# Get dendrogram data
+dendro_data_BP <- dendro_data(dendrogram_BP)
+
+#Prepare data for plotting by grouping by GO.ID, direction, ParentTerm, and Term
+plot_data_BP <- direction_go_results_BP %>%
+  group_by(GO.ID, direction, ParentTerm, Term) %>%
+  summarise(numInCat = sum(numInCat)) %>%
+  ungroup()
+
+# Add Term labels to dendrogram data
+dendro_data_BP$labels <- dendro_data_BP$labels %>%
+  left_join(direction_go_results_BP %>% dplyr::select(GO.ID, Term) %>% distinct(), by = c("label" = "GO.ID")) %>%
+  mutate(label = Term)
+
+# Create dendrogram plot 
+dendo.BP.plot <- ggplot() +
+  # Add dendrogram
+  geom_segment(data = dendro_data_BP$segments,
+               aes(x = x, y = y, xend = xend, yend = yend)) +
+  # Add labels for GO terms
+  geom_text(data = dendro_data_BP$labels,
+            aes(x = x, y = y, label = label, hjust = 1),
+            size = 3, nudge_y = -0.01) +
+  # Add labels for ParentTerms higher up
+#  geom_text(data = dendro_data_BP$labels,
+#            aes(x = x, y = y + 1, label = ParentTerm, hjust = 1),
+#            size = 3, nudge_y = 0.03, color = "blue") +
+  # Add dots
+  geom_point(data = plot_data_BP,
+             aes(x = match(Term, dendro_data_BP$labels$label),
+                 y = -0.5,
+                 size = numInCat,
+                 color = direction)) +
+  # Customize the plot
+  scale_size_continuous(range = c(1, 10)) +
+  scale_color_manual(values = c("Up" = "red", "Down" = "blue"),
+                     labels = c("Up" = "Upregulation", "Down" = "Downregulation"),
+                     guide = guide_legend(override.aes = list(size = 3))) + # Adjust legend point size here
+  coord_flip() +
+  ylim(-0.5, NA) +  # Extend the x-axis (effectively the y-axis) to -0.5
+  theme_minimal() +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid = element_blank()) +
+  labs(x = NULL, y = NULL, size = "Number of Genes", color = "Gene Expression Direction");dendo.BP.plot
+
+# Save the updated plot
+ggsave("RAnalysis/Output/dendrogram_plot_BP.png", 
+       plot = dendo.BP.plot, 
+       width = 20,  
+       height = 12, 
+       units = "in", 
+       dpi = 300)
+
+```
+
+
+Run a loop to filter enrichment for up and downregulated using rrvgo for MF.
+```{r}
+# Initialize an empty dataframe to store results
+direction_go_results_MF <- data.frame()
+
+# Make a list for direction
+direction_list <- c("Up", "Down")
+
+for (direction_id in direction_list) {
+ 
+   # Filter for the current direction
+  go_results <- GO.enrich.all %>%
+    filter(direction == direction_id) %>%
+    filter(ontology == "MF") %>%
+    filter(!is.na(classicFisher)) %>%
+    arrange(classicFisher)
+
+  # Print the current direction and number of unique GO IDs
+  print(direction_id)
+  print(length(unique(go_results$GO.ID)))
+
+  # Reduce/collapse GO term set with the rrvgo package
+  simMatrix <- calculateSimMatrix(go_results$GO.ID,
+                                  orgdb = "org.Ce.eg.db", # c. elegans database
+                                  ont = "MF",
+                                  method = "Rel")
+
+  # Calculate similarity scores
+  scores <- setNames(-log10(go_results$classicFisher), go_results$GO.ID)
+  reducedTerms <- reduceSimMatrix(simMatrix,
+                                  scores,
+                                  threshold = 0.7,
+                                  orgdb = "org.Ce.eg.db")
+
+  # Keep only the GO terms from the reduced list
+  go_results <- go_results %>%
+    filter(GO.ID %in% reducedTerms$go)
+
+  # Add parent terms to the list of GO terms
+  go_results$ParentTerm <- reducedTerms$parentTerm[match(go_results$GO.ID, reducedTerms$go)]
+
+  # Add direction to the results
+  go_results$direction <- direction_id
+
+  # Print the number of unique GO IDs after reduction
+  print(length(unique(go_results$GO.ID)))
+
+  # Append results to the dataframe
+  direction_go_results_MF <- rbind(direction_go_results_MF, go_results)
+}
+
+write.csv(direction_go_results_MF, "RAnalysis/Output/DEG_go_results_MF.csv")
+
+```
+
+
+Make dendrogram and dot plot for MF using semantic similarity
+
+```{r}
+# Load in MF direction dataframe so you dont need to re run everything above
+direction_go_results_MF <- read.csv("RAnalysis/Output/DEG_go_results_MF.csv")[-1]
+
+# Filter the dataset based on numDEI cut off of at least two sig terms 
+filtered_direction_go_results_MF <- direction_go_results_MF %>%
+  filter(!numDEI >= 2)
+
+# Combine similarity matrices for both directions
+combined_simMatrix_MF <- calculateSimMatrix(direction_go_results_MF$GO.ID,
+                                         orgdb = "org.Ce.eg.db",
+                                         ont = "MF",
+                                         method = "Rel")
+
+# Convert similarity matrix to distance matrix
+distMatrix_MF <- as.dist(1 - combined_simMatrix_MF)
+
+# Create dendrogram
+dendrogram_MF <- as.dendrogram(hclust(distMatrix_MF))
+
+# Get dendrogram data
+dendro_data_MF <- dendro_data(dendrogram_MF)
+
+#Prepare data for plotting by grouping by GO.ID, direction, ParentTerm, and Term
+plot_data_MF <- direction_go_results_MF %>%
+  group_by(GO.ID, direction, ParentTerm, Term) %>%
+  summarise(numInCat = sum(numInCat)) %>%
+  ungroup()
+
+# Add Term labels to dendrogram data
+dendro_data_MF$labels <- dendro_data_MF$labels %>%
+  left_join(direction_go_results_MF %>% dplyr::select(GO.ID, Term) %>% distinct(), by = c("label" = "GO.ID")) %>%
+  mutate(label = Term)
+
+# Create the dendrogram plot with numInCat overlay plot
+dendo.MF.plot <- ggplot() +
+  # Add dendrogram
+  geom_segment(data = dendro_data_MF$segments,
+               aes(x = x, y = y, xend = xend, yend = yend)) +
+  # Add labels for GO terms
+  geom_text(data = dendro_data_MF$labels,
+            aes(x = x, y = y, label = label, hjust = 1),
+            size = 3, nudge_y = -0.01) +
+  # Add labels for ParentTerms higher up
+#  geom_text(data = dendro_data_MF$labels,
+#            aes(x = x, y = y + 1, label = ParentTerm, hjust = 1),
+#            size = 3, nudge_y = 0.03, color = "blue") +
+  # Add dots
+  geom_point(data = plot_data_MF,
+             aes(x = match(Term, dendro_data_MF$labels$label),
+                 y = -0.5,
+                 size = numInCat,
+                 color = direction)) +
+  # Customize the plot
+  scale_size_continuous(range = c(1, 10)) +
+  scale_color_manual(values = c("Up" = "red", "Down" = "blue"),
+                     labels = c("Up" = "Upregulation", "Down" = "Downregulation"),
+                     guide = guide_legend(override.aes = list(size = 3))) + # Adjust legend point size here
+  coord_flip() +
+  ylim(-0.5, NA) +  # Extend the x-axis (effectively the y-axis) to -0.5
+  theme_minimal() +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid = element_blank()) +
+  labs(x = NULL, y = NULL, size = "Number of Genes", color = "Gene Expression Direction");dendo.MF.plot
+
+# Save the updated plot
+ggsave("RAnalysis/Output/dendrogram_plot_MF.png", 
+       plot = dendo.BP.plot, 
+       width = 20,  
+       height = 12, 
+       units = "in", 
+       dpi = 300)
+
+```
+
+
+
+Run a loop to filter enrichment for up and downregulated using rrvgo for CC.
+```{r}
+# Initialize an empty dataframe to store results
+direction_go_results_CC <- data.frame()
+
+# Make a list for direction
+direction_list <- c("Up", "Down")
+
+for (direction_id in direction_list) {
+ 
+   # Filter for the current direction
+  go_results <- GO.enrich.all %>%
+    filter(direction == direction_id) %>%
+    filter(ontology == "CC") %>%
+    filter(!is.na(classicFisher)) %>%
+    arrange(classicFisher)
+
+  # Print the current direction and number of unique GO IDs
+  print(direction_id)
+  print(length(unique(go_results$GO.ID)))
+
+  # Reduce/collapse GO term set with the rrvgo package
+  simMatrix <- calculateSimMatrix(go_results$GO.ID,
+                                  orgdb = "org.Ce.eg.db", # c. elegans database
+                                  ont = "CC",
+                                  method = "Rel")
+
+  # Calculate similarity scores
+  scores <- setNames(-log10(go_results$classicFisher), go_results$GO.ID)
+  reducedTerms <- reduceSimMatrix(simMatrix,
+                                  scores,
+                                  threshold = 0.7,
+                                  orgdb = "org.Ce.eg.db")
+
+  # Keep only the GO terms from the reduced list
+  go_results <- go_results %>%
+    filter(GO.ID %in% reducedTerms$go)
+
+  # Add parent terms to the list of GO terms
+  go_results$ParentTerm <- reducedTerms$parentTerm[match(go_results$GO.ID, reducedTerms$go)]
+
+  # Add direction to the results
+  go_results$direction <- direction_id
+
+  # Print the number of unique GO IDs after reduction
+  print(length(unique(go_results$GO.ID)))
+
+  # Append results to the dataframe
+  direction_go_results_CC <- rbind(direction_go_results_CC, go_results)
+  
+}
+
+```
+
+Make dendrogram and dot plot for CC using semantic similarity
+
+```{r}
+# Load in CC direction dataframe so you dont need to re run everything above
+direction_go_results_CC <- read.csv("RAnalysis/Output/DEG_go_results_CC.csv")[-1]
+
+# Filter the dataset based on numDEI cut off of at least two sig terms 
+filtered_direction_go_results_CC <- direction_go_results_CC %>%
+  filter(!numDEI >= 2)
+
+# Combine similarity matrices for both directions
+combined_simMatrix_CC <- calculateSimMatrix(direction_go_results_CC$GO.ID,
+                                         orgdb = "org.Ce.eg.db",
+                                         ont = "CC",
+                                         method = "Rel")
+
+# Convert similarity matrix to distance matrix
+distMatrix_CC <- as.dist(1 - combined_simMatrix_CC)
+
+# Create dendrogram
+dendrogram_CC <- as.dendrogram(hclust(distMatrix_CC))
+
+# Get dendrogram data
+dendro_data_CC <- dendro_data(dendrogram_CC)
+
+#Prepare data for plotting by grouping by GO.ID, direction, ParentTerm, and Term
+plot_data_CC <- direction_go_results_CC %>%
+  group_by(GO.ID, direction, ParentTerm, Term) %>%
+  summarise(numInCat = sum(numInCat)) %>%
+  ungroup()
+
+# Add Term labels to dendrogram data
+dendro_data_CC$labels <- dendro_data_CC$labels %>%
+  left_join(direction_go_results_CC %>% dplyr::select(GO.ID, Term) %>% distinct(), by = c("label" = "GO.ID")) %>%
+  mutate(label = Term)
+
+# Create the dendrogram plot with numInCat overlay plot
+dendo.CC.plot <- ggplot() +
+  # Add dendrogram
+  geom_segment(data = dendro_data_CC$segments,
+               aes(x = x, y = y, xend = xend, yend = yend)) +
+  # Add labels for GO terms
+  geom_text(data = dendro_data_CC$labels,
+            aes(x = x, y = y, label = label, hjust = 1),
+            size = 3, nudge_y = -0.01) +
+  # Add labels for ParentTerms higher up
+#  geom_text(data = dendro_data_CC$labels,
+#            aes(x = x, y = y + 1, label = ParentTerm, hjust = 1),
+#            size = 3, nudge_y = 0.03, color = "blue") +
+  # Add dots
+  geom_point(data = plot_data_CC,
+             aes(x = match(Term, dendro_data_CC$labels$label),
+                 y = -0.5,
+                 size = numInCat,
+                 color = direction)) +
+  # Customize the plot
+  scale_size_continuous(range = c(1, 10)) +
+  scale_color_manual(values = c("Up" = "red", "Down" = "blue"),
+                     labels = c("Up" = "Upregulation", "Down" = "Downregulation"),
+                     guide = guide_legend(override.aes = list(size = 3))) + # Adjust legend point size here
+  coord_flip() +
+  ylim(-0.5, NA) +  # Extend the x-axis (effectively the y-axis) to -0.5
+  theme_minimal() +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid = element_blank()) +
+  labs(x = NULL, y = NULL, size = "Number of Genes", color = "Gene Expression Direction");dendo.CC.plot
+
+# Save the plot with adjusted dimensions
+ggsave("RAnalysis/Output/dendrogram_plot_CC.png", plot = dendo.CC.plot, width = 11, height = 8, units = "in")
+
+```
 

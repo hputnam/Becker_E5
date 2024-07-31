@@ -1,4 +1,4 @@
-"","GO.ID","Term","Annotated","Significant","Expected","classicFisher","ontology","direction"
+"","GO.ID","Term","numInCat","numDEI","num.expected.percent","classicFisher","ontology","direction"
 "1","GO:0035095","behavioral response to nicotine",20,4,0.18,2.6e-05,"BP","Up"
 "2","GO:0051259","protein complex oligomerization",234,10,2.08,4.6e-05,"BP","Up"
 "3","GO:0051260","protein homooligomerization",180,8,1.6,0.00021,"BP","Up"
