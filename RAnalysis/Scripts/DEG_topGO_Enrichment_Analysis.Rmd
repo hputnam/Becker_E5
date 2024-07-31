@@ -703,56 +703,67 @@ dendrogram_BP <- as.dendrogram(hclust(distMatrix_BP))
 dendro_data_BP <- dendro_data(dendrogram_BP)
 
 #Prepare data for plotting by grouping by GO.ID, direction, ParentTerm, and Term
-plot_data_BP <- direction_go_results_BP %>%
+plot_data_BP <- filtered_direction_go_results_BP %>%
   group_by(GO.ID, direction, ParentTerm, Term) %>%
-  summarise(numInCat = sum(numInCat)) %>%
-  ungroup()
+  summarise(numInCat = sum(numInCat), numDEI = sum(numDEI)) %>%
+  ungroup() %>%
+  mutate(percentDEGs = (numDEI / numInCat) * 100)
 
 # Add Term labels to dendrogram data
 dendro_data_BP$labels <- dendro_data_BP$labels %>%
-  left_join(direction_go_results_BP %>% dplyr::select(GO.ID, Term) %>% distinct(), by = c("label" = "GO.ID")) %>%
+  left_join(filtered_direction_go_results_BP %>% dplyr::select(GO.ID, Term, direction) %>% distinct(), by = c("label" = "GO.ID")) %>%
   mutate(label = Term)
 
-# Create dendrogram plot 
+# Create the dendrogram plot
 dendo.BP.plot <- ggplot() +
-  # Add dendrogram
+  # Add dendrogram segments
   geom_segment(data = dendro_data_BP$segments,
                aes(x = x, y = y, xend = xend, yend = yend)) +
-  # Add labels for GO terms
+  
+  # Add labels for GO terms with colors based on direction
   geom_text(data = dendro_data_BP$labels,
-            aes(x = x, y = y, label = label, hjust = 1),
-            size = 6, nudge_y = -0.01) +
-  # Add labels for ParentTerms higher up
-#  geom_text(data = dendro_data_BP$labels,
-#            aes(x = x, y = y + 1, label = ParentTerm, hjust = 1),
-#            size = 3, nudge_y = 0.03, color = "blue") +
-  # Add dots
+            aes(x = x, y = y, label = label, hjust = 1, color = direction),
+            size = 8, nudge_y = -0.01) +
+  
+  # Add dots representing terms
   geom_point(data = plot_data_BP,
              aes(x = match(Term, dendro_data_BP$labels$label),
-                 y = -1.4,
+                 y = -2.2,
                  size = numInCat,
-                 color = direction)) +
+                 fill = percentDEGs),  # Use fill for color gradient
+             shape = 21) +  # Use a filled shape
+  
   # Customize the plot
-  #scale_size_continuous(range = c(1, 10)) +
+  scale_size_continuous(range = c(1, 10)) +
   scale_color_manual(values = c("Up" = "red", "Down" = "blue"),
                      labels = c("Up" = "Upregulation", "Down" = "Downregulation"),
-                     guide = guide_legend(override.aes = list(size = 3))) + # Adjust legend point size here
+                     name = "Gene Expression Direction",  # Change legend title here
+                     guide = guide_legend(override.aes = list(size = 8))) +
+  scale_fill_gradient(low = "coral", high = "purple3", 
+                      name = "% DEGs", 
+                      limits = c(0, 6),  # Set limits based on your data range
+                      breaks = seq(0, 6, by = 3)) +  # Set custom breaks
   coord_flip() +
-  ylim(-1.4, NA) +  # Extend the x-axis (effectively the y-axis) to -0.5
+  ylim(-2.2, NA) +  # Extend the x-axis (effectively the y-axis) to -1.4
+  
+  # Apply minimal theme and customize legend and axis
   theme_minimal() +
-  theme(axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-    panel.grid = element_blank(),
-    legend.text = element_text(size = 18),  # Increased legend text size
-    legend.title = element_text(size = 20)  # Increased legend title size
-  ) +
-  labs(x = NULL, y = NULL, size = "Number of Genes", color = "Gene Expression Direction");dendo.BP.plot
+  theme(axis.ticks.y = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_blank(),
+        panel.grid = element_blank(),
+        legend.text = element_text(size = 22),  # Increase legend text size
+        legend.title = element_text(size = 24, face = "bold"),
+        axis.title.x = element_text(size = 30, face = "bold")) + # Increase legend title size
+  # Add labels for axes and legends
+  labs(x = NULL, y = "Biological Processes", size = "Number of Genes", fill = "Percent DEGs");dendo.BP.plot
 
 # Save the updated plot
-ggsave("RAnalysis/Output/dendrogram_plot_BP.png", 
+ggsave("RAnalysis/Output/DEG_dendrogram_plot_BP.png", 
        plot = dendo.BP.plot, 
-       width = 13,  
-       height = 11, 
+       width = 15,  
+       height = 14, 
        units = "in", 
        dpi = 300)
 
@@ -842,58 +853,70 @@ dendrogram_MF <- as.dendrogram(hclust(distMatrix_MF))
 dendro_data_MF <- dendro_data(dendrogram_MF)
 
 #Prepare data for plotting by grouping by GO.ID, direction, ParentTerm, and Term
-plot_data_MF <- direction_go_results_MF %>%
+plot_data_MF <- filtered_direction_go_results_MF %>%
   group_by(GO.ID, direction, ParentTerm, Term) %>%
-  summarise(numInCat = sum(numInCat)) %>%
-  ungroup()
+  summarise(numInCat = sum(numInCat), numDEI = sum(numDEI)) %>%
+  ungroup() %>%
+  mutate(percentDEGs = (numDEI / numInCat) * 100)
 
 # Add Term labels to dendrogram data
 dendro_data_MF$labels <- dendro_data_MF$labels %>%
-  left_join(direction_go_results_MF %>% dplyr::select(GO.ID, Term) %>% distinct(), by = c("label" = "GO.ID")) %>%
+  left_join(direction_go_results_MF %>% dplyr::select(GO.ID, Term, direction) %>% distinct(), by = c("label" = "GO.ID")) %>%
   mutate(label = Term)
 
-# Create the dendrogram plot with numInCat overlay plot
+# Create the dendrogram plot
 dendo.MF.plot <- ggplot() +
-  # Add dendrogram
+  # Add dendrogram segments
   geom_segment(data = dendro_data_MF$segments,
                aes(x = x, y = y, xend = xend, yend = yend)) +
-  # Add labels for GO terms
+  
+  # Add labels for GO terms with colors based on direction
   geom_text(data = dendro_data_MF$labels,
-            aes(x = x, y = y, label = label, hjust = 1),
+            aes(x = x, y = y, label = label, hjust = 1, color = direction),
             size = 8, nudge_y = -0.01) +
-  # Add labels for ParentTerms higher up
-#  geom_text(data = dendro_data_MF$labels,
-#            aes(x = x, y = y + 1, label = ParentTerm, hjust = 1),
-#            size = 3, nudge_y = 0.03, color = "blue") +
-  # Add dots
+  
+  # Add dots representing terms
   geom_point(data = plot_data_MF,
              aes(x = match(Term, dendro_data_MF$labels$label),
-                 y = -1.1,
+                 y = -2.4,
                  size = numInCat,
-                 color = direction)) +
+                 fill = percentDEGs),  # Use fill for color gradient
+             shape = 21) +  # Use a filled shape
+  
   # Customize the plot
   scale_size_continuous(range = c(1, 10)) +
   scale_color_manual(values = c("Up" = "red", "Down" = "blue"),
                      labels = c("Up" = "Upregulation", "Down" = "Downregulation"),
-                     guide = guide_legend(override.aes = list(size = 3))) + # Adjust legend point size here
+                     name = "Gene Expression Direction",  # Change legend title here
+                     guide = guide_legend(override.aes = list(size = 8))) +
+  scale_fill_gradient(low = "coral", high = "purple3", 
+                      name = "% DEGs", 
+                      limits = c(0, 15),  # Set limits based on your data range
+                      breaks = seq(0, 15, by = 5)) +  # Set custom breaks
   coord_flip() +
-  ylim(-1.1, NA) +  # Extend the x-axis (effectively the y-axis) to -0.5
+  ylim(-2.4, NA) +  # Extend the x-axis (effectively the y-axis) to -1.4
+  
+  # Apply minimal theme and customize legend and axis
   theme_minimal() +
-  theme(axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-    panel.grid = element_blank(),
-    legend.text = element_text(size = 18),  # Increased legend text size
-    legend.title = element_text(size = 20)  # Increased legend title size
-  ) +
-  labs(x = NULL, y = NULL, size = "Number of Genes", color = "Gene Expression Direction");dendo.MF.plot
+  theme(axis.ticks.y = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_blank(),
+        panel.grid = element_blank(),
+        legend.text = element_text(size = 22),  # Increase legend text size
+        legend.title = element_text(size = 24, face = "bold"),
+        axis.title.x = element_text(size = 30, face = "bold")) + # Increase legend title size
+  # Add labels for axes and legends
+  labs(x = NULL, y = "Molecular Functions", size = "Number of Genes", fill = "Percent DEGs");dendo.MF.plot
 
 # Save the updated plot
-ggsave("RAnalysis/Output/dendrogram_plot_MF.png", 
+ggsave("RAnalysis/Output/DEG_DEG_DEG_dendrogram_plot_MF.png", 
        plot = dendo.MF.plot, 
-       width = 18,  
-       height = 15, 
+       width = 15,  
+       height = 14, 
        units = "in", 
        dpi = 300)
+
 
 ```
 
@@ -1022,7 +1045,7 @@ dendo.CC.plot <- ggplot() +
   labs(x = NULL, y = NULL, size = "Number of Genes", color = "Gene Expression Direction");dendo.CC.plot
 
 # Save the plot with adjusted dimensions
-ggsave("RAnalysis/Output/dendrogram_plot_CC.png", plot = dendo.CC.plot, width = 11, height = 8, units = "in")
+ggsave("RAnalysis/Output/DEG_DEG_DEG_dendrogram_plot_CC.png", plot = dendo.CC.plot, width = 11, height = 8, units = "in")
 
 ```
 
