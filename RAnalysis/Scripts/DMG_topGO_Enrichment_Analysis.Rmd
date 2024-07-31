@@ -999,6 +999,13 @@ Make dendrogram and dot plot for MF using semantic similarity
 # Load in MF methy_stat dataframe so you dont need to re run everything above
 methy_stat_go_results_MF <- read.csv("RAnalysis/Output/DMG_go_results_MF.csv")[-1]
 
+# There are duplicate GO.IDs in the data set for hypo and hyper methylation which is okay from literature, however rrvgo can only handle unique GO.IDs, filtering for more significant term to be used for the simatrix
+# Select the more significant term for each GO.ID
+filtered_methy_stat_go_results_MF <- methy_stat_go_results_MF %>%
+  group_by(GO.ID) %>%
+  filter(classicFisher == min(classicFisher)) %>%
+  ungroup()
+
 # calculated the sim matrix for go terms
 combined_simMatrix_MF <- calculateSimMatrix(filtered_methy_stat_go_results_MF$GO.ID,
                                             orgdb = "org.Ce.eg.db",
