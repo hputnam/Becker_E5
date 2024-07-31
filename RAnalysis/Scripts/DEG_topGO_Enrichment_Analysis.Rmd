@@ -910,7 +910,7 @@ dendo.MF.plot <- ggplot() +
   labs(x = NULL, y = "Molecular Functions", size = "Number of Genes", fill = "Percent DEGs");dendo.MF.plot
 
 # Save the updated plot
-ggsave("RAnalysis/Output/DEG_DEG_DEG_dendrogram_plot_MF.png", 
+ggsave("RAnalysis/Output/DEG_dendrogram_plot_MF.png", 
        plot = dendo.MF.plot, 
        width = 15,  
        height = 14, 
@@ -1045,7 +1045,7 @@ dendo.CC.plot <- ggplot() +
   labs(x = NULL, y = NULL, size = "Number of Genes", color = "Gene Expression Direction");dendo.CC.plot
 
 # Save the plot with adjusted dimensions
-ggsave("RAnalysis/Output/DEG_DEG_DEG_dendrogram_plot_CC.png", plot = dendo.CC.plot, width = 11, height = 8, units = "in")
+ggsave("RAnalysis/Output/DEG_dendrogram_plot_CC.png", plot = dendo.CC.plot, width = 11, height = 8, units = "in")
 
 ```
 

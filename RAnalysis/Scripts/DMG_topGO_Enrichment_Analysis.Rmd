@@ -852,7 +852,7 @@ filtered_methy_stat_go_results_BP <- methy_stat_go_results_BP %>%
   ungroup()
 
 # calculated the sim matrix for go terms
-combined_simMatrix_BP <- calculateSimMatrix(filtered_methy_stat_go_results_BP,
+combined_simMatrix_BP <- calculateSimMatrix(filtered_methy_stat_go_results_BP$GO.ID,
                                             orgdb = "org.Ce.eg.db",
                                             ont = "BP",
                                             method = "Rel")
@@ -892,7 +892,7 @@ dendo.BP.plot <- ggplot() +
   # Add dots representing terms
   geom_point(data = plot_data_BP,
              aes(x = match(Term, dendro_data_BP$labels$label),
-                 y = -2.2,
+                 y = -3,
                  size = numInCat,
                  fill = percentDMGs),  # Use fill for color gradient
              shape = 21) +  # Use a filled shape
@@ -908,7 +908,7 @@ dendo.BP.plot <- ggplot() +
                       limits = c(0, 43),  # Set limits based on your data range
                       breaks = seq(0, 43, by = 10)) +  # Set custom breaks
   coord_flip() +
-  ylim(-2.2, NA) +  # Extend the x-axis (effectively the y-axis) to -1.4
+  ylim(-3, NA) +  # Extend the x-axis (effectively the y-axis) to -1.4
   
   # Apply minimal theme and customize legend and axis
   theme_minimal() +
@@ -926,7 +926,7 @@ dendo.BP.plot <- ggplot() +
 # Save the updated plot
 ggsave("RAnalysis/Output/DMG_dendrogram_plot_BP.png", 
        plot = dendo.BP.plot, 
-       width = 11,  
+       width = 13,  
        height = 8, 
        units = "in", 
        dpi = 300)
@@ -942,13 +942,13 @@ Run a loop to filter enrichment for up and downregulated using rrvgo for MF.
 methy_stat_go_results_MF <- data.frame()
 
 # Make a list for methy_stat
-methy_stat_list <- c("Up", "Down")
+methy_stat_list <- c("hypermethylated", "hypomethylated")
 
 for (methy_stat_id in methy_stat_list) {
  
    # Filter for the current methy_stat
   go_results <- GO.enrich.all %>%
-    filter(methylation_status == methylation_status) %>%
+    filter(methylation_status == methy_stat_id) %>%
     filter(ontology == "MF") %>%
     filter(!is.na(classicFisher)) %>%
     arrange(classicFisher)
@@ -978,7 +978,7 @@ for (methy_stat_id in methy_stat_list) {
   go_results$ParentTerm <- reducedTerms$parentTerm[match(go_results$GO.ID, reducedTerms$go)]
 
   # Add methy_stat to the results
-  go_results$methy_stat <- methy_stat_id
+  go_results$methylation_status <- methy_stat_id
 
   # Print the number of unique GO IDs after reduction
   print(length(unique(go_results$GO.ID)))
@@ -989,6 +989,7 @@ for (methy_stat_id in methy_stat_list) {
 
 write.csv(methy_stat_go_results_MF, "RAnalysis/Output/DMG_go_results_MF.csv")
 
+
 ```
 
 
@@ -998,15 +999,12 @@ Make dendrogram and dot plot for MF using semantic similarity
 # Load in MF methy_stat dataframe so you dont need to re run everything above
 methy_stat_go_results_MF <- read.csv("RAnalysis/Output/DMG_go_results_MF.csv")[-1]
 
-# Filter the dataset based on numDEI cut off of at least two sig terms 
-filtered_methy_stat_go_results_MF <- methy_stat_go_results_MF %>%
-  filter(numDEI >= 4)
-
-# Combine similarity matrices for both methy_stats
+# calculated the sim matrix for go terms
 combined_simMatrix_MF <- calculateSimMatrix(filtered_methy_stat_go_results_MF$GO.ID,
-                                         orgdb = "org.Ce.eg.db",
-                                         ont = "MF",
-                                         method = "Rel")
+                                            orgdb = "org.Ce.eg.db",
+                                            ont = "MF",
+                                            method = "Rel")
+
 
 # Convert similarity matrix to distance matrix
 distMatrix_MF <- as.dist(1 - combined_simMatrix_MF)
@@ -1017,57 +1015,67 @@ dendrogram_MF <- as.dendrogram(hclust(distMatrix_MF))
 # Get dendrogram data
 dendro_data_MF <- dendro_data(dendrogram_MF)
 
-#Prepare data for plotting by grouping by GO.ID, methy_stat, ParentTerm, and Term
-plot_data_MF <- methy_stat_go_results_MF %>%
-  group_by(GO.ID, methy_stat, ParentTerm, Term) %>%
-  summarise(numInCat = sum(numInCat)) %>%
-  ungroup()
+#Prepare data for plotting by grouping by GO.ID, direction, ParentTerm, and Term
+plot_data_MF <- filtered_methy_stat_go_results_MF %>%
+  group_by(GO.ID, methylation_status, ParentTerm, Term) %>%
+  summarise(numInCat = sum(numInCat), numDEI = sum(numDEI)) %>%
+  ungroup() %>%
+  mutate(percentDMGs = (numDEI / numInCat) * 100)
 
 # Add Term labels to dendrogram data
 dendro_data_MF$labels <- dendro_data_MF$labels %>%
-  left_join(methy_stat_go_results_MF %>% dplyr::select(GO.ID, Term) %>% distinct(), by = c("label" = "GO.ID")) %>%
-  mutate(label = Term)
+  left_join(filtered_methy_stat_go_results_MF %>% dplyr::select(GO.ID, Term, methylation_status) %>% distinct(), by = c("label" = "GO.ID")) %>% mutate(label = Term)
 
-# Create the dendrogram plot with numInCat overlay plot
+# Create the dendrogram plot
 dendo.MF.plot <- ggplot() +
-  # Add dendrogram
+  # Add dendrogram segments
   geom_segment(data = dendro_data_MF$segments,
                aes(x = x, y = y, xend = xend, yend = yend)) +
-  # Add labels for GO terms
+  
+  # Add labels for GO terms with colors based on direction
   geom_text(data = dendro_data_MF$labels,
-            aes(x = x, y = y, label = label, hjust = 1),
+            aes(x = x, y = y, label = label, hjust = 1, color = methylation_status),
             size = 8, nudge_y = -0.01) +
-  # Add labels for ParentTerms higher up
-#  geom_text(data = dendro_data_MF$labels,
-#            aes(x = x, y = y + 1, label = ParentTerm, hjust = 1),
-#            size = 3, nudge_y = 0.03, color = "blue") +
-  # Add dots
+  
+  # Add dots representing terms
   geom_point(data = plot_data_MF,
              aes(x = match(Term, dendro_data_MF$labels$label),
-                 y = -1.1,
+                 y = -3,
                  size = numInCat,
-                 color = methy_stat)) +
+                 fill = percentDMGs),  # Use fill for color gradient
+             shape = 21) +  # Use a filled shape
+  
   # Customize the plot
   scale_size_continuous(range = c(1, 10)) +
-  scale_color_manual(values = c("Up" = "red", "Down" = "blue"),
-                     labels = c("Up" = "hypermethylated", "Down" = "hypomethylated"),
-                     guide = guide_legend(override.aes = list(size = 3))) + # Adjust legend point size here
+  scale_color_manual(values = c("hypermethylated" = "red", "hypomethylated" = "blue"),
+                     labels = c("hypermethylated" = "Hypermethylation", "hypomethylated" = "Hypomethylation"),
+                     name = "Methylation Status",  # Change legend title here
+                     guide = guide_legend(override.aes = list(size = 8))) +
+  scale_fill_gradient(low = "coral", high = "purple3", 
+                      name = "% DMGs", 
+                      limits = c(0, 43),  # Set limits based on your data range
+                      breaks = seq(0, 43, by = 10)) +  # Set custom breaks
   coord_flip() +
-  ylim(-1.1, NA) +  # Extend the x-axis (effectively the y-axis) to -0.5
+  ylim(-3, NA) +  # Extend the x-axis (effectively the y-axis) to -1.4
+  
+  # Apply minimal theme and customize legend and axis
   theme_minimal() +
-  theme(axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-    panel.grid = element_blank(),
-    legend.text = element_text(size = 18),  # Increased legend text size
-    legend.title = element_text(size = 20)  # Increased legend title size
-  ) +
-  labs(x = NULL, y = NULL, size = "Number of Genes", color = "Methylation Status");dendo.MF.plot
+  theme(axis.ticks.y = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_blank(),
+        panel.grid = element_blank(),
+        legend.text = element_text(size = 22),  # Increase legend text size
+        legend.title = element_text(size = 24, face = "bold"),
+        axis.title.x = element_text(size = 30, face = "bold")) + # Increase legend title size
+  # Add labels for axes and legends
+  labs(x = NULL, y = "Molecular Functions", size = "Number of Genes", fill = "Percent DMGs");dendo.MF.plot
 
 # Save the updated plot
 ggsave("RAnalysis/Output/DMG_dendrogram_plot_MF.png", 
        plot = dendo.MF.plot, 
-       width = 18,  
-       height = 15, 
+       width = 13,  
+       height = 8, 
        units = "in", 
        dpi = 300)
 
