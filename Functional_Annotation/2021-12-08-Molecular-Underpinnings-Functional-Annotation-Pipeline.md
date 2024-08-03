@@ -868,4 +868,4 @@ Pver_evm.model.Segkk0_pilon.11 | EDO40119.1 | 1779 | 1.9e-199 | 68.38 | P:GO:000
 
 ### Step 9: Merge all information for full annotation
 
-Follow instructions/code [here](https://github.com/hputnam/Becker_E5/blob/master/Functional_Annotation/Scripts/pver_annot_compile.Rmd) to compile all annotation information in R.s
+Follow instructions/code [here]([https://github.com/hputnam/Becker_E5/blob/master/Functional_Annotation/Scripts/pver_annot_compile.Rmd](https://github.com/hputnam/Becker_E5/blob/master/Functional_Annotation/pver_annot_compile.Rmd)) to compile all annotation information in R.s
