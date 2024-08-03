@@ -268,15 +268,11 @@ sig_Res_down_BP <- allRes_down_BP %>% filter(classicFisher < 0.01)
 
 Create node figrues of top 5-10 sig terms for downregulated genes
 ```{r}
-# view plot in line first
+# Plot significant nodes
 showSigOfNodes(GOdata.down_BP, score(fisher.down_BP), firstSigNodes = 5, useInfo = 'all')
 
-# Set the file path and name
-pdf("RAnalysis/Output/tGO_graph_downregulated_BP.pdf")
-# Generate the graph using printGraph
-showSigOfNodes(GOdata.down_BP, score(fisher.down_BP), firstSigNodes = 5, useInfo = 'all')
-# Close the PDF device
-dev.off()
+# Print graph with specific parameters and save to directory
+printGraph(GOdata.down_BP, fisher.down_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_BP", useInfo = "def", pdfSW = TRUE)
 ```
 
 
@@ -343,16 +339,11 @@ sig_Res_up_MF <- allRes_up_MF %>% filter(classicFisher < 0.01)
 
 Create node figrues of top 5-10 sig terms for upregulated genes
 ```{r}
-# view plot in line first
+# Plot significant nodes
 showSigOfNodes(GOdata.up_MF, score(fisher.up_MF), firstSigNodes = 5, useInfo = 'all')
 
-# Set the file path and name
-pdf("RAnalysis/Output/tGO_graph_upregulated_MF.pdf")
-# Generate the graph using printGraph
-showSigOfNodes(GOdata.up_MF, score(fisher.up_MF), firstSigNodes = 5, useInfo = 'all')
-# Close the PDF device
-dev.off()
-
+# Print graph with specific parameters and save to directory
+printGraph(GOdata.up_MF, fisher.up_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_MF", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -415,14 +406,11 @@ sig_Res_down_MF <- allRes_down_MF %>% filter(classicFisher < 0.01)
 
 Create node figrues of top 5-10 sig terms for downregulated genes
 ```{r}
-# view plot in line first
+# Plot significant nodes
 showSigOfNodes(GOdata.down_MF, score(fisher.down_MF), firstSigNodes = 5, useInfo = 'all')
 
-pdf("RAnalysis/Output/tGO_graph_downregulated_MF.pdf")
-# Call printGraph
-printGraph(GOdata.down_MF, fisher.down_MF, firstSigNodes = 5, fn.prefix = "tGO", useInfo = "def", pdfSW =TRUE)
-# Close the PDF device
-dev.off()
+# Print graph with specific parameters
+printGraph(GOdata.down_MF, fisher.down_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_MF", useInfo = "def", pdfSW = TRUE)
 
 ```
 
