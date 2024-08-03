@@ -139,7 +139,9 @@ GOdata.up_BP <- new("topGOdata",
               gene2GO = geneID2GO)
 
 GOdata.up_BP
-# Tells you how many signifcant genes there was in the analysis numSigGenes(GOdata.up_BP) #137
+
+# Tells you how many signifcant genes there was in the analysis 
+numSigGenes(GOdata.up_BP) #137
 ```
 ------------------------- topGOdata object -------------------------
 
@@ -178,6 +180,7 @@ allRes_up_BP <- GenTable(GOdata.up_BP,
 # Convert character columns to numeric
 allRes_up_BP$classicFisher <- as.numeric(allRes_up_BP$classicFisher)
 
+# Apply p value adjustment
 sig_Res_up_BP <- allRes_up_BP %>% filter(classicFisher < 0.01)
 
 
@@ -217,7 +220,9 @@ GOdata.down_BP <- new("topGOdata",
               gene2GO = geneID2GO)
 
 GOdata.down_BP
-# Tells you how many signifcant genes there was in the analysis numSigGenes(GOdata.down_BP) # 58
+
+# Tells you how many signifcant genes there was in the analysis 
+numSigGenes(GOdata.down_BP) # 58
 ```
 ------------------------- topGOdata object -------------------------
 
@@ -256,6 +261,7 @@ allRes_down_BP <- GenTable(GOdata.down_BP,
 # Convert character columns to numeric
 allRes_down_BP$classicFisher <- as.numeric(allRes_down_BP$classicFisher)
 
+# Apply p value adjustment
 sig_Res_down_BP <- allRes_down_BP %>% filter(classicFisher < 0.01)
 
 ```
@@ -276,17 +282,6 @@ dev.off()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 Molecular Functions topGO
 
 Use topGO for enrichment analysis on upregulated data
@@ -301,7 +296,8 @@ GOdata.up_MF <- new("topGOdata",
 
 GOdata.up_MF
 
-# Tells you how many signifcant genes there was in the analysis numSigGenes(GOdata.up_MF) #133
+# Tells you how many signifcant genes there was in the analysis 
+numSigGenes(GOdata.up_MF) #133
 ```
 ------------------------- topGOdata object -------------------------
 
@@ -340,6 +336,9 @@ allRes_up_MF <- GenTable(GOdata.up_MF,
 # Convert character columns to numeric
 allRes_up_MF$classicFisher <- as.numeric(allRes_up_MF$classicFisher)
 
+# Apply p value adjustment
+sig_Res_up_MF <- allRes_up_MF %>% filter(classicFisher < 0.01)
+
 ```
 
 Create node figrues of top 5-10 sig terms for upregulated genes
@@ -368,7 +367,9 @@ GOdata.down_MF <- new("topGOdata",
               gene2GO = geneID2GO)
 
 GOdata.down_MF
-# Tells you how many signifcant genes there was in the analysis numSigGenes(GOdata.down_MF) #64
+
+# Tells you how many signifcant genes there was in the analysis 
+numSigGenes(GOdata.down_MF) #64
 ```
 ------------------------- topGOdata object -------------------------
 
@@ -407,6 +408,9 @@ allRes_down_MF <- GenTable(GOdata.down_MF,
 # Convert character columns to numeric
 allRes_down_MF$classicFisher <- as.numeric(allRes_down_MF$classicFisher)
 
+# Apply p value adjustment
+sig_Res_down_MF <- allRes_down_MF %>% filter(classicFisher < 0.01)
+
 ```
 
 Create node figrues of top 5-10 sig terms for downregulated genes
@@ -416,7 +420,7 @@ showSigOfNodes(GOdata.down_MF, score(fisher.down_MF), firstSigNodes = 5, useInfo
 
 pdf("RAnalysis/Output/tGO_graph_downregulated_MF.pdf")
 # Call printGraph
-showSigOfNodes(GOdata.down_MF, score(fisher.down_MF), firstSigNodes = 5, useInfo = 'all')
+printGraph(GOdata.down_MF, fisher.down_MF, firstSigNodes = 5, fn.prefix = "tGO", useInfo = "def", pdfSW =TRUE)
 # Close the PDF device
 dev.off()
 
