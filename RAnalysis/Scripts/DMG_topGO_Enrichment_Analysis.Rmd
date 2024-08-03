@@ -79,7 +79,6 @@ DMG.res$gene_id <-  gsub("_split_","_",DMG.res$gene_id) #remove split naming in 
 
 meth_filt <- readRDS("RAnalysis/Data/filtered_bed_SNP_file.Rdata") #read in info
 
-
 # Rename gene column to gene_id and select only necessary columns, summarize meth
 meth_filt_select <- meth_filt  %>%
   dplyr::select(Sample.ID, meth, gene) %>%

@@ -28,7 +28,7 @@ unique_genes <- unique(bed_data$gene)
 # read in CT-SNP.vcf following Stevens approach: https://github.com/hputnam/Geoduck_Meth/blob/master/code/15-filtering-ct-snps.Rmd
 
 # first download .vcf file from andromeda because it is too large to store on github
-ct <- read.csv("../../CT-SNP.vcf", header = FALSE, sep = "\t")
+ct <- read.csv("../../../Downloads/CT-SNP2.vcf", header = FALSE, sep = "\t")
 ```
 
 # Filter CT-SNPs from .bed mmasterdata file
@@ -95,6 +95,34 @@ unique_df1 <- setdiff(snp_data$scaff.pos, bed_data$scaff.pos)
 # There seems to be no SNPs to filter with this approach, this may be due to the fact that filtering to CG sites and the filtered motif file removed too many possible SNP positions.
 
 ```
+
+Calculate genetic relatedness after BS-SNPer
+
+```{r}
+# Separate V10 into genotype fields
+ct_processed <- ct %>%
+  separate(V10, into = c("Genotype", "Depth", "ADF", "ADR", "AD", "BSD", "BSQ", "ALFR"), sep = ":", fill = "right") %>%
+  mutate(Genotype = as.character(Genotype),
+         Depth = as.numeric(Depth),
+         ADF = as.character(ADF),
+         ADR = as.character(ADR),
+         AD = as.character(AD),
+         BSD = as.character(BSD),
+         BSQ = as.character(BSQ),
+         ALFR = as.character(ALFR))
+
+# Calculate the distance matrix from ct .vcf file
+distance_matrix <- dist(t(ct), method = "euclidean")
+
+# Convert to matrix format
+distance_matrix <- as.matrix(distance_matrix)
+```
+
+
+
+
+
+
 
 
 

@@ -56,11 +56,10 @@ library(cowplot)
 
 #Downloaded all final .bed files for and 10x from andromeda to desktop: scp -r danielle_becker@andromeda.uri.edu:/data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*_enrichment.bed /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/WGBS
 
-###Samples E8 had low data coverage (see WGBS workflow in Bioinformatics>WGBS>WGBS workflow for further information), not moving forward with these samples in statistical steps
+###Samples C28, E7, and E8 had low data coverage, not moving forward with these samples in statistical steps
 
 Methylation Analysis
 ## Loading genomic and annotation
-
 ```{r}
 #load sample information
 sample.info <- read.csv("RAnalysis/Data/metadata.WGBS.csv", header=T, sep=",", na.string="NA", stringsAsFactors = F) #read in info
