@@ -200,76 +200,40 @@ write.table(DMG.sig.annot.10x, 'RAnalysis/Treatment_sig_annot.10x.tsv', sep='\t'
 ```
 
 
-#Calculate hyper- and hypo- methylation from data using limma package in significant DMGs
+#Calculate hyper- and hypo- methylation from data using in significant DMGs
 ```{r}
-#set up dataframe for limma analysis
-# Assume you have a data frame 'methylation_data' with columns: Gene, Condition1, Condition2
-# 'Gene' column contains gene names, 'Condition1' and 'Condition2' contain methylation values
+# We have DMGs already, so now test the mean difference between enriched and control to determine hyper and hypomethylated
 #select certain columns
-# Filter 'MD.10x' for genes in 'DMG.sig.annot.10x'
 methylation_data <- MD.10x %>%
   filter(gene %in% DMG.sig.annot.10x$gene)
 
-# Get unique genes
-genes <- unique(methylation_data$gene)
+# Data wrangling to calculate the mean percent methylation for each gene
+aggregated_data <- methylation_data %>%
+  group_by(gene, treatment) %>%
+  summarize(percent.meth = mean(per.meth, na.rm = TRUE))
 
-# Initialize a list to store results
-results <- list()
+# Specify the name of the control treatment group
+control_group <- "control"
 
-# Run t-test for each gene to calculate hyper and hypo methylation
-for (gene in genes) {
-  # Subset data for the current gene
-  gene_data <- methylation_data %>% filter(gene == !!gene)
-  
-  # Run t-test
-  t_test_result <- tryCatch({
-    t.test(per.meth ~ treatment, data = gene_data)
-  }, error = function(e) {
-    return(NULL)
-  })
-  
-  if (!is.null(t_test_result)) {
-    # Extract relevant information
-    enriched_mean <- mean(gene_data$per.meth[gene_data$treatment == "enriched"])
-    control_mean <- mean(gene_data$per.meth[gene_data$treatment == "control"])
-    p_value <- t_test_result$p.value
-    
-    # Store results
-    results[[gene]] <- data.frame(
-      gene = gene,
-      enriched_mean = enriched_mean,
-      control_mean = control_mean,
-      p_value = p_value
-    )
-  }
-}
+# Filter data for the control group
+control_data <- aggregated_data %>%
+  filter(treatment == control_group) %>%
+  select(gene, ControlMean = percent.meth)
 
-# Combine results into a single dataframe
-result_df <- bind_rows(results)
+# Merge with the original data to get the mean percent methylation for each gene and treatment
+merged_data <- merge(aggregated_data, control_data, by = "gene", all.x = TRUE)
 
-# Adjust p-values for multiple testing
-result_df$q_value <- p.adjust(result_df$p_value, method = "BH")
+# Calculate the mean difference for each gene and treatment compared to the control
+merged_data$MeanDifference <- merged_data$percent.meth - merged_data$ControlMean
 
-# Classify genes in hyper or hypo methylated condition
-result_df <- result_df %>%
-  mutate(
-    methylation_status = case_when(
-      enriched_mean > control_mean ~ "hypermethylated",
-      enriched_mean < control_mean ~ "hypomethylated",
-      TRUE ~ "no_significant_difference"
-    )
-  )
+# Identify hyper and hypomethylated genes
+# Adjust the threshold based on your specific criteria
+hyper_genes <- merged_data$gene[merged_data$MeanDifference > 0]
+hypo_genes <- merged_data$gene[merged_data$MeanDifference < 0]
 
-# Count genes in each category
-methylation_counts <- result_df %>%
-  group_by(methylation_status) %>%
-  summarise(count = n())
-
-# Print results
-print(methylation_counts)
-
-#hypermethylated      164
-#hypomethylated       203
+# Assuming hyper_genes and hypo_genes are lists or vectors
+num_hyper_genes <- length(hyper_genes) #164 Count of hypermethylated genes
+num_hypo_genes <- length(hypo_genes) #203 Count of hypomethylated genes
 
 # Make DMG dataframe with hyper and hypo methylation status
 DMG_all <- left_join(result_df, results.10x)
