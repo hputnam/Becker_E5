@@ -210,7 +210,7 @@ colnames(gene_summary) <- paste0("gene_",colnames(gene_summary))
 gene_summary <- data.frame(gene_id = rownames(gene_summary),gene_summary)
 
 # transcriptomic data
-transcriptomic <- read.csv("RAnalysis/Output/RNA-seq/GOSeq/Host/rename_structure_gff3.csv") #load annotation GFF3 file
+transcriptomic <- read.csv("RAnalysis/Output/rename_structure_gff3.csv") #load annotation GFF3 file
 
 #remove first three columns in data frame
 transcriptomic <- transcriptomic[,-(1:3),drop=FALSE]
@@ -265,6 +265,8 @@ meth.express.compare <- ggplot(df, aes(x=per_meth, y=log_gene,)) +
 ### Figure Mean Methylation vs Gene Expression###
 ggsave(meth.express.compare, filename="RAnalysis/Output/global_express_meth_correlation.png", height = 7, width = 10)
 
+#write hypothesis driven csv
+write.csv(df, "RAnalysis/Output/global.DEG.DMG.goterms.csv")
 ```
 
 ## Analysis of comparisons between gene ontology enrichment from differentially methylated genes and differentially expressed genes.
@@ -341,14 +343,17 @@ colnames(express.annot)[2:8] <-  sub(".*gene_", "", colnames(express.annot)[2:8]
 ```{r}
 #filter by any category that contained the word, could do anything that has the word nitrogen, stress, and heat 
 
-vector1 <- c("nitrogen", "stress", "glutamate", "glutamine", "protein", "carbon", "glucose", "nucleic acid",  "carbohydrate", "lipid", "amino acid", "DNA repair", "DNA metabolic process", "DNA binding", "transport", "immune response", "signaling", "DNA metabolic process", "oxioreductase", "glutathione", "DNA integration", "protein binding", "catalytic activity", "RNA-binding", "transcription")
+vector1 <- c("nitrogen", "protein", "carbon", "immune", "signaling", "oxioreductase", "glutathione", "DNA repair", "catalytic activity", "RNA-binding", "glucose binding", "carbonate dehydratase activity", "signal transduction", "cytoplasmic translation", "tRNA binding", "deoxyribonucleotide biosynthetic process")
 
-phenotype.pathways.DEG <- DEG_with_genes%>%
-      filter(grepl(paste(vector1, collapse="|"), paste(Term))) 
+# Filter DEG_with_genes dataframe
+phenotype.pathways.DEG <- DEG_with_genes %>%
+  filter(grepl(paste(vector1, collapse="|"), Term) |
+         grepl(paste(vector1, collapse="|"), ParentTerm))
 
+# Filter DMG_with_genes dataframe
 phenotype.pathways.DMG <- DMG_with_genes %>% 
-      filter(grepl(paste(vector1, collapse="|"), paste(Term))) 
-
+  filter(grepl(paste(vector1, collapse="|"), Term) |
+         grepl(paste(vector1, collapse="|"), ParentTerm))
 ```
 
 #change data frames from wide to long format
@@ -452,7 +457,7 @@ ad.test(df$mean_meth) < 0.05
 #use kendall test for correlation, Kendall’s is more robust and generally the preferred method between spearman and kendall
 
 meth.express.specific <- ggplot(df,aes(x=per_meth, y=log_gene,)) + 
-    geom_point() + ylim(0,2.5) + 
+    geom_point() + ylim(0,2.7) + 
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
@@ -571,7 +576,7 @@ ggsave("RAnalysis/Output/DEG.all.terms.png", GO.plot.DEG.complete , width = 25, 
 #DEG go plot
 ```{r}
 #add column for deg dmg specific category to each dataframe
-DMG.complete <- DMG.complete %>% add_column(type = "DMG.GO.terms")
+DMG.complete <- DMG %>% add_column(type = "DMG.GO.terms")
 
 #rename column from genes to gene
 DEG.complete <- DEG.complete %>% 
@@ -590,7 +595,7 @@ DEG.DMG.BP <- DEG.DMG %>%
 filter(ontology == "BP")
 
 #output csv of shared DMG and DEG terms
-write.csv(DEG.DMG, "RAnalysis/Output/WGBS/global.DEG.DMG.goterms.csv")
+write.csv(DEG.DMG,"RAnalysis/Output/WGBS/global.DEG.DMG.goterms.csv")
 
 BP.df <- na.omit(DEG.DMG.BP)
 
