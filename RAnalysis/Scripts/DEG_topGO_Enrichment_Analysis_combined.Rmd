@@ -17,6 +17,8 @@ knitr::opts_chunk$set(echo = TRUE)
 #if (!requireNamespace("DESeq2", quietly = TRUE)) { BiocManager::install("DESeq2") }
 library("DESeq2")
 library("tidyr")
+library("flextable")
+library("officer")
 library("tidyverse")
 library("dplyr")
 library("pheatmap")
@@ -184,19 +186,16 @@ allRes_up_BP$classicFisher <- as.numeric(allRes_up_BP$classicFisher)
 sig_Res_up_BP <- allRes_up_BP %>% filter(classicFisher < 0.01)
 
 
+
 ```
 
 Create node figrues of top 5-10 sig terms for upregulated genes
 ```{r}
-# view plot in line first
+# Plot significant nodes
 showSigOfNodes(GOdata.up_BP, score(fisher.up_BP), firstSigNodes = 5, useInfo = 'all')
 
-# Set the file path and name
-pdf("RAnalysis/Output/tGO_graph_upregulated_BP.pdf")
-# Generate the graph using printGraph
-showSigOfNodes(GOdata.up_BP, score(fisher.up_BP), firstSigNodes = 5, useInfo = 'all')
-# Close the PDF device
-dev.off()
+# Print graph with specific parameters and save to directory
+printGraph(GOdata.up_BP, fisher.up_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_BP", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -445,9 +444,60 @@ allRes_down_MF_10 <- GenTable(GOdata.down_MF,
                       topNodes = 10)
 allRes_down_MF_10$Direction <- "Down-Regulated"
 
+# Combine top results for down and upreagulated BP
 Enrichment_Res_BP_10 <- rbind(allRes_up_BP_10,allRes_down_BP_10)
 
+# Create publishable table
+Enrichment_Res_BP_10_table <- Enrichment_Res_BP_10 %>%
+  dplyr::select(-Expected)  # Remove the 'expected' column
+
+# Create flextable object
+flex_enrich <- flextable(Enrichment_Res_BP_10_table)
+
+# Customize the flextable
+flex_enrich <- flex_enrich %>%
+  set_header_labels(
+    GO.ID = "GO ID",
+    Term = "Term",
+    Annotated = "Annotated",
+    Significant = "Significant",
+    classicFisher = "Fisher p-value") %>%
+  colformat_double(digits = 4) %>%
+  bold(j = "classicFisher") %>%  # Bold all values in classicFisher column
+  add_header_lines(values = "Top 10 Enriched GO Terms (Biological Process)") %>%
+  autofit() %>%
+  theme_box()
+
+# Save flextable as PNG
+png_file <- "RAnalysis/Output/DEG_top10_enrich_BP_table.png"
+save_as_image(flex_enrich, path = png_file)
+
+# Combine top results for down and upreagulated MF
 Enrichment_Res_MF_10 <- rbind(allRes_up_MF_10,allRes_down_MF_10)
 
+# Create publishable table
+Enrichment_Res_MF_10_table <- Enrichment_Res_MF_10 %>%
+  dplyr::select(-Expected)  # Remove the 'expected' column
+
+# Create flextable object
+flex_enrich <- flextable(Enrichment_Res_MF_10_table)
+
+# Customize the flextable
+flex_enrich <- flex_enrich %>%
+  set_header_labels(
+    GO.ID = "GO ID",
+    Term = "Term",
+    Annotated = "Annotated",
+    Significant = "Significant",
+    classicFisher = "Fisher p-value") %>%
+  colformat_double(digits = 4) %>%
+  bold(j = "classicFisher") %>%  # Bold all values in classicFisher column
+  add_header_lines(values = "Top 10 Enriched GO Terms (Molecular Function)") %>%
+  autofit() %>%
+  theme_box()
+
+# Save flextable as PNG
+png_file <- "RAnalysis/Output/DEG_top10_enrich_MF_table.png"
+save_as_image(flex_enrich, path = png_file)
 ```
 
