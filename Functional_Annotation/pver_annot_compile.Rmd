@@ -104,6 +104,90 @@ write.csv(pver_annot, "Functional_Annotation/Final_Annotations/pver_annot_full.c
 ```
 
 
+## For all terms, select the gene_ID, hit GO.ID, and hit description (GO_names)
+```{r}
+pver_annot_full <- read.csv("Functional_Annotation/pver_annot_full.csv")[-1]
+
+pver_annot_select <- pver_annot_full %>%
+  select(gene_id, SWISS_Description, SWISS_GO.IDs, SWISS_GO.Names, TREMBL_Description, TREMBL_GO.IDs, TREMBL_GO.Names, InterPro.IDs, InterPro.GO.IDs, InterPro.GO.Names, BLAST_Description, BLAST_GO.IDs, BLAST_GO.Names)
+
+# Transform each type of data source to long format and filter out empty values
+swiss_long <- pver_annot_select %>%
+  filter(!is.na(SWISS_Description) | !is.na(SWISS_GO.IDs) | !is.na(SWISS_GO.Names)) %>%
+  select(gene_id, SWISS_Description, SWISS_GO.IDs, SWISS_GO.Names) %>%
+  mutate(source = "SWISS") %>%
+  rename(Description = SWISS_Description, GO_ID = SWISS_GO.IDs, GO_names = SWISS_GO.Names) %>%
+  pivot_longer(
+    cols = c(GO_ID, GO_names),
+    names_to = "GO_type",
+    values_to = "value"
+  ) %>%
+  pivot_wider(
+    names_from = GO_type,
+    values_from = value
+  )
+
+trembl_long <- pver_annot_select %>%
+  filter(!is.na(TREMBL_Description) | !is.na(TREMBL_GO.IDs) | !is.na(TREMBL_GO.Names)) %>%
+  select(gene_id, TREMBL_Description, TREMBL_GO.IDs, TREMBL_GO.Names) %>%
+  mutate(source = "TREMBL") %>%
+  rename(Description = TREMBL_Description, GO_ID = TREMBL_GO.IDs, GO_names = TREMBL_GO.Names) %>%
+  pivot_longer(
+    cols = c(GO_ID, GO_names),
+    names_to = "GO_type",
+    values_to = "value"
+  ) %>%
+  pivot_wider(
+    names_from = GO_type,
+    values_from = value
+  )
+
+interpro_long <- pver_annot_select %>%
+  filter(!is.na(InterPro.IDs) | !is.na(InterPro.GO.IDs) | !is.na(InterPro.GO.Names)) %>%
+  select(gene_id, InterPro.IDs, InterPro.GO.IDs, InterPro.GO.Names) %>%
+  mutate(source = "InterPro") %>%
+  rename(Description = InterPro.IDs, GO_ID = InterPro.GO.IDs, GO_names = InterPro.GO.Names) %>%
+  pivot_longer(
+    cols = c(GO_ID, GO_names),
+    names_to = "GO_type",
+    values_to = "value"
+  ) %>%
+  pivot_wider(
+    names_from = GO_type,
+    values_from = value
+  )
+
+blast_long <- pver_annot_select %>%
+  filter(!is.na(BLAST_Description) | !is.na(BLAST_GO.IDs) | !is.na(BLAST_GO.Names)) %>%
+  select(gene_id, BLAST_Description, BLAST_GO.IDs, BLAST_GO.Names) %>%
+  mutate(source = "BLAST") %>%
+  rename(Description = BLAST_Description, GO_ID = BLAST_GO.IDs, GO_names = BLAST_GO.Names) %>%
+  pivot_longer(
+    cols = c(GO_ID, GO_names),
+    names_to = "GO_type",
+    values_to = "value"
+  ) %>%
+  pivot_wider(
+    names_from = GO_type,
+    values_from = value
+  )
+
+# Combine all long format data
+pverr_annot_organized <- bind_rows(swiss_long, trembl_long, interpro_long, blast_long)
+
+# remove any without go.IDs
+# Remove rows with NA in GO_ID or GO_names
+pver_annot_cleaned <- pverr_annot_organized%>%
+  filter(!is.na(GO_ID) & !is.na(GO_names))
+
+# Count unique gene IDs
+unique_gene_ids_count <- pver_annot_cleaned %>%
+  summarise(unique_genes = n_distinct(gene_id)) %>%
+  pull(unique_genes)
+
+```
+
+
 
 ```{r}
 # Count #GO terms, and enzyme codes 

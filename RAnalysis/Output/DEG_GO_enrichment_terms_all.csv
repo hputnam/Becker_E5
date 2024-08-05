@@ -1,514 +1,514 @@
 ,GO.ID,Term,numInCat,numDEI,num.expected.percent,classicFisher,ontology,direction
+466,GO:0003841,1-acylglycerol-3-phosphate O-acyltransfe...,12,1,0.05,0.046,MF,Down
+45,GO:0019471,4-hydroxyproline metabolic process,14,2,0.12,0.00668,BP,Up
+452,GO:0008253,5'-nucleotidase activity,6,1,0.02,0.0232,MF,Down
+200,GO:1901374,acetate ester transport,5,1,0.04,0.04374,BP,Up
+419,GO:0042166,acetylcholine binding,19,2,0.15,0.01025,MF,Up
+386,GO:0015464,acetylcholine receptor activity,16,3,0.13,0.00027,MF,Up
+121,GO:0095500,acetylcholine receptor signaling pathway,25,2,0.22,0.02066,BP,Up
+187,GO:0015870,acetylcholine transport,5,1,0.04,0.04374,BP,Up
+476,GO:0005892,acetylcholine-gated channel complex,26,3,0.23,0.00155,CC,Up
+372,GO:0022848,acetylcholine-gated monoatomic cation-se...,36,5,0.29,1.00E-05,MF,Up
+450,GO:0010698,acetyltransferase activator activity,5,1,0.02,0.0194,MF,Down
+286,GO:0007189,adenylate cyclase-activating G protein-c...,62,2,0.23,0.02286,BP,Down
+50,GO:0030534,adult behavior,136,5,1.21,0.00739,BP,Up
+331,GO:0031152,aggregation involved in sorocarp develop...,10,1,0.04,0.03708,BP,Down
+279,GO:0035881,amacrine cell differentiation,6,1,0.02,0.02241,BP,Down
+149,GO:0043603,amide metabolic process,905,14,8.06,0.03084,BP,Up
+98,GO:0015837,amine transport,106,4,0.94,0.01486,BP,Up
+159,GO:0006520,amino acid metabolic process,344,7,3.06,0.03434,BP,Up
+168,GO:1990000,amyloid fibril formation,34,2,0.3,0.03668,BP,Up
+128,GO:0042987,amyloid precursor protein catabolic proc...,69,3,0.61,0.02362,BP,Up
+156,GO:0042982,amyloid precursor protein metabolic proc...,77,3,0.69,0.03134,BP,Up
+387,GO:0001540,amyloid-beta binding,43,4,0.35,4.00E-04,MF,Up
+28,GO:0097242,amyloid-beta clearance,36,3,0.32,0.00398,BP,Up
+87,GO:0034205,amyloid-beta formation,55,3,0.49,0.01293,BP,Up
+102,GO:0050435,amyloid-beta metabolic process,60,3,0.53,0.01634,BP,Up
+443,GO:0010997,anaphase-promoting complex binding,6,1,0.05,0.04781,MF,Up
+235,GO:0048646,anatomical structure formation involved ...,1212,11,4.57,0.00506,BP,Down
+206,GO:0098916,anterograde trans-synaptic signaling,610,10,5.43,0.04601,BP,Up
+324,GO:0048736,appendage development,325,4,1.23,0.034,BP,Down
+290,GO:0035107,appendage morphogenesis,296,4,1.12,0.02529,BP,Down
+472,GO:0016273,arginine N-methyltransferase activity,13,1,0.05,0.0497,MF,Down
+258,GO:0019954,asexual reproduction,5,1,0.02,0.01871,BP,Down
+345,GO:0060088,auditory receptor cell stereocilium orga...,11,1,0.04,0.04071,BP,Down
+507,GO:0005776,autophagosome,69,2,0.27,0.03,CC,Down
+55,GO:0001982,baroreceptor response to decreased syste...,16,2,0.14,0.0087,BP,Up
+108,GO:0048149,behavioral response to ethanol,23,2,0.2,0.01762,BP,Up
 1,GO:0035095,behavioral response to nicotine,20,4,0.18,2.60E-05,BP,Up
-2,GO:0051259,protein complex oligomerization,234,10,2.08,4.60E-05,BP,Up
-3,GO:0051260,protein homooligomerization,180,8,1.6,0.00021,BP,Up
-4,GO:0035094,response to nicotine,63,5,0.56,0.00024,BP,Up
-5,GO:0010744,positive regulation of macrophage derive...,5,2,0.04,0.00077,BP,Up
+277,GO:0015701,bicarbonate transport,6,1,0.02,0.02241,BP,Down
+231,GO:0060348,bone development,172,4,0.65,0.004,BP,Down
+295,GO:0048539,bone marrow development,7,1,0.03,0.0261,BP,Down
+315,GO:0030282,bone mineralization,76,2,0.29,0.03331,BP,Down
+301,GO:0060349,bone morphogenesis,68,2,0.26,0.02714,BP,Down
+501,GO:0031526,brush border membrane,50,2,0.19,0.016,CC,Down
+161,GO:0034219,carbohydrate transmembrane transport,80,3,0.71,0.03453,BP,Up
+422,GO:0015144,carbohydrate transmembrane transporter a...,22,2,0.18,0.01362,MF,Up
+86,GO:0008643,carbohydrate transport,101,4,0.9,0.01264,BP,Up
+418,GO:0004089,carbonate dehydratase activity,19,2,0.15,0.01025,MF,Up
+110,GO:0019752,carboxylic acid metabolic process,758,13,6.75,0.01771,BP,Up
+363,GO:0032048,cardiolipin metabolic process,13,1,0.05,0.04793,BP,Down
+408,GO:0038024,cargo receptor activity,139,5,1.13,0.00556,MF,Up
+88,GO:0050432,catecholamine secretion,55,3,0.49,0.01293,BP,Up
+129,GO:0051937,catecholamine transport,69,3,0.61,0.02362,BP,Up
+454,GO:0017169,CDP-alcohol phosphatidyltransferase acti...,7,1,0.03,0.0271,MF,Down
+496,GO:0030054,cell junction,1866,24,16.62,0.04,CC,Up
+212,GO:0034330,cell junction organization,613,10,5.46,0.04728,BP,Up
+481,GO:0071944,cell periphery,4575,56,40.74,0.00333,CC,Up
+314,GO:0198738,cell-cell signaling by wnt,464,5,1.75,0.03025,BP,Down
+112,GO:1990748,cellular detoxification,62,3,0.55,0.01783,BP,Up
 6,GO:0098849,cellular detoxification of cadmium ion,5,2,0.04,0.00077,BP,Up
 7,GO:0140961,cellular detoxification of metal ion,5,2,0.04,0.00077,BP,Up
-8,GO:0007271,"synaptic transmission, cholinergic",23,3,0.2,0.00107,BP,Up
-9,GO:0055085,transmembrane transport,1298,23,11.56,0.00109,BP,Up
-10,GO:0010886,positive regulation of cholesterol stora...,6,2,0.05,0.00115,BP,Up
-11,GO:0015755,fructose transmembrane transport,6,2,0.05,0.00115,BP,Up
+137,GO:0042398,cellular modified amino acid biosyntheti...,71,3,0.63,0.02544,BP,Up
+166,GO:0042219,cellular modified amino acid catabolic p...,34,2,0.3,0.03668,BP,Up
+32,GO:0006575,cellular modified amino acid metabolic p...,231,7,2.06,0.00465,BP,Up
+135,GO:1905145,cellular response to acetylcholine,27,2,0.24,0.02389,BP,Up
+60,GO:0071276,cellular response to cadmium ion,16,2,0.14,0.0087,BP,Up
+196,GO:0071321,cellular response to cGMP,5,1,0.04,0.04374,BP,Up
+265,GO:0071321,cellular response to cGMP,5,1,0.02,0.01871,BP,Down
+103,GO:0032869,cellular response to insulin stimulus,166,5,1.48,0.01645,BP,Up
+171,GO:0071375,cellular response to peptide hormone sti...,208,5,1.85,0.03845,BP,Up
+130,GO:0097237,cellular response to toxic substance,69,3,0.61,0.02362,BP,Up
+252,GO:0071560,cellular response to transforming growth...,139,3,0.52,0.01551,BP,Down
+175,GO:0021695,cerebellar cortex development,36,2,0.32,0.04072,BP,Up
+190,GO:0021698,cerebellar cortex structural organizatio...,5,1,0.04,0.04374,BP,Up
+317,GO:0021892,cerebral cortex GABAergic interneuron di...,9,1,0.03,0.03343,BP,Down
+394,GO:0015267,channel activity,560,12,4.55,0.00205,MF,Up
+205,GO:0007268,chemical synaptic transmission,610,10,5.43,0.04601,BP,Up
+40,GO:0099565,"chemical synaptic transmission, postsyna...",78,4,0.69,0.00516,BP,Up
+365,GO:0043327,chemotaxis to cAMP,13,1,0.05,0.04793,BP,Down
+33,GO:0010878,cholesterol storage,12,2,0.11,0.0049,BP,Up
+475,GO:0098981,cholinergic synapse,21,3,0.19,0.00082,CC,Up
+272,GO:0043009,chordate embryonic development,744,7,2.8,0.02122,BP,Down
+230,GO:0007623,circadian rhythm,167,4,0.63,0.0036,BP,Down
+207,GO:0072359,circulatory system development,1231,17,10.96,0.04637,BP,Up
+446,GO:0000987,cis-regulatory region sequence-specific ...,335,5,1.31,0.0099,MF,Down
+189,GO:0019240,citrulline biosynthetic process,5,1,0.04,0.04374,BP,Up
+489,GO:0005581,collagen trimer,61,3,0.54,0.01707,CC,Up
+297,GO:0060029,convergent extension involved in organog...,7,1,0.03,0.0261,BP,Down
+259,GO:0035930,corticosteroid hormone secretion,5,1,0.02,0.01871,BP,Down
+341,GO:0031958,corticosteroid receptor signaling pathwa...,11,1,0.04,0.04071,BP,Down
+311,GO:0097094,craniofacial suture morphogenesis,8,1,0.03,0.02977,BP,Down
+508,GO:0031461,cullin-RING ubiquitin ligase complex,173,3,0.67,0.03,CC,Down
+435,GO:0043855,cyclic nucleotide-activated monoatomic i...,5,1,0.04,0.04,MF,Up
+449,GO:0004128,"cytochrome-b5 reductase activity, acting...",5,1,0.02,0.0194,MF,Down
+58,GO:0019835,cytolysis,16,2,0.14,0.0087,BP,Up
+31,GO:0051715,cytolysis in another organism,11,2,0.1,0.00411,BP,Up
+343,GO:0042256,cytosolic ribosome assembly,11,1,0.04,0.04071,BP,Down
+73,GO:0042742,defense response to bacterium,205,6,1.83,0.01011,BP,Up
+397,GO:0033300,dehydroascorbic acid transmembrane trans...,10,2,0.08,0.00283,MF,Up
+24,GO:0070837,dehydroascorbic acid transport,10,2,0.09,0.00338,BP,Up
+91,GO:0140059,dendrite arborization,20,2,0.18,0.01347,BP,Up
+131,GO:0016358,dendrite development,248,6,2.21,0.02364,BP,Up
+493,GO:0032590,dendrite membrane,27,2,0.24,0.02389,CC,Up
+49,GO:0097061,dendritic spine organization,86,4,0.77,0.00728,BP,Up
+182,GO:0003140,determination of left/right asymmetry in...,5,1,0.04,0.04374,BP,Up
+120,GO:0071910,determination of liver left/right asymme...,25,2,0.22,0.02066,BP,Up
+114,GO:0035469,determination of pancreatic left/right a...,24,2,0.21,0.01911,BP,Up
+174,GO:0098754,detoxification,85,3,0.76,0.04022,BP,Up
 12,GO:0071585,detoxification of cadmium ion,6,2,0.05,0.00115,BP,Up
 13,GO:0061687,detoxification of inorganic compound,7,2,0.06,0.00161,BP,Up
-14,GO:0070813,hydrogen sulfide metabolic process,9,2,0.08,0.00272,BP,Up
-15,GO:1901838,positive regulation of transcription of ...,9,2,0.08,0.00272,BP,Up
-16,GO:1990170,stress response to cadmium ion,9,2,0.08,0.00272,BP,Up
-17,GO:0015850,organic hydroxy compound transport,210,7,1.87,0.00275,BP,Up
 18,GO:0141060,disruption of anatomical structure in an...,32,3,0.28,0.00284,BP,Up
-19,GO:0032691,negative regulation of interleukin-1 bet...,67,4,0.6,0.00299,BP,Up
-20,GO:0006750,glutathione biosynthetic process,33,3,0.29,0.0031,BP,Up
-21,GO:0006560,proline metabolic process,10,2,0.09,0.00338,BP,Up
-22,GO:0042953,lipoprotein transport,10,2,0.09,0.00338,BP,Up
-23,GO:0060073,micturition,10,2,0.09,0.00338,BP,Up
-24,GO:0070837,dehydroascorbic acid transport,10,2,0.09,0.00338,BP,Up
+134,GO:0141061,disruption of cell in another organism,27,2,0.24,0.02389,BP,Up
+353,GO:0006488,dolichol-linked oligosaccharide biosynth...,12,1,0.05,0.04433,BP,Down
+459,GO:0050780,dopamine receptor binding,8,1,0.03,0.0309,MF,Down
+474,GO:0098691,dopaminergic synapse,5,2,0.04,0.00077,CC,Up
+455,GO:0003690,double-stranded DNA binding,604,6,2.36,0.0304,MF,Down
+274,GO:0043583,ear development,285,4,1.07,0.02238,BP,Down
+229,GO:0042471,ear morphogenesis,165,4,0.62,0.00345,BP,Down
+222,GO:0009790,embryo development,1570,14,5.92,0.0017,BP,Down
+249,GO:0009792,embryo development ending in birth or eg...,833,8,3.14,0.0124,BP,Down
+236,GO:0035113,embryonic appendage morphogenesis,187,4,0.7,0.00538,BP,Down
+306,GO:0042733,embryonic digit morphogenesis,71,2,0.27,0.0294,BP,Down
+370,GO:0001838,embryonic epithelial tube formation,219,3,0.83,0.04958,BP,Down
+232,GO:0030326,embryonic limb morphogenesis,175,4,0.66,0.00426,BP,Down
+228,GO:0048598,embryonic morphogenesis,984,10,3.71,0.00344,BP,Down
+193,GO:0060839,endothelial cell fate commitment,5,1,0.04,0.04374,BP,Up
+441,GO:0004301,epoxide hydrolase activity,6,1,0.05,0.04781,MF,Up
+283,GO:1902222,erythrose 4-phosphate/phosphoenolpyruvat...,6,1,0.02,0.02241,BP,Down
+298,GO:1902221,erythrose 4-phosphate/phosphoenolpyruvat...,7,1,0.03,0.0261,BP,Down
+289,GO:0072655,establishment of protein localization to...,63,2,0.24,0.02355,BP,Down
+367,GO:0090151,establishment of protein localization to...,13,1,0.05,0.04793,BP,Down
+375,GO:0005231,excitatory extracellular ligand-gated mo...,50,5,0.41,5.20E-05,MF,Up
 25,GO:0060079,excitatory postsynaptic potential,70,4,0.62,0.0035,BP,Up
-26,GO:0019184,nonribosomal peptide biosynthetic proces...,35,3,0.31,0.00367,BP,Up
-27,GO:0032094,response to food,36,3,0.32,0.00398,BP,Up
-28,GO:0097242,amyloid-beta clearance,36,3,0.32,0.00398,BP,Up
-29,GO:0010885,regulation of cholesterol storage,11,2,0.1,0.00411,BP,Up
-30,GO:0044179,hemolysis in another organism,11,2,0.1,0.00411,BP,Up
-31,GO:0051715,cytolysis in another organism,11,2,0.1,0.00411,BP,Up
-32,GO:0006575,cellular modified amino acid metabolic p...,231,7,2.06,0.00465,BP,Up
-33,GO:0010878,cholesterol storage,12,2,0.11,0.0049,BP,Up
-34,GO:0044872,lipoprotein localization,12,2,0.11,0.0049,BP,Up
-35,GO:0070206,protein trimerization,12,2,0.11,0.0049,BP,Up
-36,GO:0070207,protein homotrimerization,12,2,0.11,0.0049,BP,Up
-37,GO:1901836,regulation of transcription of nucleolar...,12,2,0.11,0.0049,BP,Up
+396,GO:0005230,extracellular ligand-gated monoatomic io...,113,5,0.92,0.00229,MF,Up
+499,GO:0098892,extrinsic component of postsynaptic spec...,5,1,0.04,0.04374,CC,Up
+378,GO:0071949,FAD binding,55,5,0.45,8.30E-05,MF,Up
+377,GO:0050660,flavin adenine dinucleotide binding,126,7,1.02,7.60E-05,MF,Up
+79,GO:0090077,foam cell differentiation,18,2,0.16,0.01097,BP,Up
+11,GO:0015755,fructose transmembrane transport,6,2,0.05,0.00115,BP,Up
+389,GO:0005353,fructose transmembrane transporter activ...,6,2,0.05,0.00096,MF,Up
+458,GO:0031683,G-protein beta/gamma-subunit complex bin...,8,1,0.03,0.0309,MF,Down
+221,GO:0097154,GABAergic neuron differentiation,13,2,0.05,0.00106,BP,Down
+440,GO:0003839,gamma-glutamylcyclotransferase activity,6,1,0.05,0.04781,MF,Up
+373,GO:0022836,gated channel activity,357,12,2.9,3.50E-05,MF,Up
+59,GO:0060112,generation of ovulation cycle rhythm,16,2,0.14,0.0087,BP,Up
+344,GO:0042921,glucocorticoid receptor signaling pathwa...,11,1,0.04,0.04071,BP,Down
+382,GO:0005536,glucose binding,14,3,0.11,0.00018,MF,Up
+138,GO:1904659,glucose transmembrane transport,71,3,0.63,0.02544,BP,Up
+404,GO:0005355,glucose transmembrane transporter activi...,13,2,0.11,0.00483,MF,Up
+20,GO:0006750,glutathione biosynthetic process,33,3,0.29,0.0031,BP,Up
 38,GO:0006749,glutathione metabolic process,78,4,0.69,0.00516,BP,Up
-39,GO:0032692,negative regulation of interleukin-1 pro...,78,4,0.69,0.00516,BP,Up
-40,GO:0099565,"chemical synaptic transmission, postsyna...",78,4,0.69,0.00516,BP,Up
-41,GO:1905144,response to acetylcholine,40,3,0.36,0.00536,BP,Up
+467,GO:0004602,glutathione peroxidase activity,12,1,0.05,0.046,MF,Down
+465,GO:0004364,glutathione transferase activity,11,1,0.04,0.0422,MF,Down
+471,GO:0005525,GTP binding,346,4,1.35,0.0464,MF,Down
+453,GO:0003924,GTPase activity,289,4,1.13,0.0265,MF,Down
+505,GO:0070775,H3 histone acetyltransferase complex,7,1,0.03,0.027,CC,Down
+179,GO:0003007,heart morphogenesis,362,7,3.22,0.04327,BP,Up
+262,GO:0060217,hemangioblast cell differentiation,5,1,0.02,0.01871,BP,Down
+428,GO:0020037,heme binding,142,4,1.15,0.0287,MF,Up
+30,GO:0044179,hemolysis in another organism,11,2,0.1,0.00411,BP,Up
+511,GO:0005834,heterotrimeric G-protein complex,12,1,0.05,0.046,CC,Down
+141,GO:0008645,hexose transmembrane transport,72,3,0.64,0.02638,BP,Up
+405,GO:0015149,hexose transmembrane transporter activit...,13,2,0.11,0.00483,MF,Up
+215,GO:0030902,hindbrain development,154,4,1.37,0.04886,BP,Up
+426,GO:0030544,Hsp70 protein binding,32,2,0.26,0.02775,MF,Up
+14,GO:0070813,hydrogen sulfide metabolic process,9,2,0.08,0.00272,BP,Up
+470,GO:0016742,"hydroxymethyl-, formyl- and related tran...",12,1,0.05,0.046,MF,Down
+133,GO:0046456,icosanoid biosynthetic process,27,2,0.24,0.02389,BP,Up
+140,GO:0006690,icosanoid metabolic process,72,3,0.64,0.02638,BP,Up
+423,GO:0042802,identical protein binding,1661,22,13.5,0.01471,MF,Up
+307,GO:0001833,inner cell mass cell proliferation,8,1,0.03,0.02977,BP,Down
+253,GO:0048839,inner ear development,256,4,0.97,0.01574,BP,Down
+223,GO:0042472,inner ear morphogenesis,142,4,0.54,0.00201,BP,Down
+349,GO:0060119,inner ear receptor cell development,86,2,0.32,0.04172,BP,Down
+287,GO:0060122,inner ear receptor cell stereocilium org...,62,2,0.23,0.02286,BP,Down
+434,GO:0043559,insulin binding,5,1,0.04,0.04,MF,Up
+74,GO:0008286,insulin receptor signaling pathway,95,4,0.85,0.01026,BP,Up
+442,GO:0005520,insulin-like growth factor binding,6,1,0.05,0.04781,MF,Up
+176,GO:0032608,interferon-beta production,87,3,0.77,0.04262,BP,Up
+75,GO:0032611,interleukin-1 beta production,95,4,0.85,0.01026,BP,Up
+116,GO:0032612,interleukin-1 production,116,4,1.03,0.02002,BP,Up
+95,GO:0032635,interleukin-6 production,104,4,0.93,0.01394,BP,Up
+431,GO:0005221,intracellular cyclic nucleotide-activate...,5,1,0.04,0.04,MF,Up
+400,GO:0005506,iron ion binding,174,6,1.41,0.00299,MF,Up
+132,GO:0031640,killing of cells of another organism,27,2,0.24,0.02389,BP,Up
+275,GO:0006559,L-phenylalanine catabolic process,6,1,0.02,0.02241,BP,Down
+291,GO:0006558,L-phenylalanine metabolic process,7,1,0.03,0.0261,BP,Down
+490,GO:0031256,leading edge membrane,115,4,1.02,0.01946,CC,Up
+89,GO:0019370,leukotriene biosynthetic process,20,2,0.18,0.01347,BP,Up
+407,GO:0022834,ligand-gated channel activity,197,6,1.6,0.00548,MF,Up
+384,GO:0099094,ligand-gated monoatomic cation channel a...,104,6,0.85,2.00E-04,MF,Up
+406,GO:0015276,ligand-gated monoatomic ion channel acti...,195,6,1.59,0.00522,MF,Up
+462,GO:0016886,"ligase activity, forming phosphoric este...",10,1,0.04,0.0385,MF,Down
+250,GO:0060173,limb development,247,4,0.93,0.01397,BP,Down
+241,GO:0035108,limb morphogenesis,210,4,0.79,0.00805,BP,Down
+111,GO:0019915,lipid storage,62,3,0.55,0.01783,BP,Up
+34,GO:0044872,lipoprotein localization,12,2,0.11,0.0049,BP,Up
+479,GO:1990777,lipoprotein particle,9,2,0.08,0.00272,CC,Up
+410,GO:0071813,lipoprotein particle binding,15,2,0.12,0.00643,MF,Up
+22,GO:0042953,lipoprotein transport,10,2,0.09,0.00338,BP,Up
+402,GO:0030169,low-density lipoprotein particle binding,11,2,0.09,0.00344,MF,Up
+78,GO:0010742,macrophage derived foam cell differentia...,18,2,0.16,0.01097,BP,Up
+83,GO:0007141,male meiosis I,19,2,0.17,0.01219,BP,Up
+480,GO:0016020,membrane,7380,82,65.72,0.00311,CC,Up
+209,GO:0051899,membrane depolarization,39,2,0.35,0.04708,BP,Up
+468,GO:0008191,metalloendopeptidase inhibitor activity,12,1,0.05,0.046,MF,Down
+23,GO:0060073,micturition,10,2,0.09,0.00338,BP,Up
+338,GO:0043632,modification-dependent macromolecule cat...,499,5,1.88,0.03949,BP,Down
+329,GO:0019941,modification-dependent protein catabolic...,489,5,1.84,0.03669,BP,Down
 42,GO:0050804,modulation of chemical synaptic transmis...,439,10,3.91,0.00592,BP,Up
-43,GO:0099177,regulation of trans-synaptic signaling,439,10,3.91,0.00592,BP,Up
+80,GO:0098815,modulation of excitatory postsynaptic po...,52,3,0.46,0.01111,BP,Up
+203,GO:0035821,modulation of process of another organis...,88,3,0.78,0.04384,BP,Up
+308,GO:0018996,"molting cycle, collagen and cuticulin-ba...",8,1,0.03,0.02977,BP,Down
+148,GO:0015844,monoamine transport,76,3,0.68,0.03031,BP,Up
+210,GO:0055081,monoatomic anion homeostasis,39,2,0.35,0.04708,BP,Up
+380,GO:0005261,monoatomic cation channel activity,409,12,3.33,0.00013,MF,Up
+399,GO:0008324,monoatomic cation transmembrane transpor...,584,12,4.75,0.0029,MF,Up
+392,GO:0005216,monoatomic ion channel activity,519,12,4.22,0.00108,MF,Up
+495,GO:0034702,monoatomic ion channel complex,194,5,1.73,0.02978,CC,Up
+425,GO:0015075,monoatomic ion transmembrane transporter...,750,12,6.1,0.01921,MF,Up
+393,GO:0004497,monooxygenase activity,143,6,1.16,0.00111,MF,Up
+401,GO:0048029,monosaccharide binding,76,4,0.62,0.00341,MF,Up
+155,GO:0015749,monosaccharide transmembrane transport,77,3,0.69,0.03134,BP,Up
+414,GO:0015145,monosaccharide transmembrane transporter...,18,2,0.15,0.00922,MF,Up
+502,GO:0070776,MOZ/MORF histone acetyltransferase compl...,5,1,0.02,0.019,CC,Down
+360,GO:0010721,negative regulation of cell development,215,3,0.81,0.04739,BP,Down
+310,GO:0042754,negative regulation of circadian rhythm,8,1,0.03,0.02977,BP,Down
+246,GO:0043392,negative regulation of DNA binding,40,2,0.15,0.00994,BP,Down
+202,GO:2000252,negative regulation of feeding behavior,5,1,0.04,0.04374,BP,Up
+269,GO:2000323,negative regulation of glucocorticoid re...,5,1,0.02,0.01871,BP,Down
+355,GO:0045721,negative regulation of gluconeogenesis,12,1,0.05,0.04433,BP,Down
+192,GO:0045719,negative regulation of glycogen biosynth...,5,1,0.04,0.04374,BP,Up
+195,GO:0070874,negative regulation of glycogen metaboli...,5,1,0.04,0.04374,BP,Up
+303,GO:1903707,negative regulation of hemopoiesis,69,2,0.26,0.02788,BP,Down
+142,GO:0050728,negative regulation of inflammatory resp...,127,4,1.13,0.02684,BP,Up
+19,GO:0032691,negative regulation of interleukin-1 bet...,67,4,0.6,0.00299,BP,Up
+39,GO:0032692,negative regulation of interleukin-1 pro...,78,4,0.69,0.00516,BP,Up
 44,GO:0032715,negative regulation of interleukin-6 pro...,82,4,0.73,0.00616,BP,Up
-45,GO:0019471,4-hydroxyproline metabolic process,14,2,0.12,0.00668,BP,Up
-46,GO:0045943,positive regulation of transcription by ...,14,2,0.12,0.00668,BP,Up
-47,GO:0010883,regulation of lipid storage,44,3,0.39,0.00701,BP,Up
-48,GO:0060078,regulation of postsynaptic membrane pote...,86,4,0.77,0.00728,BP,Up
-49,GO:0097061,dendritic spine organization,86,4,0.77,0.00728,BP,Up
-50,GO:0030534,adult behavior,136,5,1.21,0.00739,BP,Up
+302,GO:1902106,negative regulation of leukocyte differe...,68,2,0.26,0.02714,BP,Down
+309,GO:0032369,negative regulation of lipid transport,8,1,0.03,0.02977,BP,Down
+299,GO:0045638,negative regulation of myeloid cell diff...,67,2,0.25,0.02641,BP,Down
+251,GO:0002762,negative regulation of myeloid leukocyte...,50,2,0.19,0.01524,BP,Down
+239,GO:0045746,negative regulation of Notch signaling p...,33,2,0.12,0.00684,BP,Down
+366,GO:0048715,negative regulation of oligodendrocyte d...,13,1,0.05,0.04793,BP,Down
+335,GO:2001205,negative regulation of osteoclast develo...,10,1,0.04,0.03708,BP,Down
+248,GO:0045671,negative regulation of osteoclast differ...,41,2,0.15,0.01042,BP,Down
+356,GO:0046533,negative regulation of photoreceptor cel...,12,1,0.05,0.04433,BP,Down
+319,GO:0042308,negative regulation of protein import in...,9,1,0.03,0.03343,BP,Down
+68,GO:0035024,negative regulation of Rho protein signa...,17,2,0.15,0.00981,BP,Up
+323,GO:1903026,negative regulation of RNA polymerase II...,9,1,0.03,0.03343,BP,Down
+328,GO:1903531,negative regulation of secretion by cell,79,2,0.3,0.03576,BP,Down
+362,GO:0014912,negative regulation of smooth muscle cel...,13,1,0.05,0.04793,BP,Down
+224,GO:2000678,negative regulation of transcription reg...,18,2,0.07,0.00206,BP,Down
 51,GO:0032720,negative regulation of tumor necrosis fa...,87,4,0.77,0.00757,BP,Up
-52,GO:0010743,regulation of macrophage derived foam ce...,15,2,0.13,0.00766,BP,Up
-53,GO:0050773,regulation of dendrite development,88,4,0.78,0.00788,BP,Up
 54,GO:1903556,negative regulation of tumor necrosis fa...,90,4,0.8,0.00852,BP,Up
-55,GO:0001982,baroreceptor response to decreased syste...,16,2,0.14,0.0087,BP,Up
+285,GO:1904753,negative regulation of vascular associat...,6,1,0.02,0.02241,BP,Down
+256,GO:0030178,negative regulation of Wnt signaling pat...,144,3,0.54,0.01703,BP,Down
+82,GO:0001976,nervous system process involved in regul...,19,2,0.17,0.01219,BP,Up
+106,GO:0007274,neuromuscular synaptic transmission,23,2,0.2,0.01762,BP,Up
+342,GO:0036480,neuron intrinsic apoptotic signaling pat...,11,1,0.04,0.04071,BP,Down
+162,GO:0140058,neuron projection arborization,33,2,0.29,0.03472,BP,Up
+201,GO:1990535,neuron projection maintenance,5,1,0.04,0.04374,BP,Up
+482,GO:0032589,neuron projection membrane,72,4,0.64,0.00388,CC,Up
+62,GO:0106027,neuron projection organization,91,4,0.81,0.00885,BP,Up
+398,GO:0030594,neurotransmitter receptor activity,119,5,0.97,0.00287,MF,Up
+379,GO:0099529,neurotransmitter receptor activity invol...,58,5,0.47,0.00011,MF,Up
+158,GO:0170041,non-proteinogenic amino acid metabolic p...,79,3,0.7,0.03345,BP,Up
+26,GO:0019184,nonribosomal peptide biosynthetic proces...,35,3,0.31,0.00367,BP,Up
+85,GO:0048243,norepinephrine secretion,19,2,0.17,0.01219,BP,Up
+84,GO:0015874,norepinephrine transport,19,2,0.17,0.01219,BP,Up
+403,GO:0005112,Notch binding,41,3,0.33,0.00447,MF,Up
+234,GO:0007219,Notch signaling pathway,177,4,0.67,0.00443,BP,Down
+512,GO:0035267,NuA4 histone acetyltransferase complex,13,1,0.05,0.049,CC,Down
+97,GO:0042790,nucleolar large rRNA transcription by RN...,21,2,0.19,0.0148,BP,Up
+456,GO:0008252,nucleotidase activity,8,1,0.03,0.0309,MF,Down
+509,GO:0016589,NURF complex,8,1,0.03,0.031,CC,Down
+72,GO:0006082,organic acid metabolic process,783,14,6.97,0.01003,BP,Up
+93,GO:0015695,organic cation transport,56,3,0.5,0.01358,BP,Up
+17,GO:0015850,organic hydroxy compound transport,210,7,1.87,0.00275,BP,Up
+361,GO:0019637,organophosphate metabolic process,701,6,2.64,0.04772,BP,Down
+327,GO:0030316,osteoclast differentiation,79,2,0.3,0.03576,BP,Down
+127,GO:0042698,ovulation cycle,69,3,0.61,0.02362,BP,Up
+374,GO:0016491,oxidoreductase activity,900,20,7.32,3.90E-05,MF,Up
+388,GO:0016672,"oxidoreductase activity, acting on a sul...",5,2,0.04,0.00065,MF,Up
+413,GO:0016667,"oxidoreductase activity, acting on a sul...",53,3,0.43,0.00915,MF,Up
+457,GO:0016653,"oxidoreductase activity, acting on NAD(P...",8,1,0.03,0.0309,MF,Down
+417,GO:0016705,"oxidoreductase activity, acting on paire...",222,6,1.8,0.00961,MF,Up
+432,GO:0016649,"oxidoreductase activity, acting on the C...",5,1,0.04,0.04,MF,Up
+63,GO:0043436,oxoacid metabolic process,776,14,6.91,0.00931,BP,Up
+506,GO:1990452,Parkin-FBXW7-Cul1 ubiquitin ligase compl...,7,1,0.03,0.027,CC,Down
+395,GO:0022803,passive transmembrane transporter activi...,563,12,4.58,0.00215,MF,Up
+263,GO:0061004,pattern specification involved in kidney...,5,1,0.02,0.01871,BP,Down
+260,GO:0039017,pattern specification involved in pronep...,5,1,0.02,0.01871,BP,Down
+420,GO:0030165,PDZ domain binding,58,3,0.47,0.01171,MF,Up
+92,GO:0006518,peptide metabolic process,731,13,6.51,0.01349,BP,Up
+316,GO:0018216,peptidyl-arginine methylation,9,1,0.03,0.03343,BP,Down
+354,GO:0018195,peptidyl-arginine modification,12,1,0.05,0.04433,BP,Down
+278,GO:0035246,peptidyl-arginine N-methylation,6,1,0.02,0.02241,BP,Down
+188,GO:0016559,peroxisome fission,5,1,0.04,0.04374,BP,Up
+144,GO:0006911,"phagocytosis, engulfment",29,2,0.26,0.02732,BP,Up
+276,GO:0010087,phloem or xylem histogenesis,6,1,0.02,0.02241,BP,Down
+436,GO:1990050,phosphatidic acid transfer activity,5,1,0.04,0.04,MF,Up
+292,GO:0006646,phosphatidylethanolamine biosynthetic pr...,7,1,0.03,0.0261,BP,Down
+421,GO:0043548,phosphatidylinositol 3-kinase binding,59,3,0.48,0.01226,MF,Up
+460,GO:0050816,phosphothreonine residue binding,8,1,0.03,0.0309,MF,Down
+469,GO:0009881,photoreceptor activity,12,1,0.05,0.046,MF,Down
+504,GO:0097381,photoreceptor disc membrane,6,1,0.02,0.023,CC,Down
+513,GO:0042622,photoreceptor outer segment membrane,13,1,0.05,0.049,CC,Down
+478,GO:0034358,plasma lipoprotein particle,9,2,0.08,0.00272,CC,Up
+107,GO:0034381,plasma lipoprotein particle clearance,23,2,0.2,0.01762,BP,Up
+488,GO:0005886,plasma membrane,3555,43,31.66,0.0156,CC,Up
+204,GO:0099024,plasma membrane invagination,38,2,0.34,0.04492,BP,Up
+492,GO:0098797,plasma membrane protein complex,382,8,3.4,0.02102,CC,Up
+486,GO:0098590,plasma membrane region,1130,18,10.06,0.01141,CC,Up
+477,GO:0098802,plasma membrane signaling receptor compl...,102,5,0.91,0.00217,CC,Up
+167,GO:1902993,positive regulation of amyloid precursor...,34,2,0.3,0.03668,BP,Up
+153,GO:1902004,positive regulation of amyloid-beta form...,31,2,0.28,0.03093,BP,Up
+340,GO:0010753,positive regulation of cGMP-mediated sig...,11,1,0.04,0.04071,BP,Down
+10,GO:0010886,positive regulation of cholesterol stora...,6,2,0.05,0.00115,BP,Up
+70,GO:1905920,positive regulation of CoA-transferase a...,17,2,0.15,0.00981,BP,Up
+294,GO:0045741,positive regulation of epidermal growth ...,7,1,0.03,0.0261,BP,Down
+219,GO:1903749,positive regulation of establishment of ...,8,2,0.03,0.00039,BP,Down
+146,GO:2000463,positive regulation of excitatory postsy...,30,2,0.27,0.0291,BP,Up
+119,GO:0010460,positive regulation of heart rate,25,2,0.22,0.02066,BP,Up
 56,GO:0001988,positive regulation of heart rate involv...,16,2,0.14,0.0087,BP,Up
 57,GO:0010884,positive regulation of lipid storage,16,2,0.14,0.0087,BP,Up
-58,GO:0019835,cytolysis,16,2,0.14,0.0087,BP,Up
-59,GO:0060112,generation of ovulation cycle rhythm,16,2,0.14,0.0087,BP,Up
-60,GO:0071276,cellular response to cadmium ion,16,2,0.14,0.0087,BP,Up
-61,GO:0097501,stress response to metal ion,16,2,0.14,0.0087,BP,Up
-62,GO:0106027,neuron projection organization,91,4,0.81,0.00885,BP,Up
-63,GO:0043436,oxoacid metabolic process,776,14,6.91,0.00931,BP,Up
-64,GO:1902003,regulation of amyloid-beta formation,49,3,0.44,0.00944,BP,Up
-65,GO:0001978,regulation of systemic arterial blood pr...,17,2,0.15,0.00981,BP,Up
-66,GO:0003025,regulation of systemic arterial blood pr...,17,2,0.15,0.00981,BP,Up
-67,GO:0014061,regulation of norepinephrine secretion,17,2,0.15,0.00981,BP,Up
-68,GO:0035024,negative regulation of Rho protein signa...,17,2,0.15,0.00981,BP,Up
-69,GO:1905918,regulation of CoA-transferase activity,17,2,0.15,0.00981,BP,Up
-70,GO:1905920,positive regulation of CoA-transferase a...,17,2,0.15,0.00981,BP,Up
-71,GO:0003014,renal system process,94,4,0.84,0.0099,BP,Up
-72,GO:0006082,organic acid metabolic process,783,14,6.97,0.01003,BP,Up
-73,GO:0042742,defense response to bacterium,205,6,1.83,0.01011,BP,Up
-74,GO:0008286,insulin receptor signaling pathway,95,4,0.85,0.01026,BP,Up
-75,GO:0032611,interleukin-1 beta production,95,4,0.85,0.01026,BP,Up
-76,GO:0032651,regulation of interleukin-1 beta product...,95,4,0.85,0.01026,BP,Up
-77,GO:0050433,regulation of catecholamine secretion,51,3,0.45,0.01053,BP,Up
-78,GO:0010742,macrophage derived foam cell differentia...,18,2,0.16,0.01097,BP,Up
-79,GO:0090077,foam cell differentiation,18,2,0.16,0.01097,BP,Up
-80,GO:0098815,modulation of excitatory postsynaptic po...,52,3,0.46,0.01111,BP,Up
-81,GO:0051952,regulation of amine transport,99,4,0.88,0.01181,BP,Up
-82,GO:0001976,nervous system process involved in regul...,19,2,0.17,0.01219,BP,Up
-83,GO:0007141,male meiosis I,19,2,0.17,0.01219,BP,Up
-84,GO:0015874,norepinephrine transport,19,2,0.17,0.01219,BP,Up
-85,GO:0048243,norepinephrine secretion,19,2,0.17,0.01219,BP,Up
-86,GO:0008643,carbohydrate transport,101,4,0.9,0.01264,BP,Up
-87,GO:0034205,amyloid-beta formation,55,3,0.49,0.01293,BP,Up
-88,GO:0050432,catecholamine secretion,55,3,0.49,0.01293,BP,Up
-89,GO:0019370,leukotriene biosynthetic process,20,2,0.18,0.01347,BP,Up
-90,GO:0050893,sensory processing,20,2,0.18,0.01347,BP,Up
-91,GO:0140059,dendrite arborization,20,2,0.18,0.01347,BP,Up
-92,GO:0006518,peptide metabolic process,731,13,6.51,0.01349,BP,Up
-93,GO:0015695,organic cation transport,56,3,0.5,0.01358,BP,Up
-94,GO:0009628,response to abiotic stimulus,1153,18,10.27,0.01386,BP,Up
-95,GO:0032635,interleukin-6 production,104,4,0.93,0.01394,BP,Up
-96,GO:0032675,regulation of interleukin-6 production,104,4,0.93,0.01394,BP,Up
-97,GO:0042790,nucleolar large rRNA transcription by RN...,21,2,0.19,0.0148,BP,Up
-98,GO:0015837,amine transport,106,4,0.94,0.01486,BP,Up
-99,GO:0009266,response to temperature stimulus,224,6,1.99,0.01513,BP,Up
-100,GO:2000300,regulation of synaptic vesicle exocytosi...,59,3,0.53,0.01562,BP,Up
-101,GO:0032225,"regulation of synaptic transmission, dop...",22,2,0.2,0.01618,BP,Up
-102,GO:0050435,amyloid-beta metabolic process,60,3,0.53,0.01634,BP,Up
-103,GO:0032869,cellular response to insulin stimulus,166,5,1.48,0.01645,BP,Up
-104,GO:0009409,response to cold,61,3,0.54,0.01707,BP,Up
-105,GO:1902991,regulation of amyloid precursor protein ...,61,3,0.54,0.01707,BP,Up
-106,GO:0007274,neuromuscular synaptic transmission,23,2,0.2,0.01762,BP,Up
-107,GO:0034381,plasma lipoprotein particle clearance,23,2,0.2,0.01762,BP,Up
-108,GO:0048149,behavioral response to ethanol,23,2,0.2,0.01762,BP,Up
-109,GO:1905906,regulation of amyloid fibril formation,23,2,0.2,0.01762,BP,Up
-110,GO:0019752,carboxylic acid metabolic process,758,13,6.75,0.01771,BP,Up
-111,GO:0019915,lipid storage,62,3,0.55,0.01783,BP,Up
-112,GO:1990748,cellular detoxification,62,3,0.55,0.01783,BP,Up
-113,GO:0006356,regulation of transcription by RNA polym...,24,2,0.21,0.01911,BP,Up
-114,GO:0035469,determination of pancreatic left/right a...,24,2,0.21,0.01911,BP,Up
-115,GO:0031644,regulation of nervous system process,115,4,1.02,0.01946,BP,Up
-116,GO:0032612,interleukin-1 production,116,4,1.03,0.02002,BP,Up
-117,GO:0032652,regulation of interleukin-1 production,116,4,1.03,0.02002,BP,Up
-118,GO:1901652,response to peptide,380,8,3.38,0.02046,BP,Up
-119,GO:0010460,positive regulation of heart rate,25,2,0.22,0.02066,BP,Up
-120,GO:0071910,determination of liver left/right asymme...,25,2,0.22,0.02066,BP,Up
-121,GO:0095500,acetylcholine receptor signaling pathway,25,2,0.22,0.02066,BP,Up
-122,GO:0032640,tumor necrosis factor production,119,4,1.06,0.02176,BP,Up
-123,GO:0032680,regulation of tumor necrosis factor prod...,119,4,1.06,0.02176,BP,Up
-124,GO:0003084,positive regulation of systemic arterial...,26,2,0.23,0.02225,BP,Up
-125,GO:0071706,tumor necrosis factor superfamily cytoki...,122,4,1.09,0.02359,BP,Up
-126,GO:1903555,regulation of tumor necrosis factor supe...,122,4,1.09,0.02359,BP,Up
-127,GO:0042698,ovulation cycle,69,3,0.61,0.02362,BP,Up
-128,GO:0042987,amyloid precursor protein catabolic proc...,69,3,0.61,0.02362,BP,Up
-129,GO:0051937,catecholamine transport,69,3,0.61,0.02362,BP,Up
-130,GO:0097237,cellular response to toxic substance,69,3,0.61,0.02362,BP,Up
-131,GO:0016358,dendrite development,248,6,2.21,0.02364,BP,Up
-132,GO:0031640,killing of cells of another organism,27,2,0.24,0.02389,BP,Up
-133,GO:0046456,icosanoid biosynthetic process,27,2,0.24,0.02389,BP,Up
-134,GO:0141061,disruption of cell in another organism,27,2,0.24,0.02389,BP,Up
-135,GO:1905145,cellular response to acetylcholine,27,2,0.24,0.02389,BP,Up
-136,GO:0044272,sulfur compound biosynthetic process,183,5,1.63,0.02394,BP,Up
-137,GO:0042398,cellular modified amino acid biosyntheti...,71,3,0.63,0.02544,BP,Up
-138,GO:1904659,glucose transmembrane transport,71,3,0.63,0.02544,BP,Up
 139,GO:1900273,positive regulation of long-term synapti...,28,2,0.25,0.02558,BP,Up
-140,GO:0006690,icosanoid metabolic process,72,3,0.64,0.02638,BP,Up
-141,GO:0008645,hexose transmembrane transport,72,3,0.64,0.02638,BP,Up
-142,GO:0050728,negative regulation of inflammatory resp...,127,4,1.13,0.02684,BP,Up
-143,GO:0006810,transport,3777,44,33.63,0.027,BP,Up
-144,GO:0006911,"phagocytosis, engulfment",29,2,0.26,0.02732,BP,Up
-145,GO:0009303,rRNA transcription,29,2,0.26,0.02732,BP,Up
-146,GO:2000463,positive regulation of excitatory postsy...,30,2,0.27,0.0291,BP,Up
-147,GO:0065003,protein-containing complex assembly,1078,16,9.6,0.03023,BP,Up
-148,GO:0015844,monoamine transport,76,3,0.68,0.03031,BP,Up
-149,GO:0043603,amide metabolic process,905,14,8.06,0.03084,BP,Up
-150,GO:0001963,"synaptic transmission, dopaminergic",31,2,0.28,0.03093,BP,Up
+5,GO:0010744,positive regulation of macrophage derive...,5,2,0.04,0.00077,BP,Up
 151,GO:0051446,positive regulation of meiotic cell cycl...,31,2,0.28,0.03093,BP,Up
-152,GO:0098926,postsynaptic signal transduction,31,2,0.28,0.03093,BP,Up
-153,GO:1902004,positive regulation of amyloid-beta form...,31,2,0.28,0.03093,BP,Up
-154,GO:0050806,positive regulation of synaptic transmis...,133,4,1.18,0.03108,BP,Up
-155,GO:0015749,monosaccharide transmembrane transport,77,3,0.69,0.03134,BP,Up
-156,GO:0042982,amyloid precursor protein metabolic proc...,77,3,0.69,0.03134,BP,Up
-157,GO:0043933,protein-containing complex organization,1362,19,12.13,0.03303,BP,Up
-158,GO:0170041,non-proteinogenic amino acid metabolic p...,79,3,0.7,0.03345,BP,Up
-159,GO:0006520,amino acid metabolic process,344,7,3.06,0.03434,BP,Up
-160,GO:0002027,regulation of heart rate,80,3,0.71,0.03453,BP,Up
-161,GO:0034219,carbohydrate transmembrane transport,80,3,0.71,0.03453,BP,Up
-162,GO:0140058,neuron projection arborization,33,2,0.29,0.03472,BP,Up
-163,GO:0097305,response to alcohol,272,6,2.42,0.03491,BP,Up
-164,GO:0046928,regulation of neurotransmitter secretion,81,3,0.72,0.03563,BP,Up
-165,GO:0032868,response to insulin,205,5,1.83,0.03648,BP,Up
-166,GO:0042219,cellular modified amino acid catabolic p...,34,2,0.3,0.03668,BP,Up
-167,GO:1902993,positive regulation of amyloid precursor...,34,2,0.3,0.03668,BP,Up
-168,GO:1990000,amyloid fibril formation,34,2,0.3,0.03668,BP,Up
-169,GO:0001666,response to hypoxia,206,5,1.83,0.03713,BP,Up
-170,GO:0050808,synapse organization,428,8,3.81,0.03768,BP,Up
-171,GO:0071375,cellular response to peptide hormone sti...,208,5,1.85,0.03845,BP,Up
-172,GO:0035023,regulation of Rho protein signal transdu...,35,2,0.31,0.03868,BP,Up
-173,GO:0051262,protein tetramerization,85,3,0.76,0.04022,BP,Up
-174,GO:0098754,detoxification,85,3,0.76,0.04022,BP,Up
-175,GO:0021695,cerebellar cortex development,36,2,0.32,0.04072,BP,Up
-176,GO:0032608,interferon-beta production,87,3,0.77,0.04262,BP,Up
-177,GO:0032648,regulation of interferon-beta production,87,3,0.77,0.04262,BP,Up
-178,GO:0051180,vitamin transport,37,2,0.33,0.0428,BP,Up
-179,GO:0003007,heart morphogenesis,362,7,3.22,0.04327,BP,Up
-180,GO:0045471,response to ethanol,148,4,1.32,0.04331,BP,Up
-181,GO:0050727,regulation of inflammatory response,287,6,2.56,0.04347,BP,Up
-182,GO:0003140,determination of left/right asymmetry in...,5,1,0.04,0.04374,BP,Up
-183,GO:0006556,S-adenosylmethionine biosynthetic proces...,5,1,0.04,0.04374,BP,Up
-184,GO:0006561,proline biosynthetic process,5,1,0.04,0.04374,BP,Up
-185,GO:0009735,response to cytokinin,5,1,0.04,0.04374,BP,Up
-186,GO:0014883,transition between fast and slow fiber,5,1,0.04,0.04374,BP,Up
-187,GO:0015870,acetylcholine transport,5,1,0.04,0.04374,BP,Up
-188,GO:0016559,peroxisome fission,5,1,0.04,0.04374,BP,Up
-189,GO:0019240,citrulline biosynthetic process,5,1,0.04,0.04374,BP,Up
-190,GO:0021698,cerebellar cortex structural organizatio...,5,1,0.04,0.04374,BP,Up
-191,GO:0031915,positive regulation of synaptic plastici...,5,1,0.04,0.04374,BP,Up
-192,GO:0045719,negative regulation of glycogen biosynth...,5,1,0.04,0.04374,BP,Up
-193,GO:0060839,endothelial cell fate commitment,5,1,0.04,0.04374,BP,Up
-194,GO:0070305,response to cGMP,5,1,0.04,0.04374,BP,Up
-195,GO:0070874,negative regulation of glycogen metaboli...,5,1,0.04,0.04374,BP,Up
-196,GO:0071321,cellular response to cGMP,5,1,0.04,0.04374,BP,Up
-197,GO:0090128,regulation of synapse maturation,5,1,0.04,0.04374,BP,Up
-198,GO:0090129,positive regulation of synapse maturatio...,5,1,0.04,0.04374,BP,Up
-199,GO:0098883,synapse pruning,5,1,0.04,0.04374,BP,Up
-200,GO:1901374,acetate ester transport,5,1,0.04,0.04374,BP,Up
-201,GO:1990535,neuron projection maintenance,5,1,0.04,0.04374,BP,Up
-202,GO:2000252,negative regulation of feeding behavior,5,1,0.04,0.04374,BP,Up
-203,GO:0035821,modulation of process of another organis...,88,3,0.78,0.04384,BP,Up
-204,GO:0099024,plasma membrane invagination,38,2,0.34,0.04492,BP,Up
-205,GO:0007268,chemical synaptic transmission,610,10,5.43,0.04601,BP,Up
-206,GO:0098916,anterograde trans-synaptic signaling,610,10,5.43,0.04601,BP,Up
-207,GO:0072359,circulatory system development,1231,17,10.96,0.04637,BP,Up
-208,GO:0036293,response to decreased oxygen levels,220,5,1.96,0.04698,BP,Up
-209,GO:0051899,membrane depolarization,39,2,0.35,0.04708,BP,Up
-210,GO:0055081,monoatomic anion homeostasis,39,2,0.35,0.04708,BP,Up
-211,GO:0043434,response to peptide hormone,293,6,2.61,0.04723,BP,Up
-212,GO:0034330,cell junction organization,613,10,5.46,0.04728,BP,Up
-213,GO:0099537,trans-synaptic signaling,613,10,5.46,0.04728,BP,Up
-214,GO:0042221,response to chemical,3405,39,30.32,0.04839,BP,Up
-215,GO:0030902,hindbrain development,154,4,1.37,0.04886,BP,Up
-216,GO:0097006,regulation of plasma lipoprotein particl...,40,2,0.36,0.04927,BP,Up
-217,GO:0140747,regulation of ncRNA transcription,40,2,0.36,0.04927,BP,Up
-218,GO:1900271,regulation of long-term synaptic potenti...,40,2,0.36,0.04927,BP,Up
-219,GO:1903749,positive regulation of establishment of ...,8,2,0.03,0.00039,BP,Down
-220,GO:1903955,positive regulation of protein targeting...,8,2,0.03,0.00039,BP,Down
-221,GO:0097154,GABAergic neuron differentiation,13,2,0.05,0.00106,BP,Down
-222,GO:0009790,embryo development,1570,14,5.92,0.0017,BP,Down
-223,GO:0042472,inner ear morphogenesis,142,4,0.54,0.00201,BP,Down
-224,GO:2000678,negative regulation of transcription reg...,18,2,0.07,0.00206,BP,Down
-225,GO:1903214,regulation of protein targeting to mitoc...,19,2,0.07,0.00229,BP,Down
-226,GO:1903747,regulation of establishment of protein l...,20,2,0.08,0.00254,BP,Down
-227,GO:2000273,positive regulation of signaling recepto...,23,2,0.09,0.00336,BP,Down
-228,GO:0048598,embryonic morphogenesis,984,10,3.71,0.00344,BP,Down
-229,GO:0042471,ear morphogenesis,165,4,0.62,0.00345,BP,Down
-230,GO:0007623,circadian rhythm,167,4,0.63,0.0036,BP,Down
-231,GO:0060348,bone development,172,4,0.65,0.004,BP,Down
-232,GO:0030326,embryonic limb morphogenesis,175,4,0.66,0.00426,BP,Down
-233,GO:0009954,proximal/distal pattern formation,26,2,0.1,0.00428,BP,Down
-234,GO:0007219,Notch signaling pathway,177,4,0.67,0.00443,BP,Down
-235,GO:0048646,anatomical structure formation involved ...,1212,11,4.57,0.00506,BP,Down
-236,GO:0035113,embryonic appendage morphogenesis,187,4,0.7,0.00538,BP,Down
-237,GO:0042752,regulation of circadian rhythm,96,3,0.36,0.00567,BP,Down
-238,GO:0031398,positive regulation of protein ubiquitin...,100,3,0.38,0.00635,BP,Down
-239,GO:0045746,negative regulation of Notch signaling p...,33,2,0.12,0.00684,BP,Down
-240,GO:0009888,tissue development,2038,15,7.68,0.00726,BP,Down
-241,GO:0035108,limb morphogenesis,210,4,0.79,0.00805,BP,Down
-242,GO:1901875,positive regulation of post-translationa...,113,3,0.43,0.00888,BP,Down
-243,GO:1903322,positive regulation of protein modificat...,113,3,0.43,0.00888,BP,Down
-244,GO:1903533,regulation of protein targeting,38,2,0.14,0.009,BP,Down
-245,GO:2000677,regulation of transcription regulatory r...,39,2,0.15,0.00946,BP,Down
-246,GO:0043392,negative regulation of DNA binding,40,2,0.15,0.00994,BP,Down
-247,GO:0001501,skeletal system development,493,6,1.86,0.01039,BP,Down
-248,GO:0045671,negative regulation of osteoclast differ...,41,2,0.15,0.01042,BP,Down
-249,GO:0009792,embryo development ending in birth or eg...,833,8,3.14,0.0124,BP,Down
-250,GO:0060173,limb development,247,4,0.93,0.01397,BP,Down
-251,GO:0002762,negative regulation of myeloid leukocyte...,50,2,0.19,0.01524,BP,Down
-252,GO:0071560,cellular response to transforming growth...,139,3,0.52,0.01551,BP,Down
-253,GO:0048839,inner ear development,256,4,0.97,0.01574,BP,Down
-254,GO:0071559,response to transforming growth factor b...,141,3,0.53,0.01611,BP,Down
-255,GO:0048511,rhythmic process,258,4,0.97,0.01616,BP,Down
-256,GO:0030178,negative regulation of Wnt signaling pat...,144,3,0.54,0.01703,BP,Down
-257,GO:0006572,tyrosine catabolic process,5,1,0.02,0.01871,BP,Down
-258,GO:0019954,asexual reproduction,5,1,0.02,0.01871,BP,Down
-259,GO:0035930,corticosteroid hormone secretion,5,1,0.02,0.01871,BP,Down
-260,GO:0039017,pattern specification involved in pronep...,5,1,0.02,0.01871,BP,Down
-261,GO:0050923,regulation of negative chemotaxis,5,1,0.02,0.01871,BP,Down
-262,GO:0060217,hemangioblast cell differentiation,5,1,0.02,0.01871,BP,Down
-263,GO:0061004,pattern specification involved in kidney...,5,1,0.02,0.01871,BP,Down
-264,GO:0070305,response to cGMP,5,1,0.02,0.01871,BP,Down
-265,GO:0071321,cellular response to cGMP,5,1,0.02,0.01871,BP,Down
-266,GO:0072048,renal system pattern specification,5,1,0.02,0.01871,BP,Down
-267,GO:1900122,positive regulation of receptor binding,5,1,0.02,0.01871,BP,Down
-268,GO:1903644,regulation of chaperone-mediated protein...,5,1,0.02,0.01871,BP,Down
-269,GO:2000323,negative regulation of glucocorticoid re...,5,1,0.02,0.01871,BP,Down
-270,GO:2000846,regulation of corticosteroid hormone sec...,5,1,0.02,0.01871,BP,Down
-271,GO:0006626,protein targeting to mitochondrion,57,2,0.21,0.01952,BP,Down
-272,GO:0043009,chordate embryonic development,744,7,2.8,0.02122,BP,Down
-273,GO:0043161,proteasome-mediated ubiquitin-dependent ...,281,4,1.06,0.02138,BP,Down
-274,GO:0043583,ear development,285,4,1.07,0.02238,BP,Down
-275,GO:0006559,L-phenylalanine catabolic process,6,1,0.02,0.02241,BP,Down
-276,GO:0010087,phloem or xylem histogenesis,6,1,0.02,0.02241,BP,Down
-277,GO:0015701,bicarbonate transport,6,1,0.02,0.02241,BP,Down
-278,GO:0035246,peptidyl-arginine N-methylation,6,1,0.02,0.02241,BP,Down
-279,GO:0035881,amacrine cell differentiation,6,1,0.02,0.02241,BP,Down
-280,GO:0042816,vitamin B6 metabolic process,6,1,0.02,0.02241,BP,Down
-281,GO:0090200,positive regulation of release of cytoch...,6,1,0.02,0.02241,BP,Down
-282,GO:0106070,regulation of adenylate cyclase-activati...,6,1,0.02,0.02241,BP,Down
-283,GO:1902222,erythrose 4-phosphate/phosphoenolpyruvat...,6,1,0.02,0.02241,BP,Down
-284,GO:1903378,positive regulation of oxidative stress-...,6,1,0.02,0.02241,BP,Down
-285,GO:1904753,negative regulation of vascular associat...,6,1,0.02,0.02241,BP,Down
-286,GO:0007189,adenylate cyclase-activating G protein-c...,62,2,0.23,0.02286,BP,Down
-287,GO:0060122,inner ear receptor cell stereocilium org...,62,2,0.23,0.02286,BP,Down
-288,GO:0010469,regulation of signaling receptor activit...,63,2,0.24,0.02355,BP,Down
-289,GO:0072655,establishment of protein localization to...,63,2,0.24,0.02355,BP,Down
-290,GO:0035107,appendage morphogenesis,296,4,1.12,0.02529,BP,Down
-291,GO:0006558,L-phenylalanine metabolic process,7,1,0.03,0.0261,BP,Down
-292,GO:0006646,phosphatidylethanolamine biosynthetic pr...,7,1,0.03,0.0261,BP,Down
-293,GO:0018158,protein oxidation,7,1,0.03,0.0261,BP,Down
-294,GO:0045741,positive regulation of epidermal growth ...,7,1,0.03,0.0261,BP,Down
-295,GO:0048539,bone marrow development,7,1,0.03,0.0261,BP,Down
-296,GO:0050927,positive regulation of positive chemotax...,7,1,0.03,0.0261,BP,Down
-297,GO:0060029,convergent extension involved in organog...,7,1,0.03,0.0261,BP,Down
-298,GO:1902221,erythrose 4-phosphate/phosphoenolpyruvat...,7,1,0.03,0.0261,BP,Down
-299,GO:0045638,negative regulation of myeloid cell diff...,67,2,0.25,0.02641,BP,Down
-300,GO:0045670,regulation of osteoclast differentiation,68,2,0.26,0.02714,BP,Down
-301,GO:0060349,bone morphogenesis,68,2,0.26,0.02714,BP,Down
-302,GO:1902106,negative regulation of leukocyte differe...,68,2,0.26,0.02714,BP,Down
-303,GO:1903707,negative regulation of hemopoiesis,69,2,0.26,0.02788,BP,Down
-304,GO:0070585,protein localization to mitochondrion,70,2,0.26,0.02864,BP,Down
-305,GO:0016055,Wnt signaling pathway,459,5,1.73,0.02905,BP,Down
-306,GO:0042733,embryonic digit morphogenesis,71,2,0.27,0.0294,BP,Down
-307,GO:0001833,inner cell mass cell proliferation,8,1,0.03,0.02977,BP,Down
-308,GO:0018996,"molting cycle, collagen and cuticulin-ba...",8,1,0.03,0.02977,BP,Down
-309,GO:0032369,negative regulation of lipid transport,8,1,0.03,0.02977,BP,Down
-310,GO:0042754,negative regulation of circadian rhythm,8,1,0.03,0.02977,BP,Down
-311,GO:0097094,craniofacial suture morphogenesis,8,1,0.03,0.02977,BP,Down
-312,GO:1902177,positive regulation of oxidative stress-...,8,1,0.03,0.02977,BP,Down
-313,GO:2000322,regulation of glucocorticoid receptor si...,8,1,0.03,0.02977,BP,Down
-314,GO:0198738,cell-cell signaling by wnt,464,5,1.75,0.03025,BP,Down
-315,GO:0030282,bone mineralization,76,2,0.29,0.03331,BP,Down
-316,GO:0018216,peptidyl-arginine methylation,9,1,0.03,0.03343,BP,Down
-317,GO:0021892,cerebral cortex GABAergic interneuron di...,9,1,0.03,0.03343,BP,Down
-318,GO:0032525,somite rostral/caudal axis specification,9,1,0.03,0.03343,BP,Down
-319,GO:0042308,negative regulation of protein import in...,9,1,0.03,0.03343,BP,Down
-320,GO:0046203,spermidine catabolic process,9,1,0.03,0.03343,BP,Down
-321,GO:0050926,regulation of positive chemotaxis,9,1,0.03,0.03343,BP,Down
-322,GO:1901838,positive regulation of transcription of ...,9,1,0.03,0.03343,BP,Down
-323,GO:1903026,negative regulation of RNA polymerase II...,9,1,0.03,0.03343,BP,Down
-324,GO:0048736,appendage development,325,4,1.23,0.034,BP,Down
-325,GO:0035282,segmentation,189,3,0.71,0.03439,BP,Down
-326,GO:0006511,ubiquitin-dependent protein catabolic pr...,484,5,1.82,0.03534,BP,Down
-327,GO:0030316,osteoclast differentiation,79,2,0.3,0.03576,BP,Down
-328,GO:1903531,negative regulation of secretion by cell,79,2,0.3,0.03576,BP,Down
-329,GO:0019941,modification-dependent protein catabolic...,489,5,1.84,0.03669,BP,Down
-330,GO:0030111,regulation of Wnt signaling pathway,334,4,1.26,0.03702,BP,Down
-331,GO:0031152,aggregation involved in sorocarp develop...,10,1,0.04,0.03708,BP,Down
-332,GO:0032875,regulation of DNA endoreduplication,10,1,0.04,0.03708,BP,Down
+368,GO:1902101,positive regulation of metaphase/anaphas...,13,1,0.05,0.04793,BP,Down
 333,GO:0045842,positive regulation of mitotic metaphase...,10,1,0.04,0.03708,BP,Down
 334,GO:1901970,positive regulation of mitotic sister ch...,10,1,0.04,0.03708,BP,Down
-335,GO:2001205,negative regulation of osteoclast develo...,10,1,0.04,0.03708,BP,Down
-336,GO:0051101,regulation of DNA binding,81,2,0.31,0.03743,BP,Down
-337,GO:0008593,regulation of Notch signaling pathway,82,2,0.31,0.03827,BP,Down
-338,GO:0043632,modification-dependent macromolecule cat...,499,5,1.88,0.03949,BP,Down
-339,GO:0032006,regulation of TOR signaling,84,2,0.32,0.03998,BP,Down
-340,GO:0010753,positive regulation of cGMP-mediated sig...,11,1,0.04,0.04071,BP,Down
-341,GO:0031958,corticosteroid receptor signaling pathwa...,11,1,0.04,0.04071,BP,Down
-342,GO:0036480,neuron intrinsic apoptotic signaling pat...,11,1,0.04,0.04071,BP,Down
-343,GO:0042256,cytosolic ribosome assembly,11,1,0.04,0.04071,BP,Down
-344,GO:0042921,glucocorticoid receptor signaling pathwa...,11,1,0.04,0.04071,BP,Down
-345,GO:0060088,auditory receptor cell stereocilium orga...,11,1,0.04,0.04071,BP,Down
-346,GO:1902916,positive regulation of protein polyubiqu...,11,1,0.04,0.04071,BP,Down
-347,GO:1903376,regulation of oxidative stress-induced n...,11,1,0.04,0.04071,BP,Down
-348,GO:2000831,regulation of steroid hormone secretion,11,1,0.04,0.04071,BP,Down
-349,GO:0060119,inner ear receptor cell development,86,2,0.32,0.04172,BP,Down
-350,GO:1903844,regulation of cellular response to trans...,86,2,0.32,0.04172,BP,Down
-351,GO:0031396,regulation of protein ubiquitination,205,3,0.77,0.04214,BP,Down
-352,GO:0010498,proteasomal protein catabolic process,350,4,1.32,0.04276,BP,Down
-353,GO:0006488,dolichol-linked oligosaccharide biosynth...,12,1,0.05,0.04433,BP,Down
-354,GO:0018195,peptidyl-arginine modification,12,1,0.05,0.04433,BP,Down
-355,GO:0045721,negative regulation of gluconeogenesis,12,1,0.05,0.04433,BP,Down
-356,GO:0046533,negative regulation of photoreceptor cel...,12,1,0.05,0.04433,BP,Down
-357,GO:1900120,regulation of receptor binding,12,1,0.05,0.04433,BP,Down
-358,GO:1901836,regulation of transcription of nucleolar...,12,1,0.05,0.04433,BP,Down
-359,GO:0031929,TOR signaling,92,2,0.35,0.04711,BP,Down
-360,GO:0010721,negative regulation of cell development,215,3,0.81,0.04739,BP,Down
-361,GO:0019637,organophosphate metabolic process,701,6,2.64,0.04772,BP,Down
-362,GO:0014912,negative regulation of smooth muscle cel...,13,1,0.05,0.04793,BP,Down
-363,GO:0032048,cardiolipin metabolic process,13,1,0.05,0.04793,BP,Down
-364,GO:0035929,steroid hormone secretion,13,1,0.05,0.04793,BP,Down
-365,GO:0043327,chemotaxis to cAMP,13,1,0.05,0.04793,BP,Down
-366,GO:0048715,negative regulation of oligodendrocyte d...,13,1,0.05,0.04793,BP,Down
-367,GO:0090151,establishment of protein localization to...,13,1,0.05,0.04793,BP,Down
-368,GO:1902101,positive regulation of metaphase/anaphas...,13,1,0.05,0.04793,BP,Down
-369,GO:0002761,regulation of myeloid leukocyte differen...,93,2,0.35,0.04803,BP,Down
-370,GO:0001838,embryonic epithelial tube formation,219,3,0.83,0.04958,BP,Down
 371,GO:0045669,positive regulation of osteoblast differ...,95,2,0.36,0.04989,BP,Down
-372,GO:0022848,acetylcholine-gated monoatomic cation-se...,36,5,0.29,1.00E-05,MF,Up
-373,GO:0022836,gated channel activity,357,12,2.9,3.50E-05,MF,Up
-374,GO:0016491,oxidoreductase activity,900,20,7.32,3.90E-05,MF,Up
-375,GO:0005231,excitatory extracellular ligand-gated mo...,50,5,0.41,5.20E-05,MF,Up
-376,GO:1904315,transmitter-gated monoatomic ion channel...,53,5,0.43,6.90E-05,MF,Up
-377,GO:0050660,flavin adenine dinucleotide binding,126,7,1.02,7.60E-05,MF,Up
-378,GO:0071949,FAD binding,55,5,0.45,8.30E-05,MF,Up
-379,GO:0099529,neurotransmitter receptor activity invol...,58,5,0.47,0.00011,MF,Up
-380,GO:0005261,monoatomic cation channel activity,409,12,3.33,0.00013,MF,Up
-381,GO:0005215,transporter activity,1235,23,10.04,0.00015,MF,Up
-382,GO:0005536,glucose binding,14,3,0.11,0.00018,MF,Up
-383,GO:0022857,transmembrane transporter activity,1175,22,9.55,0.00019,MF,Up
-384,GO:0099094,ligand-gated monoatomic cation channel a...,104,6,0.85,2.00E-04,MF,Up
-385,GO:0098960,postsynaptic neurotransmitter receptor a...,68,5,0.55,0.00023,MF,Up
-386,GO:0015464,acetylcholine receptor activity,16,3,0.13,0.00027,MF,Up
-387,GO:0001540,amyloid-beta binding,43,4,0.35,4.00E-04,MF,Up
-388,GO:0016672,"oxidoreductase activity, acting on a sul...",5,2,0.04,0.00065,MF,Up
-389,GO:0005353,fructose transmembrane transporter activ...,6,2,0.05,0.00096,MF,Up
-390,GO:0022824,transmitter-gated monoatomic ion channel...,94,5,0.76,0.00101,MF,Up
-391,GO:0022835,transmitter-gated channel activity,94,5,0.76,0.00101,MF,Up
-392,GO:0005216,monoatomic ion channel activity,519,12,4.22,0.00108,MF,Up
-393,GO:0004497,monooxygenase activity,143,6,1.16,0.00111,MF,Up
-394,GO:0015267,channel activity,560,12,4.55,0.00205,MF,Up
-395,GO:0022803,passive transmembrane transporter activi...,563,12,4.58,0.00215,MF,Up
-396,GO:0005230,extracellular ligand-gated monoatomic io...,113,5,0.92,0.00229,MF,Up
-397,GO:0033300,dehydroascorbic acid transmembrane trans...,10,2,0.08,0.00283,MF,Up
-398,GO:0030594,neurotransmitter receptor activity,119,5,0.97,0.00287,MF,Up
-399,GO:0008324,monoatomic cation transmembrane transpor...,584,12,4.75,0.0029,MF,Up
-400,GO:0005506,iron ion binding,174,6,1.41,0.00299,MF,Up
-401,GO:0048029,monosaccharide binding,76,4,0.62,0.00341,MF,Up
-402,GO:0030169,low-density lipoprotein particle binding,11,2,0.09,0.00344,MF,Up
-403,GO:0005112,Notch binding,41,3,0.33,0.00447,MF,Up
-404,GO:0005355,glucose transmembrane transporter activi...,13,2,0.11,0.00483,MF,Up
-405,GO:0015149,hexose transmembrane transporter activit...,13,2,0.11,0.00483,MF,Up
-406,GO:0015276,ligand-gated monoatomic ion channel acti...,195,6,1.59,0.00522,MF,Up
-407,GO:0022834,ligand-gated channel activity,197,6,1.6,0.00548,MF,Up
-408,GO:0038024,cargo receptor activity,139,5,1.13,0.00556,MF,Up
-409,GO:0005267,potassium channel activity,143,5,1.16,0.00626,MF,Up
-410,GO:0071813,lipoprotein particle binding,15,2,0.12,0.00643,MF,Up
-411,GO:0071814,protein-lipid complex binding,15,2,0.12,0.00643,MF,Up
-412,GO:0005044,scavenger receptor activity,95,4,0.77,0.00752,MF,Up
-413,GO:0016667,"oxidoreductase activity, acting on a sul...",53,3,0.43,0.00915,MF,Up
-414,GO:0015145,monosaccharide transmembrane transporter...,18,2,0.15,0.00922,MF,Up
-415,GO:0051119,sugar transmembrane transporter activity,18,2,0.15,0.00922,MF,Up
-416,GO:0015079,potassium ion transmembrane transporter ...,158,5,1.28,0.00942,MF,Up
-417,GO:0016705,"oxidoreductase activity, acting on paire...",222,6,1.8,0.00961,MF,Up
-418,GO:0004089,carbonate dehydratase activity,19,2,0.15,0.01025,MF,Up
-419,GO:0042166,acetylcholine binding,19,2,0.15,0.01025,MF,Up
-420,GO:0030165,PDZ domain binding,58,3,0.47,0.01171,MF,Up
-421,GO:0043548,phosphatidylinositol 3-kinase binding,59,3,0.48,0.01226,MF,Up
-422,GO:0015144,carbohydrate transmembrane transporter a...,22,2,0.18,0.01362,MF,Up
-423,GO:0042802,identical protein binding,1661,22,13.5,0.01471,MF,Up
-424,GO:0090482,vitamin transmembrane transporter activi...,26,2,0.21,0.01877,MF,Up
-425,GO:0015075,monoatomic ion transmembrane transporter...,750,12,6.1,0.01921,MF,Up
-426,GO:0030544,Hsp70 protein binding,32,2,0.26,0.02775,MF,Up
-427,GO:0004252,serine-type endopeptidase activity,142,4,1.15,0.0287,MF,Up
-428,GO:0020037,heme binding,142,4,1.15,0.0287,MF,Up
-429,GO:0008135,"translation factor activity, RNA binding",83,3,0.67,0.03013,MF,Up
-430,GO:0046906,tetrapyrrole binding,151,4,1.23,0.03483,MF,Up
-431,GO:0005221,intracellular cyclic nucleotide-activate...,5,1,0.04,0.04,MF,Up
-432,GO:0016649,"oxidoreductase activity, acting on the C...",5,1,0.04,0.04,MF,Up
-433,GO:0016937,short-chain fatty acyl-CoA dehydrogenase...,5,1,0.04,0.04,MF,Up
-434,GO:0043559,insulin binding,5,1,0.04,0.04,MF,Up
-435,GO:0043855,cyclic nucleotide-activated monoatomic i...,5,1,0.04,0.04,MF,Up
-436,GO:1990050,phosphatidic acid transfer activity,5,1,0.04,0.04,MF,Up
-437,GO:0051087,protein-folding chaperone binding,93,3,0.76,0.04016,MF,Up
-438,GO:0090079,"translation regulator activity, nucleic ...",96,3,0.78,0.04346,MF,Up
-439,GO:0008236,serine-type peptidase activity,167,4,1.36,0.04745,MF,Up
-440,GO:0003839,gamma-glutamylcyclotransferase activity,6,1,0.05,0.04781,MF,Up
-441,GO:0004301,epoxide hydrolase activity,6,1,0.05,0.04781,MF,Up
-442,GO:0005520,insulin-like growth factor binding,6,1,0.05,0.04781,MF,Up
-443,GO:0010997,anaphase-promoting complex binding,6,1,0.05,0.04781,MF,Up
-444,GO:0017147,Wnt-protein binding,63,3,0.25,0.0019,MF,Down
-445,GO:0000978,RNA polymerase II cis-regulatory region ...,313,5,1.22,0.0075,MF,Down
-446,GO:0000987,cis-regulatory region sequence-specific ...,335,5,1.31,0.0099,MF,Down
-447,GO:0016765,"transferase activity, transferring alkyl...",47,2,0.18,0.0145,MF,Down
-448,GO:1990837,sequence-specific double-stranded DNA bi...,528,6,2.07,0.017,MF,Down
-449,GO:0004128,"cytochrome-b5 reductase activity, acting...",5,1,0.02,0.0194,MF,Down
-450,GO:0010698,acetyltransferase activator activity,5,1,0.02,0.0194,MF,Down
-451,GO:0000977,RNA polymerase II transcription regulato...,403,5,1.58,0.0206,MF,Down
-452,GO:0008253,5'-nucleotidase activity,6,1,0.02,0.0232,MF,Down
-453,GO:0003924,GTPase activity,289,4,1.13,0.0265,MF,Down
-454,GO:0017169,CDP-alcohol phosphatidyltransferase acti...,7,1,0.03,0.0271,MF,Down
-455,GO:0003690,double-stranded DNA binding,604,6,2.36,0.0304,MF,Down
-456,GO:0008252,nucleotidase activity,8,1,0.03,0.0309,MF,Down
-457,GO:0016653,"oxidoreductase activity, acting on NAD(P...",8,1,0.03,0.0309,MF,Down
-458,GO:0031683,G-protein beta/gamma-subunit complex bin...,8,1,0.03,0.0309,MF,Down
-459,GO:0050780,dopamine receptor binding,8,1,0.03,0.0309,MF,Down
-460,GO:0050816,phosphothreonine residue binding,8,1,0.03,0.0309,MF,Down
-461,GO:0000976,transcription cis-regulatory region bind...,476,5,1.86,0.0383,MF,Down
-462,GO:0016886,"ligase activity, forming phosphoric este...",10,1,0.04,0.0385,MF,Down
-463,GO:0001067,transcription regulatory region nucleic ...,477,5,1.87,0.0386,MF,Down
-464,GO:0043565,sequence-specific DNA binding,643,6,2.52,0.0394,MF,Down
-465,GO:0004364,glutathione transferase activity,11,1,0.04,0.0422,MF,Down
-466,GO:0003841,1-acylglycerol-3-phosphate O-acyltransfe...,12,1,0.05,0.046,MF,Down
-467,GO:0004602,glutathione peroxidase activity,12,1,0.05,0.046,MF,Down
-468,GO:0008191,metalloendopeptidase inhibitor activity,12,1,0.05,0.046,MF,Down
-469,GO:0009881,photoreceptor activity,12,1,0.05,0.046,MF,Down
-470,GO:0016742,"hydroxymethyl-, formyl- and related tran...",12,1,0.05,0.046,MF,Down
-471,GO:0005525,GTP binding,346,4,1.35,0.0464,MF,Down
-472,GO:0016273,arginine N-methyltransferase activity,13,1,0.05,0.0497,MF,Down
-473,GO:0016274,protein-arginine N-methyltransferase act...,13,1,0.05,0.0497,MF,Down
-474,GO:0098691,dopaminergic synapse,5,2,0.04,0.00077,CC,Up
-475,GO:0098981,cholinergic synapse,21,3,0.19,0.00082,CC,Up
-476,GO:0005892,acetylcholine-gated channel complex,26,3,0.23,0.00155,CC,Up
-477,GO:0098802,plasma membrane signaling receptor compl...,102,5,0.91,0.00217,CC,Up
-478,GO:0034358,plasma lipoprotein particle,9,2,0.08,0.00272,CC,Up
-479,GO:1990777,lipoprotein particle,9,2,0.08,0.00272,CC,Up
-480,GO:0016020,membrane,7380,82,65.72,0.00311,CC,Up
-481,GO:0071944,cell periphery,4575,56,40.74,0.00333,CC,Up
-482,GO:0032589,neuron projection membrane,72,4,0.64,0.00388,CC,Up
-483,GO:0032994,protein-lipid complex,11,2,0.1,0.00411,CC,Up
-484,GO:0043235,receptor complex,287,8,2.56,0.00418,CC,Up
-485,GO:0042589,zymogen granule membrane,17,2,0.15,0.00981,CC,Up
-486,GO:0098590,plasma membrane region,1130,18,10.06,0.01141,CC,Up
-487,GO:0042588,zymogen granule,20,2,0.18,0.01347,CC,Up
-488,GO:0005886,plasma membrane,3555,43,31.66,0.0156,CC,Up
-489,GO:0005581,collagen trimer,61,3,0.54,0.01707,CC,Up
-490,GO:0031256,leading edge membrane,115,4,1.02,0.01946,CC,Up
-491,GO:0097060,synaptic membrane,241,6,2.15,0.02088,CC,Up
-492,GO:0098797,plasma membrane protein complex,382,8,3.4,0.02102,CC,Up
-493,GO:0032590,dendrite membrane,27,2,0.24,0.02389,CC,Up
+284,GO:1903378,positive regulation of oxidative stress-...,6,1,0.02,0.02241,BP,Down
+312,GO:1902177,positive regulation of oxidative stress-...,8,1,0.03,0.02977,BP,Down
+296,GO:0050927,positive regulation of positive chemotax...,7,1,0.03,0.0261,BP,Down
+242,GO:1901875,positive regulation of post-translationa...,113,3,0.43,0.00888,BP,Down
+243,GO:1903322,positive regulation of protein modificat...,113,3,0.43,0.00888,BP,Down
+346,GO:1902916,positive regulation of protein polyubiqu...,11,1,0.04,0.04071,BP,Down
+220,GO:1903955,positive regulation of protein targeting...,8,2,0.03,0.00039,BP,Down
+238,GO:0031398,positive regulation of protein ubiquitin...,100,3,0.38,0.00635,BP,Down
+267,GO:1900122,positive regulation of receptor binding,5,1,0.02,0.01871,BP,Down
+281,GO:0090200,positive regulation of release of cytoch...,6,1,0.02,0.02241,BP,Down
+227,GO:2000273,positive regulation of signaling recepto...,23,2,0.09,0.00336,BP,Down
+198,GO:0090129,positive regulation of synapse maturatio...,5,1,0.04,0.04374,BP,Up
+191,GO:0031915,positive regulation of synaptic plastici...,5,1,0.04,0.04374,BP,Up
+154,GO:0050806,positive regulation of synaptic transmis...,133,4,1.18,0.03108,BP,Up
+124,GO:0003084,positive regulation of systemic arterial...,26,2,0.23,0.02225,BP,Up
+46,GO:0045943,positive regulation of transcription by ...,14,2,0.12,0.00668,BP,Up
+15,GO:1901838,positive regulation of transcription of ...,9,2,0.08,0.00272,BP,Up
+322,GO:1901838,positive regulation of transcription of ...,9,1,0.03,0.03343,BP,Down
 494,GO:0045211,postsynaptic membrane,127,4,1.13,0.02683,CC,Up
-495,GO:0034702,monoatomic ion channel complex,194,5,1.73,0.02978,CC,Up
-496,GO:0030054,cell junction,1866,24,16.62,0.04,CC,Up
-497,GO:0060417,yolk,5,1,0.04,0.04374,CC,Up
-498,GO:0097224,sperm connecting piece,5,1,0.04,0.04374,CC,Up
-499,GO:0098892,extrinsic component of postsynaptic spec...,5,1,0.04,0.04374,CC,Up
+385,GO:0098960,postsynaptic neurotransmitter receptor a...,68,5,0.55,0.00023,MF,Up
+152,GO:0098926,postsynaptic signal transduction,31,2,0.28,0.03093,BP,Up
+409,GO:0005267,potassium channel activity,143,5,1.16,0.00626,MF,Up
+416,GO:0015079,potassium ion transmembrane transporter ...,158,5,1.28,0.00942,MF,Up
+184,GO:0006561,proline biosynthetic process,5,1,0.04,0.04374,BP,Up
+21,GO:0006560,proline metabolic process,10,2,0.09,0.00338,BP,Up
+352,GO:0010498,proteasomal protein catabolic process,350,4,1.32,0.04276,BP,Down
+273,GO:0043161,proteasome-mediated ubiquitin-dependent ...,281,4,1.06,0.02138,BP,Down
+2,GO:0051259,protein complex oligomerization,234,10,2.08,4.60E-05,BP,Up
+3,GO:0051260,protein homooligomerization,180,8,1.6,0.00021,BP,Up
+36,GO:0070207,protein homotrimerization,12,2,0.11,0.0049,BP,Up
+304,GO:0070585,protein localization to mitochondrion,70,2,0.26,0.02864,BP,Down
+293,GO:0018158,protein oxidation,7,1,0.03,0.0261,BP,Down
+271,GO:0006626,protein targeting to mitochondrion,57,2,0.21,0.01952,BP,Down
+173,GO:0051262,protein tetramerization,85,3,0.76,0.04022,BP,Up
+35,GO:0070206,protein trimerization,12,2,0.11,0.0049,BP,Up
+473,GO:0016274,protein-arginine N-methyltransferase act...,13,1,0.05,0.0497,MF,Down
+147,GO:0065003,protein-containing complex assembly,1078,16,9.6,0.03023,BP,Up
+157,GO:0043933,protein-containing complex organization,1362,19,12.13,0.03303,BP,Up
+437,GO:0051087,protein-folding chaperone binding,93,3,0.76,0.04016,MF,Up
+483,GO:0032994,protein-lipid complex,11,2,0.1,0.00411,CC,Up
+411,GO:0071814,protein-lipid complex binding,15,2,0.12,0.00643,MF,Up
+233,GO:0009954,proximal/distal pattern formation,26,2,0.1,0.00428,BP,Down
+484,GO:0043235,receptor complex,287,8,2.56,0.00418,CC,Up
+282,GO:0106070,regulation of adenylate cyclase-activati...,6,1,0.02,0.02241,BP,Down
+81,GO:0051952,regulation of amine transport,99,4,0.88,0.01181,BP,Up
+109,GO:1905906,regulation of amyloid fibril formation,23,2,0.2,0.01762,BP,Up
+105,GO:1902991,regulation of amyloid precursor protein ...,61,3,0.54,0.01707,BP,Up
+64,GO:1902003,regulation of amyloid-beta formation,49,3,0.44,0.00944,BP,Up
+77,GO:0050433,regulation of catecholamine secretion,51,3,0.45,0.01053,BP,Up
+350,GO:1903844,regulation of cellular response to trans...,86,2,0.32,0.04172,BP,Down
+268,GO:1903644,regulation of chaperone-mediated protein...,5,1,0.02,0.01871,BP,Down
+29,GO:0010885,regulation of cholesterol storage,11,2,0.1,0.00411,BP,Up
+237,GO:0042752,regulation of circadian rhythm,96,3,0.36,0.00567,BP,Down
+69,GO:1905918,regulation of CoA-transferase activity,17,2,0.15,0.00981,BP,Up
+270,GO:2000846,regulation of corticosteroid hormone sec...,5,1,0.02,0.01871,BP,Down
+53,GO:0050773,regulation of dendrite development,88,4,0.78,0.00788,BP,Up
+336,GO:0051101,regulation of DNA binding,81,2,0.31,0.03743,BP,Down
+332,GO:0032875,regulation of DNA endoreduplication,10,1,0.04,0.03708,BP,Down
+226,GO:1903747,regulation of establishment of protein l...,20,2,0.08,0.00254,BP,Down
+313,GO:2000322,regulation of glucocorticoid receptor si...,8,1,0.03,0.02977,BP,Down
+160,GO:0002027,regulation of heart rate,80,3,0.71,0.03453,BP,Up
+181,GO:0050727,regulation of inflammatory response,287,6,2.56,0.04347,BP,Up
+177,GO:0032648,regulation of interferon-beta production,87,3,0.77,0.04262,BP,Up
+76,GO:0032651,regulation of interleukin-1 beta product...,95,4,0.85,0.01026,BP,Up
+117,GO:0032652,regulation of interleukin-1 production,116,4,1.03,0.02002,BP,Up
+96,GO:0032675,regulation of interleukin-6 production,104,4,0.93,0.01394,BP,Up
+47,GO:0010883,regulation of lipid storage,44,3,0.39,0.00701,BP,Up
+218,GO:1900271,regulation of long-term synaptic potenti...,40,2,0.36,0.04927,BP,Up
+52,GO:0010743,regulation of macrophage derived foam ce...,15,2,0.13,0.00766,BP,Up
+369,GO:0002761,regulation of myeloid leukocyte differen...,93,2,0.35,0.04803,BP,Down
+217,GO:0140747,regulation of ncRNA transcription,40,2,0.36,0.04927,BP,Up
+261,GO:0050923,regulation of negative chemotaxis,5,1,0.02,0.01871,BP,Down
+115,GO:0031644,regulation of nervous system process,115,4,1.02,0.01946,BP,Up
+164,GO:0046928,regulation of neurotransmitter secretion,81,3,0.72,0.03563,BP,Up
+67,GO:0014061,regulation of norepinephrine secretion,17,2,0.15,0.00981,BP,Up
+337,GO:0008593,regulation of Notch signaling pathway,82,2,0.31,0.03827,BP,Down
+300,GO:0045670,regulation of osteoclast differentiation,68,2,0.26,0.02714,BP,Down
+347,GO:1903376,regulation of oxidative stress-induced n...,11,1,0.04,0.04071,BP,Down
+216,GO:0097006,regulation of plasma lipoprotein particl...,40,2,0.36,0.04927,BP,Up
+321,GO:0050926,regulation of positive chemotaxis,9,1,0.03,0.03343,BP,Down
+48,GO:0060078,regulation of postsynaptic membrane pote...,86,4,0.77,0.00728,BP,Up
+244,GO:1903533,regulation of protein targeting,38,2,0.14,0.009,BP,Down
+225,GO:1903214,regulation of protein targeting to mitoc...,19,2,0.07,0.00229,BP,Down
+351,GO:0031396,regulation of protein ubiquitination,205,3,0.77,0.04214,BP,Down
+357,GO:1900120,regulation of receptor binding,12,1,0.05,0.04433,BP,Down
+172,GO:0035023,regulation of Rho protein signal transdu...,35,2,0.31,0.03868,BP,Up
+288,GO:0010469,regulation of signaling receptor activit...,63,2,0.24,0.02355,BP,Down
+348,GO:2000831,regulation of steroid hormone secretion,11,1,0.04,0.04071,BP,Down
+197,GO:0090128,regulation of synapse maturation,5,1,0.04,0.04374,BP,Up
+101,GO:0032225,"regulation of synaptic transmission, dop...",22,2,0.2,0.01618,BP,Up
+100,GO:2000300,regulation of synaptic vesicle exocytosi...,59,3,0.53,0.01562,BP,Up
+65,GO:0001978,regulation of systemic arterial blood pr...,17,2,0.15,0.00981,BP,Up
+66,GO:0003025,regulation of systemic arterial blood pr...,17,2,0.15,0.00981,BP,Up
+339,GO:0032006,regulation of TOR signaling,84,2,0.32,0.03998,BP,Down
+43,GO:0099177,regulation of trans-synaptic signaling,439,10,3.91,0.00592,BP,Up
+113,GO:0006356,regulation of transcription by RNA polym...,24,2,0.21,0.01911,BP,Up
+37,GO:1901836,regulation of transcription of nucleolar...,12,2,0.11,0.0049,BP,Up
+358,GO:1901836,regulation of transcription of nucleolar...,12,1,0.05,0.04433,BP,Down
+245,GO:2000677,regulation of transcription regulatory r...,39,2,0.15,0.00946,BP,Down
+123,GO:0032680,regulation of tumor necrosis factor prod...,119,4,1.06,0.02176,BP,Up
+126,GO:1903555,regulation of tumor necrosis factor supe...,122,4,1.09,0.02359,BP,Up
+330,GO:0030111,regulation of Wnt signaling pathway,334,4,1.26,0.03702,BP,Down
+266,GO:0072048,renal system pattern specification,5,1,0.02,0.01871,BP,Down
+71,GO:0003014,renal system process,94,4,0.84,0.0099,BP,Up
+94,GO:0009628,response to abiotic stimulus,1153,18,10.27,0.01386,BP,Up
+41,GO:1905144,response to acetylcholine,40,3,0.36,0.00536,BP,Up
+163,GO:0097305,response to alcohol,272,6,2.42,0.03491,BP,Up
+194,GO:0070305,response to cGMP,5,1,0.04,0.04374,BP,Up
+264,GO:0070305,response to cGMP,5,1,0.02,0.01871,BP,Down
+214,GO:0042221,response to chemical,3405,39,30.32,0.04839,BP,Up
+104,GO:0009409,response to cold,61,3,0.54,0.01707,BP,Up
+185,GO:0009735,response to cytokinin,5,1,0.04,0.04374,BP,Up
+208,GO:0036293,response to decreased oxygen levels,220,5,1.96,0.04698,BP,Up
+180,GO:0045471,response to ethanol,148,4,1.32,0.04331,BP,Up
+27,GO:0032094,response to food,36,3,0.32,0.00398,BP,Up
+169,GO:0001666,response to hypoxia,206,5,1.83,0.03713,BP,Up
+165,GO:0032868,response to insulin,205,5,1.83,0.03648,BP,Up
+4,GO:0035094,response to nicotine,63,5,0.56,0.00024,BP,Up
+118,GO:1901652,response to peptide,380,8,3.38,0.02046,BP,Up
+211,GO:0043434,response to peptide hormone,293,6,2.61,0.04723,BP,Up
+99,GO:0009266,response to temperature stimulus,224,6,1.99,0.01513,BP,Up
+254,GO:0071559,response to transforming growth factor b...,141,3,0.53,0.01611,BP,Down
+255,GO:0048511,rhythmic process,258,4,0.97,0.01616,BP,Down
+445,GO:0000978,RNA polymerase II cis-regulatory region ...,313,5,1.22,0.0075,MF,Down
+451,GO:0000977,RNA polymerase II transcription regulato...,403,5,1.58,0.0206,MF,Down
+145,GO:0009303,rRNA transcription,29,2,0.26,0.02732,BP,Up
+183,GO:0006556,S-adenosylmethionine biosynthetic proces...,5,1,0.04,0.04374,BP,Up
+412,GO:0005044,scavenger receptor activity,95,4,0.77,0.00752,MF,Up
 500,GO:0019005,SCF ubiquitin ligase complex,41,2,0.16,0.011,CC,Down
-501,GO:0031526,brush border membrane,50,2,0.19,0.016,CC,Down
-502,GO:0070776,MOZ/MORF histone acetyltransferase compl...,5,1,0.02,0.019,CC,Down
-503,GO:0000151,ubiquitin ligase complex,271,4,1.05,0.021,CC,Down
-504,GO:0097381,photoreceptor disc membrane,6,1,0.02,0.023,CC,Down
-505,GO:0070775,H3 histone acetyltransferase complex,7,1,0.03,0.027,CC,Down
-506,GO:1990452,Parkin-FBXW7-Cul1 ubiquitin ligase compl...,7,1,0.03,0.027,CC,Down
-507,GO:0005776,autophagosome,69,2,0.27,0.03,CC,Down
-508,GO:0031461,cullin-RING ubiquitin ligase complex,173,3,0.67,0.03,CC,Down
-509,GO:0016589,NURF complex,8,1,0.03,0.031,CC,Down
+325,GO:0035282,segmentation,189,3,0.71,0.03439,BP,Down
+90,GO:0050893,sensory processing,20,2,0.18,0.01347,BP,Up
+464,GO:0043565,sequence-specific DNA binding,643,6,2.52,0.0394,MF,Down
+448,GO:1990837,sequence-specific double-stranded DNA bi...,528,6,2.07,0.017,MF,Down
+427,GO:0004252,serine-type endopeptidase activity,142,4,1.15,0.0287,MF,Up
+439,GO:0008236,serine-type peptidase activity,167,4,1.36,0.04745,MF,Up
+433,GO:0016937,short-chain fatty acyl-CoA dehydrogenase...,5,1,0.04,0.04,MF,Up
+247,GO:0001501,skeletal system development,493,6,1.86,0.01039,BP,Down
+318,GO:0032525,somite rostral/caudal axis specification,9,1,0.03,0.03343,BP,Down
+498,GO:0097224,sperm connecting piece,5,1,0.04,0.04374,CC,Up
+320,GO:0046203,spermidine catabolic process,9,1,0.03,0.03343,BP,Down
+364,GO:0035929,steroid hormone secretion,13,1,0.05,0.04793,BP,Down
+16,GO:1990170,stress response to cadmium ion,9,2,0.08,0.00272,BP,Up
+61,GO:0097501,stress response to metal ion,16,2,0.14,0.0087,BP,Up
+415,GO:0051119,sugar transmembrane transporter activity,18,2,0.15,0.00922,MF,Up
+136,GO:0044272,sulfur compound biosynthetic process,183,5,1.63,0.02394,BP,Up
+170,GO:0050808,synapse organization,428,8,3.81,0.03768,BP,Up
+199,GO:0098883,synapse pruning,5,1,0.04,0.04374,BP,Up
+491,GO:0097060,synaptic membrane,241,6,2.15,0.02088,CC,Up
+8,GO:0007271,"synaptic transmission, cholinergic",23,3,0.2,0.00107,BP,Up
+150,GO:0001963,"synaptic transmission, dopaminergic",31,2,0.28,0.03093,BP,Up
+430,GO:0046906,tetrapyrrole binding,151,4,1.23,0.03483,MF,Up
+240,GO:0009888,tissue development,2038,15,7.68,0.00726,BP,Down
+359,GO:0031929,TOR signaling,92,2,0.35,0.04711,BP,Down
+213,GO:0099537,trans-synaptic signaling,613,10,5.46,0.04728,BP,Up
+461,GO:0000976,transcription cis-regulatory region bind...,476,5,1.86,0.0383,MF,Down
+463,GO:0001067,transcription regulatory region nucleic ...,477,5,1.87,0.0386,MF,Down
+447,GO:0016765,"transferase activity, transferring alkyl...",47,2,0.18,0.0145,MF,Down
 510,GO:1990234,transferase complex,613,6,2.39,0.031,CC,Down
-511,GO:0005834,heterotrimeric G-protein complex,12,1,0.05,0.046,CC,Down
-512,GO:0035267,NuA4 histone acetyltransferase complex,13,1,0.05,0.049,CC,Down
-513,GO:0042622,photoreceptor outer segment membrane,13,1,0.05,0.049,CC,Down
+186,GO:0014883,transition between fast and slow fiber,5,1,0.04,0.04374,BP,Up
+429,GO:0008135,"translation factor activity, RNA binding",83,3,0.67,0.03013,MF,Up
+438,GO:0090079,"translation regulator activity, nucleic ...",96,3,0.78,0.04346,MF,Up
+9,GO:0055085,transmembrane transport,1298,23,11.56,0.00109,BP,Up
+383,GO:0022857,transmembrane transporter activity,1175,22,9.55,0.00019,MF,Up
+391,GO:0022835,transmitter-gated channel activity,94,5,0.76,0.00101,MF,Up
+376,GO:1904315,transmitter-gated monoatomic ion channel...,53,5,0.43,6.90E-05,MF,Up
+390,GO:0022824,transmitter-gated monoatomic ion channel...,94,5,0.76,0.00101,MF,Up
+143,GO:0006810,transport,3777,44,33.63,0.027,BP,Up
+381,GO:0005215,transporter activity,1235,23,10.04,0.00015,MF,Up
+122,GO:0032640,tumor necrosis factor production,119,4,1.06,0.02176,BP,Up
+125,GO:0071706,tumor necrosis factor superfamily cytoki...,122,4,1.09,0.02359,BP,Up
+257,GO:0006572,tyrosine catabolic process,5,1,0.02,0.01871,BP,Down
+503,GO:0000151,ubiquitin ligase complex,271,4,1.05,0.021,CC,Down
+326,GO:0006511,ubiquitin-dependent protein catabolic pr...,484,5,1.82,0.03534,BP,Down
+280,GO:0042816,vitamin B6 metabolic process,6,1,0.02,0.02241,BP,Down
+424,GO:0090482,vitamin transmembrane transporter activi...,26,2,0.21,0.01877,MF,Up
+178,GO:0051180,vitamin transport,37,2,0.33,0.0428,BP,Up
+305,GO:0016055,Wnt signaling pathway,459,5,1.73,0.02905,BP,Down
+444,GO:0017147,Wnt-protein binding,63,3,0.25,0.0019,MF,Down
+497,GO:0060417,yolk,5,1,0.04,0.04374,CC,Up
+487,GO:0042588,zymogen granule,20,2,0.18,0.01347,CC,Up
+485,GO:0042589,zymogen granule membrane,17,2,0.15,0.00981,CC,Up
