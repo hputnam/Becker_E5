@@ -1,35 +1,36 @@
-﻿Gene Name,Function,Description,References,Pverr gene ID
+﻿Gene Name,Function,Hypothesis driven connection,References,Pverr gene ID
 DNA methyltransferase 1-associated protein 1 (DMAP1),DNA methylation,Epigenetic regulation,(Li et al. 2018),Pver_g18078
-Protein Wnt-1 (WNT1),Signal transduction in response to DNA damage,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g1505
-Protein Wnt-10a (WNT10A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g1503
-Protein Wnt-16 (WNT16) ,Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g8290
-Protein Wnt-2b-A (WNT2B-A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g7267
-Protein Wnt-3a (WNT3A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g1484
-Protein Wnt-4 (WNT4),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g10298
-Protein Wnt-7b (WNT7B),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),"Pver_g15458; Pver_g2080; Pver_g9722, Pver_g3044"
-Protein Wnt-8a (WNT8A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g3045
-Protein Wnt-8b (WNT8B),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g13424; Pver_g25757; Pver_g3037; Pver_g3038; Pver_3040; Pver_g3041; Pver_g3409
-Protein wntless homolog (WLS),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g17386
-Proto-oncogene Wnt-3 (WNT3),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g3039
+GDP-D-glucose phosphorylase 1,GDP-D-glucose phosphorylase activity,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),Pver_g5685
+Glucose-1-phosphate adenylyltransferase 1,Glycogen biosynthetic process,Glycogenogenesis,(Lehnert et al. 2014; Matthews et al. 2017),Pver_g24968
+Glucose-6-phosphate exchanger (SLC37A4),Glucose-6-phosphate transport,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),Pver_g19061; Pver_g632; Pver_g633
+Glucose-6-phosphate isomerase (GPI),Gluconeogenesis,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),"Pver_g15167;	Pver_g24572; Pver_g15167; Pver_g24572; Pver_g18012; Pver_g15167; Pver_g18012"
+Glucose-fructose oxidoreductase domain-containing protein 1,Extracellular matrix organization,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),Pver_g7207
+Glucose-induced degradation protein 4 homolog,Protein ubiquitination,Protein synthesis,(Li et al. 2018) (Matthews et al. 2017),Pver_g15080
+Glucose-induced degradation protein 8 homolog,Proteasome-mediated ubiquitin-dependent protein catabolic process,Protein synthesis,(Li et al. 2018) (Matthews et al. 2017),Pver_g5984
+Protein Wnt-1 (WNT1),Signal transduction in response to DNA damage,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019)  (Matthews et al. 2017),Pver_g1505
+Protein Wnt-10a (WNT10A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019)  (Matthews et al. 2017),Pver_g1503
+Protein Wnt-16 (WNT16) ,Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019)  (Matthews et al. 2017),Pver_g8290
+Protein Wnt-2b-A (WNT2B-A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019)  (Matthews et al. 2017),Pver_g7267
+Protein Wnt-3a (WNT3A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019)  (Matthews et al. 2017),Pver_g1484
+Protein Wnt-4 (WNT4),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019)  (Matthews et al. 2017),Pver_g10298
+Protein Wnt-5a (WNT-5A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019)  (Matthews et al. 2017),Pver_g2081
+Protein Wnt-6 (WNT6),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019)  (Matthews et al. 2017),Pver_g1504
+Protein Wnt-7b (WNT7B),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019)  (Matthews et al. 2017),"Pver_g15458; Pver_g2080; Pver_g9722, Pver_g3044"
+Protein Wnt-8a (WNT8A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019)  (Matthews et al. 2017),Pver_g3045
+Protein Wnt-8b (WNT8B),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019)  (Matthews et al. 2017),Pver_g13424; Pver_g25757; Pver_g3037; Pver_g3038; Pver_3040; Pver_g3041; Pver_g3409
+Protein wntless homolog (WLS),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019)  (Matthews et al. 2017),Pver_g17386
+Proto-oncogene Wnt-3 (WNT3),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019)  (Matthews et al. 2017),Pver_g3039
 Ras-related C3 botulinum toxin substrate 1 (RAC1),Cell signal transduction,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g100
+Sodium-dependent glucose transporter 1 ,Transmembrane transporter activity,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),Pver_g23612; Pver_g26072 
+"Solute carrier family 2, facilitated glucose transporter member 12 (Slc2a12)",Glucose transmembrane transport,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),Pver_g5841
+"Solute carrier family 2, facilitated glucose transporter member 3 (SLC2A3)",Glucose transporter,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),Pver_g2345
+"Solute carrier family 2, facilitated glucose transporter member 8 (SLC2A8)",Glucose metabolic process,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),Pver_g10343; Pver_g10340
+UDP-galactose/UDP-glucose transporter 7,Pyrimidine nucleotide-sugar transmembrane transport,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),Pver_g15600.
+UDP-glucose 4-epimerase,Galactose metabolism,"Symbiosis establishment, breakdown, regulation, central metabolism",(Li et al. 2018) (Matthews et al. 2017),Pver_g24152
+UDP-glucose:glycoprotein glucosyltransferase 1,Protein glycosylation,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),Pver_g905
+Uridine diphosphate glucose pyrophosphatase NUDT14,Nitrogen compound metabolic process,Nitrogen metabolism,(Lehnert et al. 2014; Matthews et al. 2017),Pver_g14200; Pver_g14202
+Uridine diphosphate glucose pyrophosphatase NUDT22,Pyrophosphatase activity,Transcription,(Lehnert et al. 2014; Matthews et al. 2017),Pver_g2836; Pver_g15121
 Wnt inhibitory factor 1 (WIF1),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g14948
-Protein Wnt-5a (WNT-5A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g2081
-Protein Wnt-6 (WNT6),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g1504
-"Solute carrier family 2, facilitated glucose transporter member 12 (Slc2a12)",Glucose transmembrane transport,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
-"Solute carrier family 2, facilitated glucose transporter member 3 (SLC2A3)",Glucose transporter,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
-Glucose-6-phosphate isomerase (GPI),Carbohydrate metabolic process,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
-Glucose-6-phosphate exchanger (SLC37A4),,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
-UDP-glucose 4-epimerase,Galactose metabolism,"Symbiosis establishment, breakdown, regulation, central metabolism",(Li et al. 2018) (Matthews et al. 2017),
-GDP-D-glucose phosphorylase 1,,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
-Glucose-fructose oxidoreductase domain-containing protein 1,,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
-Glucose-induced degradation protein 4 homolog,,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
-Glucose-induced degradation protein 8 homolog,,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
-Glucose-1-phosphate adenylyltransferase 1,,Carbon metabolism,(Lehnert et al. 2014; Matthews et al. 2017),
-"Solute carrier family 2, facilitated glucose transporter member 8 (SLC2A8)",,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),
-Sodium-dependent glucose transporter 1 ,,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),
-Uridine diphosphate glucose pyrophosphatase ,,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),
-UDP-glucose:glycoprotein glucosyltransferase 1,,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),
-UDP-galactose/UDP-glucose transporter 7,,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),
 ,Glutamine synthetase,GS-GOGAT/ammonium assimilation/nitrogen metabolism,(Fam et al. 2018; Roberty et al. 2020; Pernice et al. 2012),
 ,Glutamate synthase,GS-GOGAT/ammonium assimilation/nitrogen metabolism,(Fam et al. 2018; Roberty et al. 2020; Pernice et al. 2012),
 ,Glutamate dehydrogenase,GS-GOGAT/ammonium assimilation/nitrogen metabolism,(Fam et al. 2018; Roberty et al. 2020; Pernice et al. 2012),
@@ -43,14 +44,14 @@ UDP-galactose/UDP-glucose transporter 7,,Carbohydrate transport and storage,(L
 ,Uric acid synthesis,Purine pathway/ major route for assimilation of nitrogen,(Clode et al. 2009),
 ,Protein folding,Stress response,(Rädecker et al. 2021),
 ,Immune system process,Immune response,(Rädecker et al. 2021),
-,Innate immune response,Immune response,(Rädecker et al. 2021),
-,Response to stress,Stress response,(Rädecker et al. 2021),
-,DNA replication,Stress response,(Rädecker et al. 2021),
-,DNA repair,Stress response,(Rädecker et al. 2021),
+,Innate immune response,Immune response,(Rädecker et al. 2021)  (Matthews et al. 2017),
+,Response to stress,Stress response,(Rädecker et al. 2021)  (Matthews et al. 2017),
+,DNA replication,Stress response,(Rädecker et al. 2021) (Matthews et al. 2017),
+,DNA repair,Stress response,(Rädecker et al. 2021)  (Matthews et al. 2017),
 ,Histone phosphorylation,Nutrient response/stress response,(Rodriguez-Casariego et al. 2018),
-,ATP binding,ATPsynthesis/cellular energy supply,(Rädecker et al. 2021),
-,Fatty acid biosynthetic process,Fatty acid synthesis/nutrient metabolism,(Lehnert et al. 2014),
-,Methionine biosynthetic process,One carbon metabolism/amino acid synthesis,(Lehnert et al. 2014),
+,ATP binding,ATPsynthesis/cellular energy supply,(Rädecker et al. 2021)  (Matthews et al. 2017),
+,Fatty acid biosynthetic process,Fatty acid synthesis/nutrient metabolism,(Lehnert et al. 2014)  (Matthews et al. 2017),
+,Methionine biosynthetic process,One carbon metabolism/amino acid synthesis,(Lehnert et al. 2014)  (Matthews et al. 2017),
 ,MAPK signaling,Cellular maintenace and differentiation and host-sym interactions/signaling,(Voolstra et al. 2009),
 ,Glycine transporter,Symbiosis transport,(Lehnert et al. 2014),
 ,Ammonium transporter,Nitrogen metabolism/ symbiosis transport,(Lehnert et al. 2014),
