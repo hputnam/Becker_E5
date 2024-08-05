@@ -1,8 +1,35 @@
-﻿Gene Name,Definition,Function,References,Pverr gene ID
-ETV2,Wnt signaling pathway,Cell proliferation regulation,(Cui et al. 2023),
-SLC2A3,Glucose binding,Glycolysis and central carbon metabolism,(Matthews et al. 2017),
-SLC2A12,Glucose transmembrane transport,Carbohydrate transport and storage,(Matthews et al. 2017),
-,Glucose transporter,Carbon metabolism,(Lehnert et al. 2014; Matthews et al. 2017),
+﻿Gene Name,Function,Description,References,Pverr gene ID
+DNA methyltransferase 1-associated protein 1 (DMAP1),DNA methylation,Epigenetic regulation,(Li et al. 2018),Pver_g18078
+Protein Wnt-1 (WNT1),Signal transduction in response to DNA damage,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g1505
+Protein Wnt-10a (WNT10A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g1503
+Protein Wnt-16 (WNT16) ,Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g8290
+Protein Wnt-2b-A (WNT2B-A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g7267
+Protein Wnt-3a (WNT3A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g1484
+Protein Wnt-4 (WNT4),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g10298
+Protein Wnt-7b (WNT7B),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),"Pver_g15458; Pver_g2080; Pver_g9722, Pver_g3044"
+Protein Wnt-8a (WNT8A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g3045
+Protein Wnt-8b (WNT8B),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g13424; Pver_g25757; Pver_g3037; Pver_g3038; Pver_3040; Pver_g3041; Pver_g3409
+Protein wntless homolog (WLS),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g17386
+Proto-oncogene Wnt-3 (WNT3),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g3039
+Ras-related C3 botulinum toxin substrate 1 (RAC1),Cell signal transduction,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g100
+Wnt inhibitory factor 1 (WIF1),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g14948
+Protein Wnt-5a (WNT-5A),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g2081
+Protein Wnt-6 (WNT6),Involved in Wnt signaling pathway,"Cell proliferation regulation, signal transduction; wnt signaling pathway",(Khalturin et al.2019),Pver_g1504
+"Solute carrier family 2, facilitated glucose transporter member 12 (Slc2a12)",Glucose transmembrane transport,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
+"Solute carrier family 2, facilitated glucose transporter member 3 (SLC2A3)",Glucose transporter,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
+Glucose-6-phosphate isomerase (GPI),Carbohydrate metabolic process,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
+Glucose-6-phosphate exchanger (SLC37A4),Glucose transporter,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
+UDP-glucose 4-epimerase,Galactose metabolism,"Symbiosis establishment, breakdown, regulation, central metabolism",(Li et al. 2018) (Matthews et al. 2017),
+GDP-D-glucose phosphorylase 1,Glucose transporter,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
+Glucose-fructose oxidoreductase domain-containing protein 1,Glucose transporter,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
+Glucose-induced degradation protein 4 homolog,Glucose transporter,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
+Glucose-induced degradation protein 8 homolog,Glucose transport,Carbohydrate transport and storage,(Li et al. 2018) (Matthews et al. 2017),
+Glucose-1-phosphate adenylyltransferase 1,Glucose transporter,Carbon metabolism,(Lehnert et al. 2014; Matthews et al. 2017),
+"Solute carrier family 2, facilitated glucose transporter member 8 (SLC2A8)",Glucose transporter,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),
+Sodium-dependent glucose transporter 1 ,Glucose transporter,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),
+Uridine diphosphate glucose pyrophosphatase ,Glucose transporter,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),
+UDP-glucose:glycoprotein glucosyltransferase 1,Glucose transporter,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),
+UDP-galactose/UDP-glucose transporter 7,Glucose transporter,Carbohydrate transport and storage,(Lehnert et al. 2014; Matthews et al. 2017),
 ,Glutamine synthetase,GS-GOGAT/ammonium assimilation/nitrogen metabolism,(Fam et al. 2018; Roberty et al. 2020; Pernice et al. 2012),
 ,Glutamate synthase,GS-GOGAT/ammonium assimilation/nitrogen metabolism,(Fam et al. 2018; Roberty et al. 2020; Pernice et al. 2012),
 ,Glutamate dehydrogenase,GS-GOGAT/ammonium assimilation/nitrogen metabolism,(Fam et al. 2018; Roberty et al. 2020; Pernice et al. 2012),
@@ -36,7 +63,6 @@ SLC2A12,Glucose transmembrane transport,Carbohydrate transport and storage,(Matt
 ,Short-chain fatty acyl-CoA dehydrogenase activity,Lipid metabolism/TCA cycle,(Oakley et al. 2016),
 ,GTPase activity,Symbiosome transport,(Oakley et al. 2016),
 ,Tyrosine catabolic process,"TCA cycle, protein synthesis, symbiosis maintenance",(Zhang et al. 2024),
-,DNA methyltransferase,DNA methylation,(Li et al. 2018),
 ,Apoptosis,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),
 ,Phagosome formation,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),
 ,Nitrogen metabolism,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),
@@ -96,5 +122,6 @@ SLC2A12,Glucose transmembrane transport,Carbohydrate transport and storage,(Matt
 ,Actin,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
 ,Lysosomal-associated transmembrane protein,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
 ,Phosphatidylinositol-3-phosphate,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,"Phosphatidylinositol (3,4,5)-trisphosphate","Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Ras-related C3 botulinum toxin substrate 1,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
+,Phosphatidylinositol trisphosphate,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
+,Oxidoreductase activity,"Stress response, symbiont regulation",(Rädecker et al. 2021) (Azevedo-martins et al. 2014),
+,Lipoprotein transport,Lipid metabolism/TCA cycle/carbon metabolism,(Rädecker et al. 2021),
