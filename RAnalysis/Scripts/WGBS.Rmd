@@ -122,6 +122,10 @@ MD.10x <- readRDS("RAnalysis/Data/filtered_bed_SNP_file.Rdata") #read in info
 
 head(MD.10x)
 
+# Remove samples that had low data coverage from following analysis 
+MD.10x_filtered <- MD.10x[!(MD.10x$fragment.ID %in% c('PV_28', 'PV_7', 'PV_8')), ]
+
+
 ```
 
 
@@ -130,7 +134,7 @@ head(MD.10x)
 # Comparison of enriched vs control nutrient treatments
 # At 10x coverage
 # Binomial GLM to test for differentially methylated genes
-sub_meth_table.10x  <- MD.10x
+sub_meth_table.10x  <- MD.10x_filtered 
 sub_meth_table.10x$group <- paste0(sub_meth_table.10x$Sample.ID, sub_meth_table.10x$gene)
 
 #filter for genes with >5 methylated positions
@@ -152,7 +156,7 @@ gs.10x <- unique(sub_meth_table.10x$gene)
 # 
 #   # fit glm position model
 #   #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
-#    fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment,
+ #   fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment,
 #               data=sub_meth_table.10x1, family=binomial)
 #    a <- anova(fit, test="Chisq")
 # 
@@ -199,9 +203,9 @@ write.table(DMG.sig.annot.10x, 'RAnalysis/Treatment_sig_annot.10x.tsv', sep='\t'
 ```
 
 
-#Calculate hyper- and hypo- methylation from data using in significant DMGs
+# Assign hyper- and hypo- methylation from data using DMGs
 ```{r}
-# We have DMGs already, so now test the mean difference between enriched and control to determine hyper and hypomethylated
+# We have DMGs already, so now find the mean difference between enriched and control to determine hyper and hypomethylated
 #select certain columns
 methylation_data <- MD.10x %>%
   filter(gene %in% DMG.sig.annot.10x$gene)
@@ -234,12 +238,25 @@ hypo_genes <- merged_data$gene[merged_data$MeanDifference < 0]
 num_hyper_genes <- length(hyper_genes) #164 Count of hypermethylated genes
 num_hypo_genes <- length(hypo_genes) #203 Count of hypomethylated genes
 
-# Make DMG dataframe with hyper and hypo methylation status
-DMG_all <- left_join(result_df, results.10x)
+# Add the 'direction' column to merged_data
+merged_data <- merged_data %>%
+  mutate(direction = case_when(
+    MeanDifference > 0 ~ "hypermethylated",
+    MeanDifference < 0 ~ "hypomethylated",
+    TRUE ~ NA_character_
+  ))
 
-# Select and keep specific columns (gene, metthylation_status, adj.pval.treatment)
+# Remove control rows
+merged_data <- merged_data %>%
+  filter(treatment != control_group)
+
+# Assuming DMG.sig.annot.10x has a 'gene' column
+# Merge the direction information back into the original DMG dataframe
+DMG_all <- left_join(DMG.sig.annot.10x, merged_data %>% select(gene, direction), by = "gene")
+
+# Select and keep specific columns (gene, direction, adj.pval.treatment)
 methylation_data_selected <- DMG_all %>%
-  select(gene, methylation_status, adj.pval.treatment)
+  select(gene, direction, adj.pval.treatment)
 
 # Save CSV for DMG topGO analysis
 write.csv(methylation_data_selected, "RAnalysis/Output/DMGs_all.csv")

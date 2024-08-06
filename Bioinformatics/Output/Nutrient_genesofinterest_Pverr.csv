@@ -1,5 +1,5 @@
 ﻿Gene Name,Function,Hypothesis driven connection,References,Pverr gene ID,
-Acyl-coenzyme A thioesterase 3 (ACOT3),Response to nutrient levels,Nutrient response,(Rosic et al. 2014),Pver_g1361; Pver_g19389,
+Acyl-coenzyme A thioesterase 3 (ACOT3),Response to nutrient levels,Biosynthesis and regulation of fatty acid levels,(Rosic et al. 2014),Pver_g1361; Pver_g19389,
 Acyl-coenzyme A thioesterase 5 (ACOT5),Response to nutrient levels,Nutrient response,(Rosic et al. 2014),Pver_g20419,
 Antiviral innate immune response receptor RIG-I (DDX58),Innate immune response,Immune response,(Rädecker et al. 2021)  (Matthews et al. 2017),Pver_g3238; Pver_g13643,
 Apoptosis regulator BAX (BAX),Cellular response to DNA damage stimulus,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g4513; Pver_g4515,
