@@ -178,7 +178,8 @@ pverr_annot_organized <- bind_rows(swiss_long, trembl_long, interpro_long, blast
 # remove any without go.IDs
 # Remove rows with NA in GO_ID or GO_names
 pver_annot_cleaned <- pverr_annot_organized%>%
-  filter(!is.na(GO_ID) & !is.na(GO_names))
+  filter(!is.na(GO_ID) & !is.na(GO_names)) %>%
+  select(gene_id, Description, GO_names)
 
 # Count unique gene IDs
 unique_gene_ids_count <- pver_annot_cleaned %>%
