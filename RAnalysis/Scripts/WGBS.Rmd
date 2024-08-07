@@ -56,7 +56,7 @@ library(cowplot)
 
 #Downloaded all final .bed files for and 10x from andromeda to desktop: scp -r danielle_becker@andromeda.uri.edu:/data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*_enrichment.bed /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/WGBS
 
-###Samples C28, E7, and E8 had low data coverage, not moving forward with these samples in statistical steps
+###Samples E2, E16, AND C19 had low data coverage, not moving forward with these samples in statistical steps
 
 Methylation Analysis
 ## Loading genomic and annotation
@@ -122,9 +122,6 @@ MD.10x <- readRDS("RAnalysis/Data/filtered_bed_SNP_file.Rdata") #read in info
 
 head(MD.10x)
 
-# Remove samples that had low data coverage from following analysis 
-MD.10x_filtered <- MD.10x[!(MD.10x$fragment.ID %in% c('PV_28', 'PV_7', 'PV_8')), ]
-
 
 ```
 
@@ -134,7 +131,7 @@ MD.10x_filtered <- MD.10x[!(MD.10x$fragment.ID %in% c('PV_28', 'PV_7', 'PV_8')),
 # Comparison of enriched vs control nutrient treatments
 # At 10x coverage
 # Binomial GLM to test for differentially methylated genes
-sub_meth_table.10x  <- MD.10x_filtered 
+sub_meth_table.10x  <- MD.10x 
 sub_meth_table.10x$group <- paste0(sub_meth_table.10x$Sample.ID, sub_meth_table.10x$gene)
 
 #filter for genes with >5 methylated positions
@@ -156,7 +153,7 @@ gs.10x <- unique(sub_meth_table.10x$gene)
 # 
 #   # fit glm position model
 #   #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
- #   fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment,
+#   fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment,
 #               data=sub_meth_table.10x1, family=binomial)
 #    a <- anova(fit, test="Chisq")
 # 
@@ -198,7 +195,7 @@ sum(DMG.sig.10x$adj.pval.treatment < 0.05, na.rm=TRUE) #How many adjusted p-valu
 # Annotation of DMG under between treatments 
 DMG.sig.annot.10x <- left_join(DMG.sig.10x , Annot, by="gene")
 #DMG.sig.annot <- DMG.sig.annot[!duplicated(DMG.sig.annot$gene),]
-write.table(DMG.sig.annot.10x, 'RAnalysis/Treatment_sig_annot.10x.tsv', sep='\t', row.names=FALSE)
+write.table(DMG.sig.annot.10x, 'RAnalysis/Output/Treatment_sig_annot.10x.tsv', sep='\t', row.names=FALSE)
 
 ```
 

@@ -74,12 +74,10 @@ Wnt inhibitory factor 1 (WIF1),Involved in Wnt signaling pathway,"Cell prolif
 Xanthine dehydrogenase/oxidase (XDH),Detoxification of nitrogen compound,Purine pathway/major route for assimilation of nitrogen,(Rädecker et al. 2021),Pver_g2509; Pver_g11531;  Pver_g2246
 Ras GTPase-activating protein 1 (RASA1),Signal transduction,Stress response,(Rädecker et al. 2021)  (Matthews et al. 2017),Pver_g13153
 Stress response protein nst1 (NST1),Regulation of stress-activated MAPK cascade,Stress response,(Rädecker et al. 2021)  (Matthews et al. 2017),Pver_g13340
-DNA repair protein (XRCC1),DNA repair,Stress response,(Rädecker et al. 2021)  (Matthews et al. 2017),Pver_g884; Pver_g12023; Pver_g8716; Pver_g2730; Pver_g5333; Pver_g9106; Pver_novel_model_417_5de57afd
 DNA repair protein RAD51 homolog 4 (RAD51D),DNA repair,Stress response,(Rädecker et al. 2021)  (Matthews et al. 2017),Pver_g26358; Pver_g1830; Pver_g12266
 General transcription and DNA repair factor IIH helicase subunit XPB (ERCC2),DNA repair and general transcription,Stress response,(Rädecker et al. 2021)  (Matthews et al. 2017),Pver_g5826; Pver_g2105
 Histone H2A,DNA repair,Stress response,(Rädecker et al. 2021)  (Matthews et al. 2017),Pver_g5728; Pver_g12996; Pver_g13682; Pver_g17490; Pver_g23690; Pver_g26263; Pver_g26272; Pver_novel_model_770_5de57afd
 DNA repair protein RecN ,DNA repair,Stress response,(Rädecker et al. 2021)  (Matthews et al. 2017),Pver_g24836
-DNA repair protein REV1 ,DNA repair,Stress response,(Rädecker et al. 2021)  (Matthews et al. 2017),Pver_g13015
 DNA repair endonuclease XPF ,DNA repair,Stress response,(Rädecker et al. 2021)  (Matthews et al. 2017),Pver_g7317; Pver_g7318; Pver_g19533; Pver_g7319; Pver_g7320; Pver_g19795; Pver_g20664
 DNA repair and recombination protein RAD54,DNA repair and recommbination,Stress response,(Rädecker et al. 2021)  (Matthews et al. 2017),Pver_g3356; Pver_g3721; Pver_g13189
 Serine/threonine-protein kinase pim-2 (PIM2),Histone phosphorylation,Nutrient response/stress response,(Rodriguez-Casariego et al. 2018),Pver_g15024; Pver_g15028; Pver_g5125
@@ -93,21 +91,22 @@ S-adenosylmethionine synthase (MAT),S-adenosylmethionine biosynthetic process
 Pver_g18546"
 Mitochondrial glycine transporter (SLC25A38),Glycine transporter,Symbiosis transport,(Lehnert et al. 2014),Pver_g6919
 Vesicular inhibitory amino acid transporter (SLC32A1),Glycine transporter,Symbiosis transport,(Lehnert et al. 2014),Pver_g9371; Pver_g9370; Pver_g3248; Pver_g11546
-Proton-coupled amino acid transporter (SLC36A1),Glycine transporter,Symbiosis transport,(Lehnert et al. 2014),
-Putative ammonium transporter (AMT),Ammonium transporter,Nitrogen metabolism/ symbiosis transport,(Lehnert et al. 2014),
-Ammonium transporter (AMTA),Ammonium transporter,Nitrogen metabolism/ symbiosis transport,(Lehnert et al. 2014),
-Ammonium transporter (AMTA),Ammonium transporter,Nitrogen metabolism/ symbiosis transport,(Lehnert et al. 2014),
-,Lipid storage,Carbon metabolism,(Lehnert et al. 2014),
-,Fatty acid transport,Carbon metabolism,(Lehnert et al. 2014),
-,Phosphate transporter,Nitrogen metabolism and symbiosis transport,(Lehnert et al. 2014),
-,Putative UDP-sugar transporter,Nitrogen metabolism and symbiosis transport,(Lehnert et al. 2014),
-,S-adenosylmethionine,Methylation/nitrogen metabolism,(Lehnert et al. 2014),
-,1-acylglycerol-3-phosphate-O-acyltransferase,Lipid metabolism/TCA cycle,(Oakley et al. 2016),
-,Short-chain fatty acyl-CoA dehydrogenase activity,Lipid metabolism/TCA cycle,(Oakley et al. 2016),
-,GTPase activity,Symbiosome transport,(Oakley et al. 2016),
-,Tyrosine catabolic process,"TCA cycle, protein synthesis, symbiosis maintenance",(Zhang et al. 2024),
-,Apoptosis,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),
-,Phagosome formation,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),
+Proton-coupled amino acid transporter (SLC36A1),Glycine transporter,Symbiosis transport,(Lehnert et al. 2014),Pver_g16042; Pver_g7695
+Putative ammonium transporter (AMT),Ammonium transporter,Nitrogen metabolism/ symbiosis transport,(Lehnert et al. 2014),Pver_g7799; Pver_g14912; Pver_g14913; Pver_g14915; Pver_g3214; Pver_g10300; Pver_g10301; Pver_g10302; Pver_g10303; Pver_g12207; Pver_g12208
+Ammonium transporter Rh type (RHG),Ammonium transporter,Nitrogen metabolism/ symbiosis transport,(Lehnert et al. 2014),Pver_g11488; Pver_g13194; Pver_g13192; Pver_g13193
+Ammonium transporter (AMTA),Ammonium transporter,Nitrogen metabolism/ symbiosis transport,(Lehnert et al. 2014),Pver_g12856
+Low-affinity phosphate transporter (PHO91),Phosphate transporter,Nitrogen metabolism and symbiosis transport,(Lehnert et al. 2014),Pver_g23808; Pver_g8883; Pver_g1381; Pver_g24862; Pver_g23808
+Sodium-dependent phosphate transporter (SLC20A),Phosphate transporter,Nitrogen metabolism and symbiosis transport,(Lehnert et al. 2014),Pver_g3147
+Probable UDP-sugar transporter (SLC35A4),UDP-sugar diphosphatase activity,Nitrogen metabolism and symbiosis transport,(Lehnert et al. 2014),Pver_g11785; Pver_g14200; Pver_g14202
+5-methylcytosine rRNA methyltransferase (NSUN4),S-adenosylmethionine-dependent methyltransferase activity,Methylation/nitrogen metabolism,(Lehnert et al. 2014),Pver_g12167; Pver_g4265; Pver_g127; Pver_g19032; Pver_g3973
+(Lyso)-N-acylphosphatidylethanolamine lipase  (ABHD4),1-acylglycerol-3-phosphate-O-acyltransferase activity,Lipid metabolism/TCA cycle,(Oakley et al. 2016),Pver_g7166; Pver_g15784; Pver_g15783
+Glycerol-3-phosphate acyltransferase (GPAT3),1-acylglycerol-3-phosphate-O-acyltransferase activity,Lipid metabolism/TCA cycle,(Oakley et al. 2016),Pver_g16737
+Lysocardiolipin acyltransferase (LCLAT1),1-acylglycerol-3-phosphate-O-acyltransferase activity,Lipid metabolism/TCA cycle,(Oakley et al. 2016),Pver_g751; Pver_g14589; Pver_g22809; Pver_g15169
+1-acyl-sn-glycerol-3-phosphate acyltransferase (AGPAT1),1-acylglycerol-3-phosphate-O-acyltransferase activity,Lipid metabolism/TCA cycle,(Oakley et al. 2016),Pver_g14810
+Tyrosine aminotransferase (TAT),Tyrosine catabolic process,"TCA cycle, protein synthesis, symbiosis maintenance",(Zhang et al. 2024),
+Fumarylacetoacetase (FAH),Tyrosine catabolic process,"TCA cycle, protein synthesis, symbiosis maintenance",(Zhang et al. 2024),
+Homogentisate (HGO),Tyrosine catabolic process,"TCA cycle, protein synthesis, symbiosis maintenance",(Zhang et al. 2024),
+4-hydroxyphenylpyruvate dioxygenase (HPD),Tyrosine catabolic process,"TCA cycle, protein synthesis, symbiosis maintenance",(Zhang et al. 2024),
 ,Arginine biosynthesis,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),
 ,Carbonic anhydrase,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),
 ,Amino acid transporter,"Symbiosis maintenance, transport, carbon metabolism",(Li et al. 2018),

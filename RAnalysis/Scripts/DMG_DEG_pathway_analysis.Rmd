@@ -86,7 +86,7 @@ gene_dnam <- readRDS("RAnalysis/Output/sample_all_methylated_data_10x.Rdata") #r
 
 #rename sample.ID to include corresponding E and C in front for enriched and control for later analysis
 gene_dnam <- gene_dnam %>%
-    mutate(Sample.ID = recode(Sample.ID, '1' = 'E1', '3' = 'E3', '4' = 'E4', '5' = 'E5', '6' = 'E6', '7' = 'E7', '8' = 'E8', '9' = 'E9','10' = 'E10', '11' = 'E11', '12' = 'E12','13' = 'E13', '14' = 'E14', '15' = 'E15', '16' = 'E16', '17' = 'C17', '18' = 'C18', '20' = 'C20', '21' = 'C21', '22' = 'C22', '23' = 'C23', '24' = 'C24', '25' = 'C25', '26' = 'C26', '27' = 'C27', '28' = 'C28', '29' = 'C29', '30' = 'C30', '31' = 'C31', '32' = 'C32'))
+    mutate(Sample.ID = recode(Sample.ID, '1' = 'E1', '3' = 'E3', '4' = 'E4', '5' = 'E5', '6' = 'E6', '7' = 'E7', '8' = 'E8', '9' = 'E9','10' = 'E10', '11' = 'E11', '12' = 'E12','13' = 'E13', '14' = 'E14', '15' = 'E15', '17' = 'C17', '18' = 'C18', '20' = 'C20', '21' = 'C21', '22' = 'C22', '23' = 'C23', '24' = 'C24', '25' = 'C25', '26' = 'C26', '27' = 'C27', '28' = 'C28', '29' = 'C29', '30' = 'C30', '31' = 'C31', '32' = 'C32'))
 
 #check to see all where renamed correctly
 unique(gene_dnam$Sample.ID)
