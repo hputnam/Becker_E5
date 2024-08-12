@@ -137,7 +137,6 @@ MD.10x <- readRDS("RAnalysis/Data/filtered_bed_SNP_file.Rdata") #read in info
 
 head(MD.10x)
 
-
 ```
 
 

@@ -105,51 +105,29 @@ Isocitrate dehydrogenase ,Isocitrate dehydrogenase (NADP+) activity,GS-GOGAT/
 Amino acid transporter (AVT1A),Amino acid transport,"Symbiosis maintenance, transport, carbon metabolism",(Li et al. 2018),Pver_g1051; Pver_g1052; Pver_g10585; Pver_g11546; Pver_g12082; Pver_g14084; Pver_g16042; Pver_g16066; Pver_g16526; Pver_g16573; Pver_g16574; Pver_g16575; Pver_g18787; Pver_g18841; Pver_g18843; Pver_g22961; Pver_g6061; Pver_g6063; Pver_g6086
 V-type proton ATPase (VHA55),ATPase binding,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),Pver_g9247; Pver_g854; Pver_g8526; Pver_g7223; Pver_g6679; Pver_g6678; Pver_g4909; Pver_g470; Pver_g3809; Pver_g3145; Pver_g21517; Pver_g17862; Pver_g16157; Pver_g16122; Pver_g14665
 Sugar transporter (SWT),Transmembrane transporter activity,"Symbiosis maintenance, transport, carbon metabolism",(Li et al. 2018),Pver_g10181; Pver_g11785; Pver_g4061
-Monocarboxylate transporter-10,,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),
-Monocarboxylate transporter-4,,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),
-,Alcohol dehydrogenase,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),
-,Aldehyde dehydrogenase,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),
-,Nitric oxide synthase ,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),
-,Arginase,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),
-,Carbamoyl-phosphate synthase (ammonia),"Symbiosis maintenance, transport/glutamate synthase",(Li et al. 2018),
-,Complement receptor,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Scavenger receptor,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,C-type lectin,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Integrin,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Toll-like receptor,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,"Regulation of gene expression, epigenetic",Epignetic regulation,(Li et al. 2018),
-,Histone methyltransferase activity ,Epignetic regulation,(Li et al. 2018),
-,Collagen,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Vesicle-associated membrane protein,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Autophagy-related protein 16,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Ras-related protein 5 ,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Rab7,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Reduced form of nicotinamide adenine dinucleotide oxidase,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Syntaxin 12,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,ATG5,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,ATG10,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Programmed cell death 6–interacting protein,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Sorting nexin,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Cytoplasmic dynein,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Tubulin alpha chain,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Tubulin beta chain,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Lysosome-associated membrane glycoprotein/cluster of differentiation,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Cathepsin L,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Kinesin,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,"Phosphatidylinositol 4,5-bisphosphate 3-kinase","Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Tumor necrosis factor receptor–associated factor,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,RAC serine/threonine-protein kinase,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,B cell lymphoma 2 (Bcl-2) antagonist of cell death,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,NF-κB,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Rho,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Rho-associated protein kinase,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Phosphatidylinositol 4-phosphate 5-kinase ,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Vinculin,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Radixin,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Profilin,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Actin,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Lysosomal-associated transmembrane protein,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Phosphatidylinositol-3-phosphate,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Phosphatidylinositol trisphosphate,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),
-,Oxidoreductase activity,"Stress response, symbiont regulation",(Rädecker et al. 2021) (Azevedo-martins et al. 2014),
-,Lipoprotein transport,Lipid metabolism/TCA cycle/carbon metabolism,(Rädecker et al. 2021) (Ganot et al. 2011),
+Monocarboxylate transporter-10 (SLC16A10),Monocarboxylic acid transport,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),Pver_g248; Pver_g249; Pver_g1508; Pver_g1510; Pver_g6817; Pver_g6815; Pver_g6818; Pver_g7615
+Monocarboxylate transporter-4 (SLC16A3),Monocarboxylic acid transport,"Symbiosis maintenance, transport, regulation",(Li et al. 2018),Pver_g661; Pver_g20319; Pver_g88; Pver_g17629
+Carbamoyl-phosphate synthase (CARA),Carbamoyl-phosphate synthase (glutamine-hydrolyzing) activity,"Symbiosis maintenance, transport/glutamate synthase",(Li et al. 2018),Pver_g5891; Pver_g24831; Pver_g390
+Phosphatidylinositol-glycan-specific phospholipase D (GPLD1),Complement receptor mediated signaling pathway,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g8458; Pver_g5791; Pver_g11514; Pver_g5053; Pver_g8456
+Protein arginine N-methyltransferase,Histone methyltransferase activity ,Epignetic regulation,(Li et al. 2018),Pver_g498; Pver_g1583; Pver_g13784; Pver_g3932
+Ras-related protein 5 (RAB5),Vesicle-mediated transport,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g10333; Pver_g14690; Pver_g1903; Pver_g1904; Pver_g26583; Pver_g9361
+Ras-related protein (RAB7),Protein to membrane docking,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g8460
+Mitochondrial nicotinamide adenine dinucleotide transporter (SLC25A51),Short-chain fatty acid transport,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g3019; Pver_g5188; Pver_g7976
+Syntaxin-12 (STX12),Protein transport,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g5874; Pver_g15292
+Autophagy protein 5 (ATG5),Immune system process,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g11262
+Autophagy protein 10 (ATG10),Cellular response to nitrogen starvation,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g14561
+Programmed cell death protein 6 (PDCD6),Apoptotic process,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g9326; Pver_g6673
+Tubulin alpha chain (TUBA),Microtubule cytoskeleton organization,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g11460; Pver_g1489; Pver_g1490; Pver_g19924; Pver_g25827; Pver_g5896; Pver_g5897; Pver_g6766; Pver_g9718
+Tubulin beta chain (TUBB),Tubulin beta chain,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g876; Pver_g7644; Pver_g7643; Pver_g7642; Pver_g7641; Pver_g25702; Pver_g14383; Pver_g1053
+Serine/threonine-protein kinase H1 (PSKH1),Protein phosphorylation,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g5173
+Rho guanine nucleotide exchange factor 17 (ARHGEF17),Response to oxidative stress,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g8528
+Rho-associated protein kinase 2 (ROCK2),Protein phosphorylation,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g7481; Pver_g26287
+Rho GTPase-activating protein 6 (ARHGAP6),Rho protein signal transduction,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g15914
+Phosphatidylinositol 4-phosphate 5-kinase (PIP5K1A),Phosphatidylinositol biosynthetic process,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g12421
+Lysosomal-associated transmembrane protein 4A (LAPTM4A),Lysosomal membrane nutrient uptake,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g12836
+Nitric oxide synthase (NOS),Nitric oxide mediated signal transduction,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g16173; Pver_g264
+Alcohol dehydrogenase (ADH),Alcohol dehydrogenase (NAD+) activity,"Symbiosis establishment, breakdown, regulation",(Li et al. 2018),Pver_g15015; Pver_g14476; Pver_g23869; Pver_g25184; Pver_g19964
+NADP-dependent oxidoreductase  (YFMJ),Oxidoreductase activity,"Stress response, symbiont regulation",(Rädecker et al. 2021) (Azevedo-martins et al. 2014) (Li et al. 2018),Pver_g24065
+Low-density lipoprotein receptor-related protein 4 (LRP4),DNA integration,Lipid metabolism/TCA cycle/carbon metabolism,(Rädecker et al. 2021) (Ganot et al. 2011) (Li et al. 2018),Pver_g12532; Pver_g19760; Pver_g19849; Pver_g20273
+Quinone oxidoreductase PIG3 (TP53I3),Oxidoreductase activity,"Stress response, symbiont regulation",(Rädecker et al. 2021) (Azevedo-martins et al. 2014) (Li et al. 2018),Pver_g13587; Pver_g13588
+"NADH-ubiquinone oxidoreductase 75 kDa subunit, mitochondrial  (NDUFS1)",Reactive oxygen species metabolic process,"Stress response, symbiont regulation",(Rädecker et al. 2021) (Azevedo-martins et al. 2014) (Li et al. 2018),Pver_g773; Pver_g4701
