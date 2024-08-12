@@ -18,6 +18,7 @@ editor_options:
 library(plotrix) 
 library(ggplot2)
 library(gridExtra)
+library(factoextra)
 library(seacarb) 
 library(dplyr)
 library(pheatmap)
@@ -56,7 +57,7 @@ library(cowplot)
 
 #Downloaded all final .bed files for and 10x from andromeda to desktop: scp -r danielle_becker@andromeda.uri.edu:/data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*_enrichment.bed /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/WGBS
 
-###Samples E2, E16, AND C19 had low data coverage, not moving forward with these samples in statistical steps
+###Samples E7, E8, AND C28 had low data coverage, not moving forward with these samples in statistical steps
 
 Methylation Analysis
 ## Loading genomic and annotation
@@ -81,7 +82,7 @@ Annot$gene <-  gsub("\\..*","",Annot$gene) #remove the all after . "t#" number a
 Annot$gene <-  gsub("_","_gene_",Annot$gene) #add _gene_g#
 
 #load all gene GO IDs organized and split
-Gene.GO.IDs <- read.csv("Functional_Annotation/pver_GOterms_interprot_swissprot_blast_trembl_20221203.csv", row.names = 1)
+Gene.GO.IDs <- read.csv("Functional_Annotation/pver_GOterms_interprot_swissprot_blast_trembl_20211203.csv", row.names = 1)
 colnames(Gene.GO.IDs) <- c("gene", "GO.IDs") #rename columns
 
 #edit gene ID to match GFF3
@@ -91,25 +92,39 @@ Gene.GO.IDs$GO.IDs <- as.character(Gene.GO.IDs$GO.IDs) #make IDs into characters
 GO.IDs <-unique(Gene.GO.IDs$GO.IDs) #removes duplicates from columns, compiles both lists to get all GO terms without duplicates
 ```
 
-#Load filtered methylation counts 10x (only need to run initially, commented out as we updated in the next section with the filtered SNPs data)
+#Load filtered methylation counts 10x (only need to run initially, redone on 20240810, commented out as we filtered SNPs from the output in the next section)
 ```{r}
-# #Merge final .bed files at 10x coverage
-# meth.data.10x <- list.files(path = "RAnalysis/Data/WGBS/10x_methcounts/", pattern = ".bed$", full.names=TRUE) %>%
-#   purrr::set_names(.) %>% 
-#   map_dfr(read.csv,.id="Sample.ID", header=FALSE, sep="\t", na.string="NA", stringsAsFactors = FALSE) %>% 
-#   dplyr::select(-c(V3,V7:V14)) %>%
-#   group_by(Sample.ID)
-# colnames(meth.data.10x) <- c("Sample.ID", "scaffold", "position","per.meth","meth","unmeth","gene")
-# meth.data.10x$gene <- gsub(";.*","",meth.data.10x$gene) #remove extra characters
-# meth.data.10x$gene <- gsub("ID=","",meth.data.10x$gene) #remove extra characters
-# meth.data.10x$Sample.ID <- gsub("RAnalysis/Data/WGBS/10x_methcounts//","",meth.data.10x$Sample.ID) #remove extra characters
-# meth.data.10x$Sample.ID <- gsub("_.*","",meth.data.10x$Sample.ID) #remove extra characters 
-# #meth.data.10x$Sample.ID <- gsub("-","_",meth.data.10x$Sample.ID) #remove extra characters
-# #meth.data.10x$Sample.ID <- gsub("/","",meth.data.10x$Sample.ID) #remove extra characters (backslash from sample.ID name)
-# MD.10x <- merge(meth.data.10x,sample.info, by="Sample.ID") #combine sample info and 10x coverage megafile
+# # #Merge final .bed files at 10x coverage
+#  meth.data.10x <- list.files(path = "Bioinformatics/Data/10x_methcounts/", pattern = ".bed$", full.names=TRUE) %>%
+#    purrr::set_names(.) %>% 
+#    map_dfr(read.csv,.id="WGS.lib.ID", header=FALSE, sep="\t", na.string="NA", stringsAsFactors = FALSE) %>% 
+#    dplyr::select(-c(V3,V7:V14)) %>%
+#    group_by(WGS.lib.ID)
 # 
+#  colnames(meth.data.10x) <- c("WGBS.lib.ID", "scaffold", "position","per.meth","meth","unmeth","gene") #change column names
+#  meth.data.10x$gene <- gsub(";.*","",meth.data.10x$gene) #remove extra characters
+#  meth.data.10x$gene <- gsub("ID=","",meth.data.10x$gene) #remove extra characters
+#  meth.data.10x$WGBS.lib.ID <- gsub("Bioinformatics/Data/10x_methcounts//","",meth.data.10x$WGBS.lib.ID) #remove extra characters
+#  meth.data.10x$WGBS.lib.ID <- gsub("_.*","",meth.data.10x$WGBS.lib.ID) #remove extra characters 
+#  unique_lib_ids <- unique(meth.data.10x$WGBS.lib.ID) # check all unique IDs included
+#  #meth.data.10x$WGBS.lib.ID <- gsub("-","_",meth.data.10x$WGBS.lib.ID) #remove extra characters
+#  #meth.data.10x$WGBS.lib.ID <- gsub("/","",meth.data.10x$WGBS.lib.ID) #remove extra characters (backslash from sample.ID name)
+#  
+#  #combine sample info and 10x coverage megafile
+#  MD.10x <- merge(meth.data.10x, sample.info, by="WGBS.lib.ID")
+#  unique_fragment_ids <- unique(MD.10x$fragment.ID) # check all unique IDs included
+#  
+# # Filter WGBS libraries 2, 16, and 19 that had low coverage
+# # Define libraries with low coverage
+# low_coverage_libraries <- c(2, 16, 19)
+# 
+# # Filter out these libraries from the combined dataset
+# MD.10x_filtered <- MD.10x[!MD.10x$WGBS.lib.ID %in% low_coverage_libraries, ]
+# unique_library_ids <- unique(MD.10x_filtered$WGBS.lib.ID)
+# print(unique_library_ids)
+ 
 # #save sample info and percent methylation
-# saveRDS(MD.10x, "RAnalysis/Output/WGBS/sample_all_methylated_data_10x.Rdata")
+# saveRDS(MD.10x_filtered, "RAnalysis/Output/sample_all_methylated_data_10x.Rdata")
 
 ```
 
@@ -131,7 +146,7 @@ head(MD.10x)
 # Comparison of enriched vs control nutrient treatments
 # At 10x coverage
 # Binomial GLM to test for differentially methylated genes
-sub_meth_table.10x  <- MD.10x 
+sub_meth_table.10x  <- MD.10x
 sub_meth_table.10x$group <- paste0(sub_meth_table.10x$Sample.ID, sub_meth_table.10x$gene)
 
 #filter for genes with >5 methylated positions
@@ -143,33 +158,33 @@ sub_meth_table.10x <- sub_meth_table.10x[sub_meth_table.10x$group %in% newdata.1
 results.10x <- data.frame()
 gs.10x <- unique(sub_meth_table.10x$gene)
 
-#all code below is commented out because only need to run this for the initial step, can just load Rdata below to move to next sections, last ran 20240730
-# #first subset the unique dataframes and second run the GLMs
-# 
-#  for(i in 1:length(sub_meth_table.10x$gene)){
-# 
-#    #subset the dataframe gene by gene
-#    sub_meth_table.10x1 <- subset(sub_meth_table.10x, gene ==gs.10x[i])
-# 
-#   # fit glm position model
-#   #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
-#   fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment,
-#               data=sub_meth_table.10x1, family=binomial)
-#    a <- anova(fit, test="Chisq")
-# 
-#    # capture summary stats to data frame
-#    df <- data.frame(gene = sub_meth_table.10x1[1,7],
-#                     pval.treatment = a$`Pr(>Chi)`[2],
-#                     #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
-#                     #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
-#                  stringsAsFactors = F)
-# 
-#    # bind rows of temporary data frame to the results data frame
-#    results.10x <- rbind(results.10x, df)
-# 
-# }
-#  
-# write.csv(results.10x, "RAnalysis/Output/meth.results.10x.csv")
+#all code below is commented out because only need to run this for the initial step, can just load Rdata below to move to next sections, last ran 20240809
+# # #first subset the unique dataframes and second run the GLMs
+# # 
+#   for(i in 1:length(sub_meth_table.10x$gene)){
+# # 
+# #    #subset the dataframe gene by gene
+#     sub_meth_table.10x1 <- subset(sub_meth_table.10x, gene ==gs.10x[i])
+# # 
+# #   # fit glm position model
+# #   #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
+#    fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment,
+#                data=sub_meth_table.10x1, family=binomial)
+#     a <- anova(fit, test="Chisq")
+# # 
+# #    # capture summary stats to data frame
+#     df <- data.frame(gene = sub_meth_table.10x1[1,7],
+#                      pval.treatment = a$`Pr(>Chi)`[2],
+# #                     #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
+# #                     #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
+#                   stringsAsFactors = F)
+# # 
+# #    # bind rows of temporary data frame to the results data frame
+#     results.10x <- rbind(results.10x, df)
+# # 
+#  }
+# #  
+#  write.csv(results.10x, "RAnalysis/Output/meth.results.10x.csv")
 
 
 # An error will be generated here for contrasts. 
@@ -190,7 +205,7 @@ DMG.sig.10x <- DMG.sig.10x[order(DMG.sig.10x$adj.pval.treatment),]
 DMG.sig.10x <- DMG.sig.10x[which(DMG.sig.10x$adj.pval.treatment<0.05), ]
 sum(DMG.sig.10x$adj.pval.treatment < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
 
-#367
+#353
 
 # Annotation of DMG under between treatments 
 DMG.sig.annot.10x <- left_join(DMG.sig.10x , Annot, by="gene")
@@ -223,7 +238,7 @@ control_data <- aggregated_data %>%
 # Merge with the original data to get the mean percent methylation for each gene and treatment
 merged_data <- merge(aggregated_data, control_data, by = "gene", all.x = TRUE)
 
-# Calculate the mean difference for each gene and treatment compared to the control
+# Calculate the mean difference for each gene and treatment compared to the control to extract hyper and hypo methylated genes
 merged_data$MeanDifference <- merged_data$percent.meth - merged_data$ControlMean
 
 # Identify hyper and hypomethylated genes
@@ -232,8 +247,8 @@ hyper_genes <- merged_data$gene[merged_data$MeanDifference > 0]
 hypo_genes <- merged_data$gene[merged_data$MeanDifference < 0]
 
 # Assuming hyper_genes and hypo_genes are lists or vectors
-num_hyper_genes <- length(hyper_genes) #164 Count of hypermethylated genes
-num_hypo_genes <- length(hypo_genes) #203 Count of hypomethylated genes
+num_hyper_genes <- length(hyper_genes) #195 Count of hypermethylated genes
+num_hypo_genes <- length(hypo_genes) #158 Count of hypomethylated genes
 
 # Add the 'direction' column to merged_data
 merged_data <- merged_data %>%
@@ -263,9 +278,10 @@ write.csv(methylation_data_selected, "RAnalysis/Output/DMGs_all.csv")
 
 
 # Conduct PERMANOVA and PCA on global methylation and DMG
-#### Principal component plot of samples global DMG
+#### Principal component plot of samples global meth
 ```{r}
 #First need to make a matrix with percent meth count data for each sample and gene ID
+#make meth count matrix, select gene, frag ID, and per meth from dataframe
 #make meth count matrix, select gene, frag ID, and per meth from dataframe
 matrix <- MD.10x %>%
   dplyr::select(gene, fragment.ID, per.meth)
@@ -281,16 +297,28 @@ rownames(countData) <- countdata[,1]
 countData <- countData %>% mutate_if(is.numeric, as.integer)
 
 #filter out sample 2, 19 and 16 from sample_info and colData data frame because they are not being used due to deduplication errors
-samp.info <- sample.info[!row.names(sample.info) %in% c(8,11,12),]
+samp.info <- sample.info[!row.names(sample.info) %in% c(2,16,19),]
 
 # Define the columns to remove
-columns_to_remove <- c("PV_2", "PV_19", "PV_16")  # Adjust with the column names you want to remove
+columns_to_remove <- c("PV_7", "PV_8", "PV_28")  # Adjust with the column names you want to remove
 
 # Remove columns from colData
 countData <- countData[, !colnames(countData) %in% columns_to_remove]
 
 ##Merge the treatment columns into a new column , group. Set group as a factor.
 samp.info$treatment <- factor(samp.info$treatment, levels = c("control","enriched"))
+
+# Update countData column names to match samp.info
+colnames(countData) <- samp.info$fragment.ID
+
+# Reorder countData columns to match the row names in samp.info
+countData <- countData[, samp.info$fragment.ID]
+
+# Update row names of samp.info to match countData columns
+rownames(samp.info) <- samp.info$fragment.ID
+
+# Check if colnames(countData) and rownames(samp.info) match
+identical(sort(colnames(countData)), sort(rownames(samp.info)))  # Should be TRUE
 
 #Set DESeq2 design
 gdds <- DESeqDataSetFromMatrix(countData = countData,
@@ -303,29 +331,31 @@ print(sizeFactors(SF.gdds))
 
 #Our size factors are all less than 4, so we can use VST!
 #apply a variance stabilizing transformation to minimize effects of small counts and normalize library size
-gvst <- varianceStabilizingTransformation(gdds, blind=FALSE) 
+# Apply variance stabilizing transformation
+gvst <- varianceStabilizingTransformation(gdds, blind=FALSE, fitType='local')
 
+# Perform PCA and get variance explained
 gPCAdata <- plotPCA(gvst, intgroup = c("treatment"), returnData=TRUE)
-percentVar <- round(100*attr(gPCAdata, "percentVar")) #plot PCA of samples with all data
-ggplot(gPCAdata, aes(PC1, PC2, color=treatment)) + 
-  geom_point(size=3) +
-  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
-  ylab(paste0("PC2: ",percentVar[2],"% variance")) +
-  scale_color_manual(values = c(control="black", enriched="grey")) +
-  coord_fixed() +
-  theme_bw() + #Set background color
-  theme(panel.border = element_blank(), # Set border
-        #panel.grid.major = element_blank(), #Set major gridlines
-        #panel.grid.minor = element_blank(), #Set minor gridlines
-        axis.line = element_line(colour = "black"), #Set axes color
-        plot.background=element_blank()) + #Set the plot background +
-  stat_ellipse();gPCAdata
+percentVar <- round(100 * attr(gPCAdata, "percentVar")) 
+
+# Create PCA plot with ellipses
+ggplot(gPCAdata, aes(x = PC1, y = PC2, color = treatment, fill = treatment)) + 
+  geom_point(size = 3, shape = 21, color = "black") + 
+  stat_ellipse(alpha = 0.2, size = 1) +  # Add ellipses with transparency
+  xlab(paste0("PC1: ", percentVar[1], "% variance")) + 
+  ylab(paste0("PC2: ", percentVar[2], "% variance")) + 
+  scale_color_manual(values = c("control" = "grey", "enriched" = "black")) + 
+  scale_fill_manual(values = c("control" = "grey", "enriched" = "black")) + 
+  coord_fixed() + 
+  theme_bw() + 
+  theme(panel.border = element_blank(), 
+        axis.line = element_line(colour = "black"),
+        plot.background = element_blank());gPCAdata
 
 ggsave(path = "RAnalysis/Output/", filename = "meth_general_PCA_plot_host.pdf")
 ggsave(path = "RAnalysis/Output/", filename = "meth_general_PCA_plot_host.png")
 
 ```
-
 
 ### Make Volcano plot of hyper and hypo methylated DMGs
 ```{r}
@@ -375,7 +405,7 @@ DMG.volcano <- ggplot(final_df, aes(x = log2FoldChange, y = -log10(padj), color 
   geom_point(alpha = 0.7, size = 2) +
   scale_color_manual(values = colors, name = "Methylation Status", 
                      breaks = c("Hypermethylated", "Hypomethylated", "Not Significant"),
-                     labels = c("Hypermethylated (164)", "Hypomethylated (203)", "Not Significant"),
+                     labels = c("Hypermethylated (195)", "Hypomethylated (158)", "Not Significant"),
                      drop = FALSE) +  # Include all specified breaks in the legend
   labs(title = "", x = "log2FoldChange", y = "-log10(adjusted p-value)") +
   theme_bw() +
@@ -393,75 +423,54 @@ Figure2 <- plot_grid( DMG.volcano, PCA.DMG, labels = c('A', 'B'), label_size = 1
 
 ggsave(filename=paste0("RAnalysis/Output/DMG.PCA.volcano.png"), plot=Figure2, dpi=300, width=12, height=5, units="in", limitsize = FALSE)
 
-ggsave(filename=paste0("RAnalysis/Output/DMG.PCA.volcano.pdf"), plot=Figure2, dpi=300, width=12, height=5, units="in", limitsize = FALSE)
-
 ```
-
-
-# Conduct PERMANOVA on differential methylation
-Export data for PERMANOVA test.  
-```{r}
-test<-t(assay(gvst)) #export as matrix
-test<-as.data.frame(test)
-
-#add category columns
-test$fragment.ID <- rownames(test)
-test$treatment <- samp.info$treatment[match(test$fragment.ID, samp.info$fragment.ID)]
-```
-
-Build PERMANOVA model.  
-```{r}
-#last column with treatment metadata test[3912] and test[3911], need to start at third to last column for the numeric error issue
-#also getting Error in prcomp.default(test1[c(1:3910)], center = TRUE, scale. = TRUE) : cannot rescale a constant/zero column to unit variance, so had to remove constant data values
-test1 <- test %>% purrr::keep(~length(unique(.x)) != 1)
-
-scaled_test <-prcomp(test1[c(1:3899)], center = TRUE, scale. = TRUE)
-fviz_eig(scaled_test)
-
-# scale data
-vegan <- scale(test1[c(1:3899)])
-
-# PerMANOVA 
-permanova <- adonis2(vegan ~ treatment, data = test1, method='eu')
-permanova
-```
-
-There are significant differences between treatments for control and enriched sites in global methylation
-
-adonis2(formula = vegan ~ treatment, data = test1, method = "eu")
-          Df SumOfSqs      R2      F Pr(>F)   
-treatment  1     4191 0.03839 1.0778  0.004 **
-Residual  27   104981 0.96161                 
-Total     28   109172 1.00000                 
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 
 ## Visualize differentially methylated genes
 ```{r}
-# Subset list of genes by those which padj>0.
+# Subset the results to include only significant differentially methylated genes
 DMG.sig.result <- as.data.frame(DMG.sig.10x)
 
-#make first row removed and add gene as rownames
+# Remove the first column and set gene names as rownames
 DMG.sig.results <- DMG.sig.result[,-1]
 rownames(DMG.sig.results) <- DMG.sig.result[,1]
 
-DMG.output <- as.data.frame(DMG.sig.results)
-dim(DMG.output)
+# Prepare DMG dataset for DESeq2
+DMG.results.all <- DMG.sig.results
+DMG <- rownames(DMG.results.all) # Get list of gene names
+DMG <- unique(DMG) # Ensure unique gene names
+DMG_list <- gdds[which(rownames(gdds) %in% DMG)] # Filter DESeq2 object
+print(dim(DMG_list)) # Check dimensions
+print(counts(DMG_list)) # Verify counts
 
-DMG.results.all <- (DMG.sig.results)
-DMG <- rownames(DMG.results.all) # list all gene names 
-DMG <- unique(DMG) # select only unique gene names 
-DMG_list <- gdds[which(rownames(gdds) %in% DMG)] # filter gdds DMG object by unique gene names
-dim(DMG_list) # 15 x 15
-print(counts(DMG_list))
+# Apply VST to DMG list
+DMGvst <- varianceStabilizingTransformation(DMG_list, blind=FALSE)
+print(dim(DMGvst)) # Verify dimensions after transformation
+print(assay(DMGvst)) # Inspect transformed data
 
-# As determined above, size factors all less than 4, so proceed with VST
-# apply a variance stabilizing transformation to minimize effects of small counts and normalize library size
-DMGvst <- varianceStabilizingTransformation(DMG_list, blind=FALSE) 
+# PCA plot for DMGs
+DMG_PCAdata <- plotPCA(DMGvst, intgroup = c("treatment"), returnData=TRUE)
+percentVar_pca <- round(100 * attr(DMG_PCAdata, "percentVar")) 
 
-dim(DMGvst) # 15 x 15
-print(assay(DMGvst)) # look at vst-transformed gene count data 
+# Create PCA plot
+DMG_PCA_plot <- ggplot(DMG_PCAdata, aes(x = PC1, y = PC2, color = treatment)) +
+  geom_point(size = 3) +
+  xlab(paste0("PC1: ", percentVar_pca[1], "% variance")) +
+  ylab(paste0("PC2: ", percentVar_pca[2], "% variance")) +
+  scale_color_manual(values = c(control = "grey", enriched = "black")) +
+  coord_fixed() +
+  theme_bw() +
+  theme(
+    panel.border = element_blank(),
+    axis.line = element_line(colour = "black"),
+    plot.background = element_blank(),
+    axis.text = element_text(size = 16),
+    axis.title = element_text(size = 16),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 16)
+  ) +
+  stat_ellipse(); DMG_PCA_plot
+
 
 # Plot heat map with diff expressed genes
 # Make a matrix for computing similarity
@@ -470,52 +479,33 @@ mat <- mat - rowMeans(mat) #difference in expression compared to average across 
 dim(mat)
 ann_colors <- list(treatment= c(control="black", enriched="grey"))
 df_DMG <- as.data.frame(colData(DMGvst)[c("treatment")]) #make dataframe for column naming and associated treatment
-DMG_heatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TRUE, annotation_col=df_DMG, annotation_colors = ann_colors,
-                            clustering_distance_rows="euclidean", clustering_method = "average",
-                            show_rownames =FALSE,
-                            show_colnames =TRUE,
-                            cluster_cols = TRUE)
+# Sort the columns of the matrix by treatment
+treatment_order <- order(df_DMG$treatment)
+mat <- mat[, treatment_order]
+df_DMG <- df_DMG[treatment_order, , drop = FALSE]
 
-pdf(file = "RAnalysis/Output/Final_Figures/DMG_heatmap_host.pdf")
+# Generate the heatmap
+DMG_heatmap <- pheatmap(
+  mat, 
+  scale = "row", 
+  legend = TRUE, 
+  annotation_legend = TRUE, 
+  annotation_col = df_DMG, 
+  annotation_colors = ann_colors,
+  clustering_distance_rows = "euclidean", 
+  clustering_method = "average",
+  show_rownames = FALSE,
+  show_colnames = TRUE,
+  cluster_cols = FALSE);DMG_heatmap # Disable column clustering to maintain treatment order
+
+pdf(file = "RAnalysis/Output/DMG_heatmap_host.pdf")
 DMG_heatmap
 dev.off()
 
-png(file = "RAnalysis/Output/Final_Figures/DMG_heatmap_host.png")
+png(file = "RAnalysis/Output/DMG_heatmap_host.png")
 DMG_heatmap
 dev.off()
 
-#make label size for plot below
-label_size <- 16
-
-# PCA plot of diff-expressed genes 
-DMG_PCAdata <- plotPCA(DMGvst, intgroup = c("treatment"), returnData=TRUE)
-percentVar_pca <- round(100*attr(DMG_PCAdata, "percentVar")) #plot PCA of samples with all data
-DMG_PCA_plot <- ggplot(DMG_PCAdata, aes(PC1, PC2, color=treatment)) +
-  geom_point(size=3) +
-  xlab(paste0("PC1: ",percentVar_pca[1],"% variance")) +
-  ylab(paste0("PC2: ",percentVar_pca[2],"% variance")) +
-  scale_color_manual(values = c(control="black", enriched="grey")) +
-  coord_fixed() +
-  theme_bw() + #Set background color
-  theme(
-    panel.border = element_blank(),
-    axis.line = element_line(colour = "black"),
-    plot.background = element_blank(),
-    # Increase the size of axis text
-    axis.text = element_text(size = label_size),
-    # Increase the size of x and y axis titles
-    axis.title = element_text(size = label_size),
-    # Increase the size of legend text
-    legend.text = element_text(size = label_size),
-    # Increase the size of legend title
-    legend.title = element_text(size = label_size)
-  ) +#Set the plot background +
-  stat_ellipse()
-
-DMG_PCA_plot
-
-ggsave("RAnalysis/Output/DMG_PCA_plot_host.png", DMG_PCA_plot, width = 5, height = 5, units = c("in"))
-ggsave("RAnalysis/Output/DMG_PCA_plot_host.pdf", DMG_PCA_plot, width = 10, height = 10, units = c("in"))
 
 ```
 
@@ -532,16 +522,23 @@ test2$treatment <- samp.info$treatment[match(test2$fragment.ID, samp.info$fragme
 
 Build PERMANOVA model.  
 ```{r}
-#last column with treatment metadata test[370] and test[369], need to start at third to last column for the numeric error issue
-scaled_test2 <-prcomp(test2[c(1:367)], center = TRUE, scale. = TRUE)
-fviz_eig(scaled_test2)
+# Perform PCA on the numeric columns
+pca_result <- prcomp(test2[1:353], center = TRUE, scale. = TRUE)
+
+# Visualize PCA eigenvalues
+fviz_eig(pca_result)
 
 # scale data
-vegan <- scale(test2[c(1:367)])
+scaled_test2 <- scale(test2[1:353])
 
-# PerMANOVA 
-permanova <- adonis2(vegan ~ treatment, data = test2, method='eu')
-permanova
+# Print results
+distance_matrix <- vegdist(scaled_test2, method = "euclidean")
+
+# PERMANOVA
+permanova_result <- adonis2(distance_matrix ~ treatment, data = test2)
+
+# Print results
+print(permanova_result)
 ```
 
 There are significant differences between treatments for control and enriched sites in DMG
@@ -553,7 +550,4 @@ Residual  27   9592.7 0.93097
 Total     28  10304.0 1.00000                 
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-
-
 

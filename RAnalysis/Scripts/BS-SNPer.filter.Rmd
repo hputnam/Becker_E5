@@ -14,6 +14,13 @@ output: html_document
 ```{r}
 library(dplyr)
 library(tidyverse)
+library(poppr)
+library(vcfR)
+library(SNPRelate)
+library(adegenet)
+library(gtools)
+library(gdsfmt)
+
 ```
 
 # Load data
@@ -50,72 +57,46 @@ inner.join.dat <- inner_join(bed2, ct2, by = "loci")
 #  find rows in the first data frame that do not have a match in the second data frame based on loci column
 anti.join.dat <- bed2 %>%
   anti_join(ct2, by = "loci")
-# 1,118,762 unique data in my bed2 files, this matches that there are 512 SNPs in my bed data frame
+# 1,120,473 unique data in my bed2 files, this matches that there are 1,711 SNPs in my bed data frame
 
 # Use anti.join.dat as the filtered bed data file moving forward 
 # Write the filtered data to a new .bed file save as R object as it is too large
 
-saveRDS(anti.join.dat, "RAnalysis/Data/WGBS/BS-SNPer/filtered_bed_SNP_file.Rdata")
+saveRDS(anti.join.dat, "RAnalysis/Data/filtered_bed_SNP_file.Rdata")
 
 
 ```
 
-
-# Use data .tab file that was filtered against CG motifs specifically and try to filter from .bed master datafile
+Calculate genetic relatedness after BS-SNPer, ran on URI HPC Andromeda due to memory limits: submitted batch job 334119 for the script below
 ```{r}
-# Read SNP positions from the .tab file
-snp_data <- read.table("RAnalysis/Data/WGBS/BS-SNPer/CT-SNPs.tab", header = FALSE)
+# Need to add column names and source to be recognized for vcf
+# Read the data lines
+# Read the SNP candidates file
+snp_candidates <- read.delim("../../../Downloads/SNP-candidates.out", header = TRUE, sep = "\t")
 
-# Rename columns
-colnames(snp_data) <- c("scaffold", "position", "placeholder", "ref.allele", "alter.allele", "quality.score", "filter.status", "add.info", "genotype", "related.info")
+# Formmat the correct header for the file
+vcf_header <- c(
+  "##fileformat=VCFv4.2",
+  "##source=BS-Snper",
+  "##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Total Depth\">",
+  "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",
+  "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tSample1"
+)
 
-# Make new column with unique scaffold and position identifier for both data frames to merge and  filter SNPs from snp_data
+# Create a VCF data frame
+vcf_data <- snp_candidates %>%
+  mutate(
+    ID = ".",  # Placeholder for ID
+    QUAL = 100,  # Placeholder quality score
+    FILTER = "PASS",  # Placeholder filter status
+    INFO = paste0("DP=", rowSums(select(., starts_with("Number_of_watson")) + select(., starts_with("Number_of_crick")))),
+    FORMAT = "GT:DP",
+    Sample1 = paste0("0/1:", rowSums(select(., starts_with("Number_of_watson")) + select(., starts_with("Number_of_crick"))))
+  ) %>%
+  select(CHROM = `#CHROM`, POS, ID, REF, ALT, QUAL, FILTER, INFO, FORMAT, Sample1)
 
-bed_data$scaff.pos <- paste(bed_data$scaffold, bed_data$position, sep = "-")
 
-snp_data$scaff.pos <- paste(snp_data$scaffold, snp_data$position, sep = "-")
 
-# Using various approaches to see if there is data in either data frame that matches, which would elude to there being SNPs to filter in the bed_data frame
-
-# Try merge function to merge any data found in scaff.pos colummn in another dataframe
-merge_data <- merge(bed_data, snp_data, by = "scaff.pos")
-
-# Try anti join in each data frame to see which data was not included or would not be filtered, each data frame is unique
-anti_data <- snp_data %>%
-  anti_join(bed_data, by = "scaff.pos")
-
-test <- anti_join(bed_data, snp_data, by=c("scaffold", "position"))
-
-# Check for shared values
-shared_values <- intersect(snp_data$scaff.pos, bed_data$scaff.pos)
-
-# Check for unique values in df1
-unique_df1 <- setdiff(snp_data$scaff.pos, bed_data$scaff.pos)
-
-# There seems to be no SNPs to filter with this approach, this may be due to the fact that filtering to CG sites and the filtered motif file removed too many possible SNP positions.
-
-```
-
-Calculate genetic relatedness after BS-SNPer
-
-```{r}
-# Separate V10 into genotype fields
-ct_processed <- ct %>%
-  separate(V10, into = c("Genotype", "Depth", "ADF", "ADR", "AD", "BSD", "BSQ", "ALFR"), sep = ":", fill = "right") %>%
-  mutate(Genotype = as.character(Genotype),
-         Depth = as.numeric(Depth),
-         ADF = as.character(ADF),
-         ADR = as.character(ADR),
-         AD = as.character(AD),
-         BSD = as.character(BSD),
-         BSQ = as.character(BSQ),
-         ALFR = as.character(ALFR))
-
-# Calculate the distance matrix from ct .vcf file
-distance_matrix <- dist(t(ct), method = "euclidean")
-
-# Convert to matrix format
-distance_matrix <- as.matrix(distance_matrix)
 ```
 
 

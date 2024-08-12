@@ -250,7 +250,7 @@ sbatch /data/putnamlab/hputnam/Becker_E5/WGBS_Becker_E5/scripts/methylseq_resume
 ```
 
 
-## Library E8 - sample 19 failed
+## Library 19 - sample E8 failed
  - has weird library results from tapestation
  - has lower quality than all other libraries
  - has high GC content
@@ -800,5 +800,5 @@ wc -l *10x_enrichment.bed
 # 9) Download final .bed files to desktop for statistical analysis! :)
 
 ```
-scp -r danielle_becker@bluewaves.uri.edu:/data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*_enrichment.bed /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/RAnalysis/Data/WGBS
+scp -r danielle_becker@ssh3.hac.uri.edu:/data/putnamlab/dbecks/Becker_E5/WGBS_Becker_E5/Becker_WGBS/CovtoCyto/*10x_enrichment.bed /Users/Danielle/Desktop/Putnam_Lab/Becker_E5/Bioinformatics/Data/10x_methcounts
 ```

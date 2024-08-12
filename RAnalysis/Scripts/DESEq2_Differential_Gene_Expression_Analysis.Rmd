@@ -33,13 +33,13 @@ library("cowplot")
 # Load in treatment info and gene count matrix data files 
 ```{r}
 #treatment information
-treatmentinfo <- read.csv("RAnalysis/Data/RNA-seq/metadata.RNAseq.csv", header = TRUE, sep = ",")
+treatmentinfo <- read.csv("RAnalysis/Data/metadata.RNAseq.csv", header = TRUE, sep = ",")
 
 #view treatment information
 head(treatmentinfo)
 
 #load gene count matrix
-gcount <- as.data.frame(read.csv("RAnalysis/Data/RNA-seq/Poc_gene_count_matrix.csv", row.names="gene_id"), colClasses = double)
+gcount <- as.data.frame(read.csv("RAnalysis/Data/Poc_gene_count_matrix.csv", row.names="gene_id"), colClasses = double)
 
 #confirm expectations of 32 samples by 27439 genes
 dim(gcount)
@@ -328,9 +328,7 @@ heatmap <- pheatmap(sampleDistMatrix, # plot distance matrix
          clustering_distance_cols = sampleDists, # cluster cols
          col=colors) # set colors
 heatmap
-pdf(file = "RAnalysis/Output/sampletosample_heatmap_host.pdf")
-heatmap
-dev.off()
+
 
 ```
 
@@ -469,11 +467,19 @@ mat <- mat - rowMeans(mat) #difference in expression compared to average across 
 dim(mat)
 ann_colors <- list(treatment= c(control="black", enriched="grey"))
 df_DEGSeq2 <- as.data.frame(colData(DEGvst)[c("treatment")]) #make dataframe for column naming and associated treatment
+
+# Sort the columns of the matrix by treatment
+treatment_order <- order(df_DEGSeq2$treatment)
+mat <- mat[, treatment_order]
+df_DEGSeq2 <- df_DEGSeq2[treatment_order, , drop = FALSE]
+
+
 DEGSeq2_heatmap <- pheatmap(mat, scale= "row", legend=TRUE, annotation_legend=TRUE, annotation_col=df_DEGSeq2, annotation_colors = ann_colors,
                             clustering_distance_rows="euclidean", clustering_method = "average",
                             show_rownames =FALSE,
                             show_colnames =TRUE,
-                            cluster_cols = TRUE)
+                            cluster_cols = FALSE)
+
 DEGSeq2_heatmap
 
 pdf(file = "RAnalysis/Output/DEGSeq2_DEG_heatmap_host.pdf")

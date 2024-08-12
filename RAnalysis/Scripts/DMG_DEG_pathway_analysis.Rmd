@@ -80,16 +80,47 @@ saveRDS(dge_gene, "RAnalysis/Data/RNA_gene_preNormalization_DGEListObj.Rdata")
 
 Create Methylation Summary Table
 ```{r}
-#SAMPLES E2, E16, AND C19 WERE EXCLUDED DUE TO DEDUPLICATION AND LOW COUNTS
+#SAMPLES E7, E8, AND C28 WERE EXCLUDED DUE TO DEDUPLICATION AND LOW COUNTS
 # Read in gene methylation data
-gene_dnam <- readRDS("RAnalysis/Output/sample_all_methylated_data_10x.Rdata") #read in info
+gene_dnam <- readRDS("RAnalysis/Data/filtered_bed_SNP_file.Rdata") #read in info
 
 #rename sample.ID to include corresponding E and C in front for enriched and control for later analysis
 gene_dnam <- gene_dnam %>%
-    mutate(Sample.ID = recode(Sample.ID, '1' = 'E1', '3' = 'E3', '4' = 'E4', '5' = 'E5', '6' = 'E6', '7' = 'E7', '8' = 'E8', '9' = 'E9','10' = 'E10', '11' = 'E11', '12' = 'E12','13' = 'E13', '14' = 'E14', '15' = 'E15', '17' = 'C17', '18' = 'C18', '20' = 'C20', '21' = 'C21', '22' = 'C22', '23' = 'C23', '24' = 'C24', '25' = 'C25', '26' = 'C26', '27' = 'C27', '28' = 'C28', '29' = 'C29', '30' = 'C30', '31' = 'C31', '32' = 'C32'))
+    mutate(Sample.ID = recode(Sample.ID, '1' = 'E1', '2' = 'E2', '3' = 'E3', '4' = 'E4', '5' = 'E5', '6' = 'E6', '9' = 'E9','10' = 'E10', '11' = 'E11', '12' = 'E12','13' = 'E13', '14' = 'E14', '15' = 'E15', '16' = 'E16', '17' = 'C17', '18' = 'C18', '19' = 'C19', '20' = 'C20', '21' = 'C21', '22' = 'C22', '23' = 'C23', '24' = 'C24', '25' = 'C25', '26' = 'C26', '27' = 'C27', '29' = 'C29', '30' = 'C30', '31' = 'C31', '32' = 'C32'))
 
 #check to see all where renamed correctly
 unique(gene_dnam$Sample.ID)
+
+# Count unique loci before filtering
+unique_loci_before <- gene_dnam %>%
+  summarise(unique_loci = n_distinct(paste(scaffold, position, sep = "_")))
+
+# Print the result
+print(paste("Unique loci before filtering:", unique_loci_before$unique_loci))
+
+# Change from long to wide format and calculate mean methylation per gene and sample
+meth <- gene_dnam %>%
+  group_by(Sample.ID, gene) %>%
+  summarise(mean = mean(per.meth), n = n()) %>%
+  spread(key = Sample.ID, value = mean)
+
+# Filter for a minimum of 5 CpG sites per gene
+meth_filtered <- meth[which(meth$n >= 5), ]
+
+# Count unique loci after filtering
+# Note: After filtering, we need to re-evaluate the original dataset to see which loci remain
+remaining_genes <- meth_filtered$gene
+
+# Filter original dataset to include only remaining genes
+gene_dnam_filtered <- gene_dnam %>%
+  filter(gene %in% remaining_genes)
+
+unique_loci_after <- gene_dnam_filtered %>%
+  summarise(unique_loci = n_distinct(paste(scaffold, position, sep = "_")))
+
+# Print the result
+print(paste("Unique loci after filtering:", unique_loci_after$unique_loci))
+
 
 #change from long to wide format
 meth <- data.frame (gene_dnam %>%
@@ -111,7 +142,6 @@ meth.test <- data_frame(meth)
 
 ## Create a summary of methylation for each gene ##
 mean_meth <- rowMeans(meth)
-
 meta.data <- na.omit(meta.data)
 
 # create list for sample IDs from metadata and select from that list with filtering, pipe, row means
@@ -138,7 +168,6 @@ cv_meth_E <- sd_meth_E/mean_meth_E
 sd_meth_C <- rowSds(subset_meth_C)
 cv_meth_C <- sd_meth_C/mean_meth_C
 
-
 # Coefficient of Variation among treatments
 meanAmongTrt_meth <- cbind(mean_meth_E,mean_meth_C)
 sd_meanAmongTrt_meth <- rowSds(meanAmongTrt_meth)
@@ -160,8 +189,7 @@ saveRDS(meth_annot,"RAnalysis/Data/meth_annot_full.RData")
 
 #### Summarize the gene expression data ####
 expression <- dge_gene$counts
-subset_expression <- expression[, colnames(expression)%in%list_E] 
-subset_expression <- subset_expression[rowSums(subset_expression[])>0,]
+subset_expression <- expression[rowSums(expression[])>0,]
 expression <- expression[rownames(expression) %in% rownames(subset_expression),]
 expression_cpm_log <- log2(cpm(expression)+ 1) # log2 cpm transformation
 expression <- expression_cpm_log
@@ -229,7 +257,7 @@ gene_annot <- gene_annot[,-(9:13),drop=FALSE]
 saveRDS(gene_annot,"RAnalysis/Data/gene_annot_full.RData")
 
 # Combine gene expression, exon count and CpG (DNA mehtylation data)
-gSum <- left_join(meth_annot, gene_annot)
+gSum <- full_join(meth_annot, gene_annot, by = "gene_id")
 
 # Reducing the data.frame to include places were we have all the data.
 gSum_red<-gSum[!is.na(gSum$cov10_count),]
@@ -244,30 +272,149 @@ saveRDS(gSum_red,"RAnalysis/Data/Multi_geneSummaryReduced.RData")
 
 #compare global mean meth vs express overall
 ```{r}
-mat <- readRDS("RAnalysis/Data/Multi_geneSummaryReduced.RData")
+mat <- readRDS("RAnalysis/Output/Multi_geneSummaryReduced_all.RData") 
 
 ## Mean Methylation vs Gene Expression following Liew et al
 df <- mat
 
 #log gene expression x % methylation
-df$log_gene <- log(df$gene_mean_express+1)
+df$log_gene <- log(df$gene_mean_express+1.1)
 df$per_meth <- df$mean_meth * 100
+
+# Test for normality
+ks.test(df$gene_mean_express, "pnorm", mean = mean(df$gene_mean_express), sd = sd(df$gene_mean_express))
+ks.test(df$mean_meth, "pnorm", mean = mean(df$mean_meth), sd = sd(df$mean_meth))
 
 #plot of global express x meth
 meth.express.compare <- ggplot(df, aes(x=per_meth, y=log_gene,)) + 
-    geom_point() + ylim(0,2.5) + 
+    geom_point() + ylim(0.5, 2.7) + xlim(0, 98) +
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-  stat_cor(method = "kendall", digits = 2.8, label.x = 60, label.y = 0.5 ) +
+  stat_cor(method = "kendall", digits = 2.8, label.x = 60, label.y = 0.5) +
     theme_cowplot();meth.express.compare
 
 ### Figure Mean Methylation vs Gene Expression###
 ggsave(meth.express.compare, filename="RAnalysis/Output/global_express_meth_correlation.png", height = 7, width = 10)
 
-#write hypothesis driven csv
-write.csv(df, "RAnalysis/Output/global.DEG.DMG.goterms.csv")
 ```
+
+## Analysis of comparisons between methylation and expression data from differentially methylated genes and differentially expressed genes.
+# Import the data files 
+```{r}
+# read in DEGs
+DEG <- read.csv("RAnalysis/Output/DEGSeq2.sig.results.host.csv")[-1]
+# Reorder columns to move gene_id to the first position
+DEG <- DEG %>%
+  select(gene_id, everything())
+
+# read in DMGs
+DMG <- read.csv("RAnalysis/Output/DMGs_all.csv")[-1]
+# Rename column from 'gene' to 'gene_id'
+DMG <- DMG %>%
+  rename(gene_id = gene)
+
+# Remove extra characters in df and DMGs to match DEG
+df_rename <- gSum
+df_rename$gene_id <-  gsub("_gene_g","_g",df_rename$gene_id) #sub gene_g with _g
+df_rename$gene_id <-  gsub("_gene_","_",df_rename$gene_id) #remove extra _
+df_rename$gene_id <- gsub("-.*", "", df_rename$gene_id) # Modify the gene_id column to remove the dash and anything after it
+df_rename$gene_id <-  gsub("Pver_split_", "Pver_",df_rename$gene_id) #remove the extra _gene_ after split
+
+# Remove characters in DMG to match DEG
+DMG_rename <- DMG
+DMG_rename$gene_id <-  gsub("_gene_g","_g",DMG_rename$gene_id) #sub gene_g with _g
+DMG_rename$gene_id <-  gsub("_gene_","_",DMG_rename$gene_id) #remove extra _
+DMG_rename$gene_id <- gsub("-.*", "", DMG_rename$gene_id) # Modify the gene_id column to remove the dash and anything after it
+DMG_rename$gene_id <-  gsub("Pver_split_", "Pver_",DMG_rename$gene_id) #remove the extra _gene_ after split
+
+#log gene expression x % methylation
+df_rename$log_gene <- log(df_rename$gene_mean_express+1.1)
+df_rename$per_meth <- df_rename$mean_meth * 100
+
+# Double check that all gene_ids found in DEG and DMGs are in df_rename
+missing_in_df_rename_DEG <- setdiff(DEG$gene_id, df_rename$gene_id) 
+missing_in_df_rename_DMG <- setdiff(DMG_rename$gene_id, df_rename$gene_id) 
+
+#Check which are missing from DEG in DMG dataset
+missing_in_DMG_rename_DEG <- setdiff(DEG$gene_id, DMG_rename$gene_id) # 249 without methylation info, only 3 genes in both DEG and DMG datasets
+
+# Create a combined list of unique gene_ids from both DMG and DEG
+combined_gene_ids <- unique(c(DMG_rename$gene_id, DEG$gene_id)) 
+
+# Filter df_rename to keep only rows with gene_ids in combined_gene_ids
+df_filtered <- df_rename[df_rename$gene_id %in% combined_gene_ids, ]
+
+# Check how many rows have non-NA values for both log_gene and per_meth
+valid_rows <- df_filtered[!is.na(df_filtered$log_gene) & !is.na(df_filtered$per_meth), ]
+
+# Count the number of such rows (genes)
+num_genes_with_data <- nrow(valid_rows)
+
+# Display the result
+num_genes_with_data #355
+
+# Shapiro-Wilk Test for normality
+shapiro.test(df_filtered$gene_mean_express) # not normal
+shapiro.test(df_filtered$mean_meth) # not normal
+
+#plot of DEG X DMG METH EXPRESS
+DEG.DMG.meth.express <- ggplot(df_filtered, aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + ylim(0, 2.4) + xlim(0,50) +
+    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+  stat_cor(method = "kendall", digits = 2.8, label.x = 40, label.y = 0.5 ) +
+    theme_cowplot();DEG.DMG.meth.express
+
+### Figure Mean Methylation vs Gene Expression###
+ggsave(DEG.DMG.meth.express, filename="RAnalysis/Output/DEG_DMG_correlation.png", height = 10, width = 10)
+
+# 249 DEGs do not have methylation data due to filtering for methylation 
+
+# Select genes that are in both DMG and DEG datasets
+common_genes <- intersect(DMG_rename$gene_id, DEG$gene_id)
+
+# View the common genes
+common_genes
+
+# Assuming df_filtered is the dataframe you want to filter
+df_select <- subset(df_filtered, gene_id %in% common_genes)
+
+# View the filtered dataframe
+df_select
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Analysis of comparisons between gene ontology enrichment from differentially methylated genes and differentially expressed genes.
 # Import the data files 
