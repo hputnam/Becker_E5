@@ -1515,4 +1515,4 @@ sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/genetic_relatednes
 Submitted batch job 334351
 ```
 
-Download relatedness.grm.gz to Desktop to visualize results of relatedness using this Rscript.
+Download relatedness.grm.gz to Desktop to visualize results of relatedness using this [Rscript](https://github.com/hputnam/Becker_E5/blob/master/Bioinformatics/Workflows/genetic_relatedness.Rmd).
