@@ -356,76 +356,7 @@ ggsave(path = "RAnalysis/Output/", filename = "meth_general_PCA_plot_host.png")
 
 ```
 
-### Make Volcano plot of hyper and hypo methylated DMGs
-```{r}
-# Run DESeq2 analysis
-dds <- DESeq(gdds)
-
-# Extract log2fold change values
-results <- results(dds)
-log2fold_change <- results$log2FoldChange
-gene_names <- rownames(results)
-log2fold_change_df <- data.frame(Gene = gene_names, Log2FoldChange = log2fold_change)
-
-#rename gene column
-log2fold_change_df <- log2fold_change_df %>%
-  dplyr::rename(gene = Gene)
-
-# Merge with the methylation data frame
-final_df <- left_join(results.10x, log2fold_change_df, by = "gene")
-
-#rename gene column
-final_df <- final_df %>%
- dplyr::rename(log2FoldChange = Log2FoldChange)
-
-final_df <- final_df %>%
-  dplyr::rename(padj = adj.pval.treatment)
-
-final_df <- final_df %>%
-  dplyr::rename(pvalue = pval.treatment)
-
-# Create a new column for -log10(padj), noticed outliers in data
-final_df $log_padj <- -log10(final_df $padj)
-
-# Remove rows where log_padj is greater than 10
-final_df <- final_df[final_df$log_padj <= 100, ]
-
-# Define criteria for hypermethylation, hypomethylation
-
-final_df$methylation_status <- ifelse(final_df$padj > 0.05, "Not Significant",
-                                       ifelse(final_df$log2FoldChange > 0, "Hypermethylated",
-                                              ifelse(final_df$log2FoldChange < 0, "Hypomethylated", "Not Classified")))
-
-# Set up the color palette for hyper, hypo, and non-significant genes
-colors <- c("Hypermethylated" = "red", "Hypomethylated" = "blue", "Not Significant" = "black")
-
-# Create the volcano plot using ggplot2
-DMG.volcano <- ggplot(final_df, aes(x = log2FoldChange, y = -log10(padj), color = methylation_status)) +
-  geom_point(alpha = 0.7, size = 2) +
-  scale_color_manual(values = colors, name = "Methylation Status", 
-                     breaks = c("Hypermethylated", "Hypomethylated", "Not Significant"),
-                     labels = c("Hypermethylated (194)", "Hypomethylated (158)", "Not Significant"),
-                     drop = FALSE) +  # Include all specified breaks in the legend
-  labs(title = "", x = "log2FoldChange", y = "-log10(adjusted p-value)") +
-  theme_bw() +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "black");DMG.volcano
-
-ggsave("RAnalysis/Output/DMG.volcano.pdf", DMG.volcano, width = 8, height = 6, units = c("in"))
-  
-#load png image of DMG PCA
-
-DMG.PCA <- readPNG("RAnalysis/Output/DMG_PCA_plot_host.png")
-
-PCA.DMG <- rasterGrob(DMG.PCA, interpolate=TRUE)
-
-Figure2 <- plot_grid( DMG.volcano, PCA.DMG, labels = c('A', 'B'), label_size = 14)
-
-ggsave(filename=paste0("RAnalysis/Output/DMG.PCA.volcano.png"), plot=Figure2, dpi=300, width=12, height=5, units="in", limitsize = FALSE)
-
-```
-
-
-## Visualize differentially methylated genes
+# Visualize differentially methylated genes
 ```{r}
 # Subset the results to include only significant differentially methylated genes
 DMG.sig.result <- as.data.frame(DMG.sig.10x)
@@ -548,4 +479,73 @@ Residual  27   9592.7 0.93097
 Total     28  10304.0 1.00000                 
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+### Make Volcano plot of hyper and hypo methylated DMGs
+```{r}
+# Run DESeq2 analysis
+dds <- DESeq(gdds)
+
+# Extract log2fold change values
+results <- results(dds)
+log2fold_change <- results$log2FoldChange
+gene_names <- rownames(results)
+log2fold_change_df <- data.frame(Gene = gene_names, Log2FoldChange = log2fold_change)
+
+#rename gene column
+log2fold_change_df <- log2fold_change_df %>%
+  dplyr::rename(gene = Gene)
+
+# Merge with the methylation data frame
+final_df <- left_join(results.10x, log2fold_change_df, by = "gene")
+
+#rename gene column
+final_df <- final_df %>%
+ dplyr::rename(log2FoldChange = Log2FoldChange)
+
+final_df <- final_df %>%
+  dplyr::rename(padj = adj.pval.treatment)
+
+final_df <- final_df %>%
+  dplyr::rename(pvalue = pval.treatment)
+
+# Create a new column for -log10(padj), noticed outliers in data
+final_df $log_padj <- -log10(final_df $padj)
+
+# Remove rows where log_padj is greater than 10
+final_df <- final_df[final_df$log_padj <= 100, ]
+
+# Define criteria for hypermethylation, hypomethylation
+
+final_df$methylation_status <- ifelse(final_df$padj > 0.05, "Not Significant",
+                                       ifelse(final_df$log2FoldChange > 0, "Hypermethylated",
+                                              ifelse(final_df$log2FoldChange < 0, "Hypomethylated", "Not Classified")))
+
+# Set up the color palette for hyper, hypo, and non-significant genes
+colors <- c("Hypermethylated" = "red", "Hypomethylated" = "blue", "Not Significant" = "black")
+
+# Create the volcano plot using ggplot2
+DMG.volcano <- ggplot(final_df, aes(x = log2FoldChange, y = -log10(padj), color = methylation_status)) +
+  geom_point(alpha = 0.7, size = 2) +
+  scale_color_manual(values = colors, name = "Methylation Status", 
+                     breaks = c("Hypermethylated", "Hypomethylated", "Not Significant"),
+                     labels = c("Hypermethylated (194)", "Hypomethylated (158)", "Not Significant"),
+                     drop = FALSE) +  # Include all specified breaks in the legend
+  labs(title = "", x = "log2FoldChange", y = "-log10(adjusted p-value)") +
+  theme_bw() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black");DMG.volcano
+
+ggsave("RAnalysis/Output/DMG.volcano.pdf", DMG.volcano, width = 8, height = 6, units = c("in"))
+  
+#load png image of DMG PCA
+
+DMG.PCA <- readPNG("RAnalysis/Output/DMG_PCA_plot_host.png")
+
+PCA.DMG <- rasterGrob(DMG.PCA, interpolate=TRUE)
+
+Figure2 <- plot_grid( DMG.volcano, PCA.DMG, labels = c('A', 'B'), label_size = 14)
+
+ggsave(filename=paste0("RAnalysis/Output/DMG.PCA.volcano.png"), plot=Figure2, dpi=300, width=12, height=5, units="in", limitsize = FALSE)
+
+```
 
