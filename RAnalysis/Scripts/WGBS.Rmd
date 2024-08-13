@@ -148,47 +148,46 @@ head(MD.10x)
 sub_meth_table.10x  <- MD.10x
 sub_meth_table.10x$group <- paste0(sub_meth_table.10x$Sample.ID, sub_meth_table.10x$gene)
 
-#filter for genes with >5 methylated positions
-min.filt.10x <- dplyr::count(sub_meth_table.10x, vars = c( group))
-newdata.10x <- min.filt.10x[ which(min.filt.10x$n > 5), ]
+# Filter genes with >=5 methylated positions
+min.filt.10x <- dplyr::count(sub_meth_table.10x, vars = c(group))
+newdata.10x <- min.filt.10x[min.filt.10x$n >= 5, ]
 sub_meth_table.10x <- sub_meth_table.10x[sub_meth_table.10x$group %in% newdata.10x$vars,]
 
-# create data frame to stored results
+# Initialize results dataframe
 results.10x <- data.frame()
 gs.10x <- unique(sub_meth_table.10x$gene)
 
-#all code below is commented out because only need to run this for the initial step, can just load Rdata below to move to next sections, last ran 20240809
-# # #first subset the unique dataframes and second run the GLMs
-# # 
-#   for(i in 1:length(sub_meth_table.10x$gene)){
-# # 
-# #    #subset the dataframe gene by gene
-#     sub_meth_table.10x1 <- subset(sub_meth_table.10x, gene ==gs.10x[i])
-# # 
-# #   # fit glm position model
-# #   #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table.
-#    fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment,
-#                data=sub_meth_table.10x1, family=binomial)
-#     a <- anova(fit, test="Chisq")
-# # 
-# #    # capture summary stats to data frame
-#     df <- data.frame(gene = sub_meth_table.10x1[1,7],
-#                      pval.treatment = a$`Pr(>Chi)`[2],
-# #                     #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
-# #                     #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
- #                 stringsAsFactors = F)
-# # 
-# #    # bind rows of temporary data frame to the results data frame
-#     results.10x <- rbind(results.10x, df)
-# # 
-#  }
-# #  
-#  write.csv(results.10x, "RAnalysis/Output/meth.results.10x.csv")
+# Calculate differentially methylated genes
+#first subset the unique dataframes and second run the GLMs
+#purr package function called map, much cleaner for for loops (how to loop over a model in the tidyverse, can have a tidy output for your anova) computational time is faster with purr and it is cleaner
+for(i in 1:length(sub_meth_table.10x$gene)){
+  
+  #subset the dataframe gene by gene
+  sub_meth_table.10x1 <- subset(sub_meth_table.10x, gene ==gs.10x[i])
+  
+  # fit glm position model
+  #think about this as just a logistic regression, linear model on binomial distribution is binomial distribution, just adding a random effect for block. P-values based off of maximum likelihood approach, not gonna be like an anova table. 
+  fit <- glm(matrix(c(meth, unmeth), ncol=2) ~ treatment, 
+             data=sub_meth_table.10x1, family=binomial)
+  a <- anova(fit, test="Chisq")
+  
+  # capture summary stats to data frame
+  df <- data.frame(gene = sub_meth_table.10x1[1,7],
+                   pval.treatment = a$`Pr(>Chi)`[2],
+                   #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
+                   #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
+                   stringsAsFactors = F)
+  
+  # bind rows of temporary data frame to the results data frame
+  results.10x <- rbind(results.10x, df)
+  
+}
 
 
-# An error will be generated here for contrasts. 
+# write dataframe
+write.csv(results.10x, "RAnalysis/Output/meth.results.10x.csv")
+#An error will be generated here for contrasts. 
 #This potential for contrasts (interactions) is included in the case one wants to examine the role of position of CpG within a gene
-#Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
 #Continuing the analysis from results line will generate the results in the absence of the contrast (interaction).
 
 results.10x <- read.csv("RAnalysis/Output/meth.results.10x.csv", row.names = 1)
@@ -204,12 +203,42 @@ DMG.sig.10x <- DMG.sig.10x[order(DMG.sig.10x$adj.pval.treatment),]
 DMG.sig.10x <- DMG.sig.10x[which(DMG.sig.10x$adj.pval.treatment<0.05), ]
 sum(DMG.sig.10x$adj.pval.treatment < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
 
-#352
+#376
 
 # Annotation of DMG under between treatments 
 DMG.sig.annot.10x <- left_join(DMG.sig.10x , Annot, by="gene")
 #DMG.sig.annot <- DMG.sig.annot[!duplicated(DMG.sig.annot$gene),]
 write.table(DMG.sig.annot.10x, 'RAnalysis/Output/Treatment_sig_annot.10x.tsv', sep='\t', row.names=FALSE)
+
+# Sanity check to make sure DMGs are calculated correctly
+# Select data from MD.10x with significant DMGs
+methylation_data <- MD.10x %>%
+  filter(gene %in% DMG.sig.annot.10x$gene)
+
+# Calculate relative change to confirm differential methylation calculated correctly 
+# Calculate mean methylation per treatment
+mean_meth <- methylation_data %>%
+  group_by(gene, treatment) %>%
+  summarize(mean_per_meth = mean(per.meth), .groups = 'drop')
+
+# Widen data to have treatments as columns
+mean_meth_wide <- mean_meth %>%
+  pivot_wider(names_from = treatment, values_from = mean_per_meth)
+
+# Caluclate relative change and ratio in the enriched to the control treatment 
+mean_meth_wide <- mean_meth_wide %>%
+  mutate(relative_change = enriched - control,
+         relative_change_ratio = enriched / control)
+
+# Scatter plot of the realtive change ratio, ratio greater than 1 indicates that the enriched treatment has higher methylation than the control, while a ratio less than 1 indicates lower methylation in the enriched treatment, we see higher methylation in enriched for our DMGs
+ggplot(mean_meth_wide, aes(x = gene, y = relative_change_ratio, color = relative_change_ratio)) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  labs(title = "Relative Change in Methylation Between Enriched and Control Treatments",
+       x = "Gene",
+       y = "Relative Change in Methylation") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
 
 ```
 
@@ -217,10 +246,6 @@ write.table(DMG.sig.annot.10x, 'RAnalysis/Output/Treatment_sig_annot.10x.tsv', s
 # Assign hyper- and hypo- methylation from data using DMGs
 ```{r}
 # We have DMGs already, so now find the mean difference between enriched and control to determine hyper and hypomethylated
-#select certain columns
-methylation_data <- MD.10x %>%
-  filter(gene %in% DMG.sig.annot.10x$gene)
-
 # Data wrangling to calculate the mean percent methylation for each gene
 aggregated_data <- methylation_data %>%
   group_by(gene, treatment) %>%
@@ -373,14 +398,14 @@ DMG_list <- gdds[which(rownames(gdds) %in% DMG)] # Filter DESeq2 object
 print(dim(DMG_list)) # Check dimensions
 print(counts(DMG_list)) # Verify counts
 
-# Apply VST to DMG list
+# Apply transformation to DMG list
 DMGvst <- varianceStabilizingTransformation(DMG_list, blind=FALSE)
 print(dim(DMGvst)) # Verify dimensions after transformation
 print(assay(DMGvst)) # Inspect transformed data
 
-# PCA plot for DMGs
+# Caluclate PCA 
 DMG_PCAdata <- plotPCA(DMGvst, intgroup = c("treatment"), returnData=TRUE)
-percentVar_pca <- round(100 * attr(DMG_PCAdata, "percentVar")) 
+percentVar_pca <- round(100 * attr(DMG_PCAdata, "percentVar"))
 
 # Create PCA plot
 DMG_PCA_plot <- ggplot(DMG_PCAdata, aes(x = PC1, y = PC2, color = treatment)) +
@@ -398,7 +423,7 @@ DMG_PCA_plot <- ggplot(DMG_PCAdata, aes(x = PC1, y = PC2, color = treatment)) +
     axis.title = element_text(size = 16),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 16)) +
-  stat_ellipse(); DMG_PCA_plot
+  stat_ellipse() ; DMG_PCA_plot
 
 
 # Plot heat map with diff expressed genes
@@ -439,46 +464,28 @@ dev.off()
 ```
 
 # Conduct PERMANOVA and DMG
-Export data for PERMANOVA test.  
-```{r}
-test2<-t(assay(DMGvst)) #export as matrix
-test2<-as.data.frame(test2)
-
-#add category columns
-test2$fragment.ID <- rownames(test2)
-test2$treatment <- samp.info$treatment[match(test2$fragment.ID, samp.info$fragment.ID)]
-```
-
 Build PERMANOVA model.  
 ```{r}
-# Perform PCA on the numeric columns
-pca_result <- prcomp(test2[1:352], center = TRUE, scale. = TRUE)
+# Extract the transformed count data
+DMG_data <- t(assay(DMGvst))  # Transpose the data so samples are rows
 
-# Visualize PCA eigenvalues
-fviz_eig(pca_result)
+# Get the treatment information
+treatment <- colData(DMGvst)$treatment
 
-# scale data
-scaled_test2 <- scale(test2[1:352])
+# Perform PERMANOVA
+permanova_result <- adonis2(DMG_data ~ treatment, method = "euclidean", permutations = 999)
 
-# Print results
-distance_matrix <- vegdist(scaled_test2, method = "euclidean")
-
-# PERMANOVA
-permanova_result <- adonis2(distance_matrix ~ treatment, data = test2)
-
-# Print results
+# Print the results
 print(permanova_result)
+
+# Optionally, you can also perform a test for homogeneity of multivariate dispersions
+dispersion_test <- betadisper(vegdist(DMG_data, method = "euclidean"), group = treatment)
+anova_dispersion <- anova(dispersion_test)
+print(anova_dispersion)
+
+# Visualize the dispersion
+plot(dispersion_test)
 ```
-
-There are significant differences between treatments for control and enriched sites in DMG
-
-adonis2(formula = vegan ~ treatment, data = test2, method = "eu")
-          Df SumOfSqs      R2     F Pr(>F)    
-treatment  1    711.3 0.06903 2.002  0.001 ***
-Residual  27   9592.7 0.93097                 
-Total     28  10304.0 1.00000                 
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 
 ### Make Volcano plot of hyper and hypo methylated DMGs
