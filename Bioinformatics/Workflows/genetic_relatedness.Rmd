@@ -1,0 +1,79 @@
+---
+title: "genetic relatedness RNAseq SNPs and WGBS BSnper"
+author: "daniellembecker"
+date: "8/13/2024"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Use genetic relatedness outputs from PLINK computed on HPC from URI Andromeda to compare genetic relatedness among samples. 
+
+## Load Libraries
+```{r message = FALSE, warning = FALSE}
+library(data.table)
+library(ggplot2)
+library(R.utils)
+library(pheatmap)
+```
+
+## Read in genetic relatedness .gz file made from original sample .bam files, called for SNP variants, filtered, and made from PLINK software for genetic relatedness metrics
+```{r}
+# Read the GRM file
+grm <- fread("../../../Desktop/relatedness.grm.gz")
+
+# Read the corresponding IDs
+ids <- fread("../../../Desktop/relatedness.grm.id", header=FALSE)
+colnames(ids) <- c("FID", "IID")
+
+# Extract sample IDs from the full file paths
+ids$SampleID <- str_extract(ids$IID, "(?<=mapped/)[^_]+")
+
+# Add sample IDs to the GRM data
+grm$ID1 <- ids$SampleID[grm$V1]
+grm$ID2 <- ids$SampleID[grm$V2]
+
+# The relatedness coefficient is in the 4th column (V4)
+grm <- grm[, c("ID1", "ID2", "V4")]
+colnames(grm)[3] <- "relatedness"
+
+# Set a threshold for close relatedness (e.g., 0.125 for first cousins)
+threshold <- 0.125
+
+# Apply closely related pairs setting
+close_relatives <- grm[grm$relatedness > threshold & grm$ID1 != grm$ID2, ]
+close_relatives <- close_relatives[order(-close_relatives$relatedness), ]
+
+# Create a matrix from the relatedness data
+relatedness_matrix <- reshape2::acast(grm, ID1 ~ ID2, value.var = "relatedness")
+
+# Fill the diagonal with 1 (self-relatedness)
+diag(relatedness_matrix) <- 1
+
+# Ensure the matrix is symmetric
+relatedness_matrix <- (relatedness_matrix + t(relatedness_matrix)) / 2
+
+# Create custom breaks: focusing on white for 0 and transitioning to blue for higher values
+min_val <- min(relatedness_matrix, na.rm = TRUE)
+max_val <- max(relatedness_matrix, na.rm = TRUE)
+mid_val <- 0
+
+# Define breaks
+breaks <- c(seq(min_val, mid_val, length.out = 51), seq(mid_val, max_val, length.out = 50)[-1])
+
+# Generate the heatmap with a white-to-blue gradient
+pheatmap(relatedness_matrix,
+         color = colorRampPalette(c("red", "white"))(100),
+         breaks = breaks,
+         main = "Pairwise Genetic Relatedness",
+         fontsize_row = 8,
+         fontsize_col = 8,
+         display_numbers = FALSE,
+         number_format = "%.2f",
+         cluster_rows = FALSE,
+         cluster_cols = FALSE)
+
+
+
+```
+

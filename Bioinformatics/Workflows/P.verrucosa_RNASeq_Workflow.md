@@ -1385,3 +1385,134 @@ sbatch GTFtoCounts_gff3_compare.sh
 Submitted batch job 322279
 
 ```
+
+# 9) Run RNAseq SNP calling and genetic relatedness
+
+In our data we see some samples (n=5) that are in different blocks but the same enriched treatment clumping in our heatmap. These are the same haplotype from our mtORF and PocHIstone molecular analyses so we want to check the genetic relateness. We must first use SNP calling from the RNAseq data, then calculate genetic relatedness of our samples.
+
+First, create a script for SNP calling with bcftools and samtools functions:
+
+```
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SNP_calling.sh
+
+```
+
+```
+#!/bin/bash
+#SBATCH --job-name=snp_calling
+#SBATCH --output=snp_calling.out
+#SBATCH --error=snp_calling.err
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --time=96:00:00
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu
+#SBATCH --account=putnamlab
+#SBATCH --mem=120G
+
+# Load required modules
+module load BCFtools/1.17-GCC-12.2.0
+module load SAMtools/1.9-foss-2018b
+
+# Set input and output directories
+INPUT_DIR="/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped"
+OUTPUT_DIR="/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/SNP_calling"
+
+# Reference genome
+REF_GENOME="/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/refs/Pverr/Pver_genome_assembly_v1.0.fasta"
+
+# Call SNPs
+bcftools mpileup -Ou -f $REF_GENOME $INPUT_DIR/*.bam | \
+bcftools call -mv -Oz -o $OUTPUT_DIR/variants.vcf.gz
+
+# Index the VCF file
+bcftools index $OUTPUT_DIR/variants.vcf.gz
+
+```
+
+```
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SNP_calling.sh
+
+Submitted batch job 334327
+```
+
+Second, filter SNPs:
+
+```
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SNP_filtering.sh
+
+```
+
+```
+#!/bin/bash
+#SBATCH --job-name=snp_filtering
+#SBATCH --output=snp_filtering.out
+#SBATCH --error=snp_filtering.err
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
+#SBATCH --time=96:00:00
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu
+#SBATCH --account=putnamlab
+#SBATCH --mem=120G
+
+# Load required modules
+module load BCFtools/1.17-GCC-12.2.0
+
+# Set input and output files
+INPUT_VCF="/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/SNP_calling/variants.vcf.gz"
+OUTPUT_VCF="/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/SNP_calling/filtered_variants.vcf.gz"
+
+# Filter SNPs
+bcftools filter -i 'QUAL>20 && DP>10' $INPUT_VCF -Oz -o $OUTPUT_VCF
+
+# Index the filtered VCF file
+bcftools index $OUTPUT_VCF
+
+```
+
+```
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/SNP_filtering.sh
+
+```
+
+Third, calculate genetic relatedness using PLINK :
+
+
+```
+nano /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/genetic_relatedness.sh
+
+```
+
+```
+#!/bin/bash
+#SBATCH --job-name=genetic_relatedness
+#SBATCH --output=genetic_relatedness.out
+#SBATCH --error=genetic_relatedness.err
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --time=96:00:00
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=danielle_becker@uri.edu
+#SBATCH --account=putnamlab
+#SBATCH --mem=120G
+
+# Load required modules
+module load PLINK/2.00a3.7-gfbf-2023a
+
+# Set input and output files
+INPUT_VCF="/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/SNP_calling/filtered_variants.vcf.gz"
+OUTPUT_PREFIX="/data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/data/mapped/SNP_calling/relatedness"
+
+# Calculate genetic relatedness
+plink --vcf $INPUT_VCF --double-id --allow-extra-chr --make-grm-gz --out $OUTPUT_PREFIX
+
+```
+
+```
+sbatch /data/putnamlab/dbecks/Becker_E5/Becker_RNASeq/scripts/genetic_relatedness.sh
+
+Submitted batch job 334351
+```
+
+Download relatedness.grm.gz to Desktop to visualize results of relatedness using this Rscript.

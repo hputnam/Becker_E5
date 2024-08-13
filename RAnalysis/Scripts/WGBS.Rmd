@@ -176,7 +176,7 @@ gs.10x <- unique(sub_meth_table.10x$gene)
 #                      pval.treatment = a$`Pr(>Chi)`[2],
 # #                     #pval.position = a$`Pr(>Chi)`[3], #uncomment if you want to include position of CpG within a gene
 # #                     #pval.treatment_x_position = a$`Pr(>Chi)`[4], #uncomment if you want to include position of CpG within a gene interaction with treatment
-#                   stringsAsFactors = F)
+ #                 stringsAsFactors = F)
 # # 
 # #    # bind rows of temporary data frame to the results data frame
 #     results.10x <- rbind(results.10x, df)
@@ -204,7 +204,7 @@ DMG.sig.10x <- DMG.sig.10x[order(DMG.sig.10x$adj.pval.treatment),]
 DMG.sig.10x <- DMG.sig.10x[which(DMG.sig.10x$adj.pval.treatment<0.05), ]
 sum(DMG.sig.10x$adj.pval.treatment < 0.05, na.rm=TRUE) #How many adjusted p-values were less than 0.05?
 
-#353
+#352
 
 # Annotation of DMG under between treatments 
 DMG.sig.annot.10x <- left_join(DMG.sig.10x , Annot, by="gene")
@@ -246,7 +246,7 @@ hyper_genes <- merged_data$gene[merged_data$MeanDifference > 0]
 hypo_genes <- merged_data$gene[merged_data$MeanDifference < 0]
 
 # Assuming hyper_genes and hypo_genes are lists or vectors
-num_hyper_genes <- length(hyper_genes) #195 Count of hypermethylated genes
+num_hyper_genes <- length(hyper_genes) #194 Count of hypermethylated genes
 num_hypo_genes <- length(hypo_genes) #158 Count of hypomethylated genes
 
 # Add the 'direction' column to merged_data
@@ -404,7 +404,7 @@ DMG.volcano <- ggplot(final_df, aes(x = log2FoldChange, y = -log10(padj), color 
   geom_point(alpha = 0.7, size = 2) +
   scale_color_manual(values = colors, name = "Methylation Status", 
                      breaks = c("Hypermethylated", "Hypomethylated", "Not Significant"),
-                     labels = c("Hypermethylated (195)", "Hypomethylated (158)", "Not Significant"),
+                     labels = c("Hypermethylated (194)", "Hypomethylated (158)", "Not Significant"),
                      drop = FALSE) +  # Include all specified breaks in the legend
   labs(title = "", x = "log2FoldChange", y = "-log10(adjusted p-value)") +
   theme_bw() +
@@ -466,8 +466,7 @@ DMG_PCA_plot <- ggplot(DMG_PCAdata, aes(x = PC1, y = PC2, color = treatment)) +
     axis.text = element_text(size = 16),
     axis.title = element_text(size = 16),
     legend.text = element_text(size = 16),
-    legend.title = element_text(size = 16)
-  ) +
+    legend.title = element_text(size = 16)) +
   stat_ellipse(); DMG_PCA_plot
 
 
@@ -522,13 +521,13 @@ test2$treatment <- samp.info$treatment[match(test2$fragment.ID, samp.info$fragme
 Build PERMANOVA model.  
 ```{r}
 # Perform PCA on the numeric columns
-pca_result <- prcomp(test2[1:353], center = TRUE, scale. = TRUE)
+pca_result <- prcomp(test2[1:352], center = TRUE, scale. = TRUE)
 
 # Visualize PCA eigenvalues
 fviz_eig(pca_result)
 
 # scale data
-scaled_test2 <- scale(test2[1:353])
+scaled_test2 <- scale(test2[1:352])
 
 # Print results
 distance_matrix <- vegdist(scaled_test2, method = "euclidean")
