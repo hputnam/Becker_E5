@@ -386,6 +386,9 @@ gene_list_separated <- gene_list %>%
   mutate(Pverr.gene.ID = str_replace(Pverr.gene.ID, "^Pver_novel_model_", "Pver_novel_")) %>%
   rename(gene_id = Pverr.gene.ID)
 
+# write dataframe
+write.csv(gene_list_separated, "RAnalysis/Output/gene_list_separated.csv")
+
 # Ensure gene_list_separated is a vector of gene IDs
 gene_list_vector <- gene_list_separated$gene_id
 
