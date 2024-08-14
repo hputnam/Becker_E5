@@ -133,7 +133,7 @@ GO.IDs <-unique(Gene.GO.IDs$GO.IDs) #removes duplicates from columns, compiles b
 # Filtering SNPs found from BS-SNper, following this workflow: https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2024-02-12-Testing-BS-SNPer-Molec-Underpinnings-WGBS.md and this script: https://github.com/hputnam/Becker_E5/blob/master/RAnalysis/Scripts/WGBS/BS-SNPer.filter.Rmd
 
 # Use the new MD.10x file that has now been filtered for SNPs
-MD.10x <- readRDS("RAnalysis/Data/filtered_bed_SNP_file.Rdata") #read in info
+MD.10x <- readRDS("../../../Downloads/filtered_bed_SNP_file (2).Rdata") #read in info
 
 head(MD.10x)
 

@@ -1,4 +1,4 @@
-"","gene","direction","adj.pval.treatment"
+"","gene","methylation_status","adj.pval.treatment"
 "1","Pver_gene_g16653","hypermethylated",6.1927637979308e-303
 "2","Pver_gene_g23213","hypermethylated",1.087178970923e-198
 "3","Pver_gene_g3320","hypermethylated",2.68324526481707e-90

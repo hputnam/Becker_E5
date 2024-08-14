@@ -444,18 +444,20 @@ colnames(express.change)[colnames(express.change) == "gene_id"] <- "gene" # Rena
 # Filter gene_summary for the genes of interest
 target_genes_summary <- express.change[express.change$gene %in% gene_list_vector,]
 
-# Calculate fold change for the target genes
-target_genes_summary$fold_change <- mean_express_E[rownames(target_genes_summary)] / mean_express_C[rownames(target_genes_summary)]
-target_genes_summary$fold_change[is.infinite(target_genes_summary$fold_change)] <- NA  # Handle infinite values
+# Calculate log2 fold change for the target genes
+target_genes_summary$log2_fold_change <- log2(mean_express_E[rownames(target_genes_summary)] / mean_express_C[rownames(target_genes_summary)])
+
+# Handle infinite and NaN values
+target_genes_summary$log2_fold_change[is.infinite(target_genes_summary$log2_fold_change) | is.nan(target_genes_summary$log2_fold_change)] <- NA
 
 # Scatterplot of fold change with y-axis intervals and customized text sizes
-ggplot(target_genes_summary, aes(x = gene, y = fold_change, color = fold_change)) +
+ggplot(target_genes_summary, aes(x = gene, y = log2_fold_change, color = log2_fold_change)) +
   geom_point(size = 3) +
-  geom_hline(yintercept = 1, linetype = "dashed", color = "red", size = 1) +  # Line at fold change = 1
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red", size = 1) +  # Line at fold change = 1
   theme_bw() +
-  labs(title = "Fold Change in Gene Expression Genes of Interest Between Enriched and Control Treatments",
+  labs(title = "log2fold Change in Gene Expression Genes of Interest Between Enriched and Control Treatments",
        x = NULL,  # Remove x-axis label
-       y = "Fold Change") +
+       y = "log2 fold change") +
   theme(axis.text.x = element_blank(),  # Remove x-axis labels
         axis.ticks.x = element_blank(),  # Remove x-axis ticks
         axis.text.y = element_text(size = 14),  # Increase y-axis text size
@@ -463,10 +465,9 @@ ggplot(target_genes_summary, aes(x = gene, y = fold_change, color = fold_change)
         plot.title = element_text(size = 18, face = "bold"),  # Increase plot title size
         legend.text = element_text(size = 14),  # Increase legend text size
         legend.title = element_text(size = 16)) +  # Increase legend title size
-  scale_color_viridis_c() +  # Optional: use a color scale for better visibility
-  scale_y_continuous(breaks = seq(min(target_genes_summary$fold_change, na.rm = TRUE), 
-                                  max(target_genes_summary$fold_change, na.rm = TRUE), 
-                                  by = 1))  # Set y-axis intervals at 1
+  scale_color_viridis_c()   # Optional: use a color scale for better visibility
+  #scale_y_continuous(breaks = seq(min(target_genes_summary$log2_fold_change, na.rm = TRUE), 
+ #                                 max(target_genes_summary$log2_fold_change, na.rm = TRUE), by = 0.6))  # Set y-axis intervals at 1
 
 ```
 
@@ -484,20 +485,22 @@ colnames(meth.change)[colnames(meth.change) == "gene_id"] <- "gene" # Rename gen
 
 # Calculate for gene expression data:
 # Filter gene_summary for the genes of interest
-target_genes_meth_summary <- meth.change[meth.change$gene %in% gene_list_vector,]
+target_meth_summary <- meth.change[meth.change$gene %in% gene_list_vector,]
 
-# Calculate fold change for the target genes
-target_genes_meth_summary$fold_change <- mean_express_E[rownames(target_genes_meth_summary)] / mean_express_C[rownames(target_genes_meth_summary)]
-target_genes_meth_summary$fold_change[is.infinite(target_genes_meth_summary$fold_change)] <- NA  # Handle infinite values
+# Calculate log2 fold change for the target meth
+target_meth_summary$log2_fold_change <- log2(mean_express_E[rownames(target_meth_summary)] / mean_express_C[rownames(target_meth_summary)])
+
+# Handle infinite and NaN values
+target_meth_summary$log2_fold_change[is.infinite(target_meth_summary$log2_fold_change) | is.nan(target_meth_summary$log2_fold_change)] <- NA
 
 # Scatterplot of fold change with y-axis intervals and customized text sizes
-ggplot(target_genes_meth_summary, aes(x = gene, y = fold_change, color = fold_change)) +
+ggplot(target_meth_summary, aes(x = gene, y = log2_fold_change, color = log2_fold_change)) +
   geom_point(size = 3) +
-  geom_hline(yintercept = 1, linetype = "dashed", color = "red", size = 1) +  # Line at fold change = 1
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red", size = 1) +  # Line at fold change = 1
   theme_bw() +
-  labs(title = "Fold Change in Methylation Genes of Interest Between Enriched and Control Treatments",
+  labs(title = "log2fold Change in Methylation in Genes of Interest Between Enriched and Control Treatments",
        x = NULL,  # Remove x-axis label
-       y = "Fold Change") +
+       y = "log2 fold change") +
   theme(axis.text.x = element_blank(),  # Remove x-axis labels
         axis.ticks.x = element_blank(),  # Remove x-axis ticks
         axis.text.y = element_text(size = 14),  # Increase y-axis text size
@@ -506,6 +509,8 @@ ggplot(target_genes_meth_summary, aes(x = gene, y = fold_change, color = fold_ch
         legend.text = element_text(size = 14),  # Increase legend text size
         legend.title = element_text(size = 16)) +  # Increase legend title size
   scale_color_viridis_c()   # Optional: use a color scale for better visibility
+  #scale_y_continuous(breaks = seq(min(target_genes_summary$log2_fold_change, na.rm = TRUE), 
+ #                                 max(target_genes_summary$log2_fold_change, na.rm = TRUE), by = 0.6))  # Set y-axis intervals at 1
 ```
 
 
