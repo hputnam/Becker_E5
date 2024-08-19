@@ -188,7 +188,7 @@ run_glm <- function(data){
   #Gathering convergence stats
   results.10x$Stats[Gene, ] <- c(Gene, a$`Pr(>Chi)`[2])
   
-  write.table(results.10x$Stats[Gene, ], "RAnalysis/Output/GLM_output_with_extrafilter.txt", 
+  write.table(results.10x$Stats[Gene, ], "RAnalysis/Output/GLM_output_with_extrafilter.csv", 
               col.names=F, row.names=T, quote=F, append=T)
   
 }
@@ -200,7 +200,7 @@ mclapply(split_dfs, run_glm)
 
 Filtering to genes that are significantly different and justing p-values with 'BH' (a less conservative Benjamini & Hochberg (1995) correction in which p-values are multiplied by the number of comparisons). 
 ```{r}
-glm_results <- read.delim2("RAnalysis/Output/GLM_output_with_extrafilter.txt", header=F, sep = " ") %>% 
+glm_results <- read.delim2("RAnalysis/Output/GLM_output_with_extrafilter.csv", header=F, sep = " ") %>% 
   dplyr::select(-V1) %>% dplyr::rename(gene = V2, pvalue_treatment = V3)
 
 ## adjusting p-values 
@@ -295,6 +295,41 @@ pcoa_coordinates %>%
            size = 3, color = "grey20");pcoa_coordinates
 
 ggsave("RAnalysis/Output/DMG_PCoA.png", width = 6.5, height = 5)
+
+# Run PCA for comparison for DMGs
+# Perform PCA on the methylation matrix
+pca_results <- prcomp(methylation_matrix, scale. = TRUE)
+
+# Extract PCA variance
+pca_variance <- pca_results$sdev^2
+pca_variance_percent <- pca_variance / sum(pca_variance) * 100
+pc1_variance <- round(pca_variance_percent[1], 2)
+pc2_variance <- round(pca_variance_percent[2], 2)
+
+# Extract PCA coordinates and merge with metadata
+pca_coordinates <- as.data.frame(pca_results$x) %>%
+  rownames_to_column(var = "Sample.ID") %>%
+  left_join(., meta_for_permanova, by = "Sample.ID")
+
+# Create the PCA plot with percentage of variance on axes
+pca_coordinates %>%
+  ggplot(aes(x = PC1, y = PC2, fill = treatment)) +
+  geom_point(size = 3, shape = 21, color = "black") +
+  theme_bw() +
+  stat_ellipse(alpha = 0.2, size = 1, level = 0.95) +  # Add ellipses with transparency 
+  scale_fill_manual(values = c("control" = "grey", "enriched" = "black")) +
+  labs(fill = "Treatment",
+       x = paste0("PC1 (", pc1_variance, "%)"),
+       y = paste0("PC2 (", pc2_variance, "%)")
+  ) +
+  annotate("text", x = -10, y = -10, label = "PERMANOVA p=0.01", 
+           hjust = 0, size = 3, color = "grey20")
+
+# Run PERMANOVA using the adonis2 function
+permanova_results <- adonis2(methylation_matrix ~ treatment, data = meta_for_permanova, method = 'bray')
+
+# View the results of the PERMANOVA
+print(permanova_results)
 
 ```
 
