@@ -245,12 +245,6 @@ ggplot(relative_change, aes(x = gene, y = relative_change, fill = relative_chang
         legend.position = "right")  
 ```
 
-Assigning 'methylation pattern's based on the change in mean methylation above 
-```{r}
-relative_change <- relative_change %>%
-  mutate(pattern_group = ifelse(relative_change < 0, 'hypomethylated', 'hypermethylated'))
-```
-
 Conduct PERMANOVA and PCoA on methylation matrix 
 ```{r}
 ## Using the filter step, suggest using median percent methylation for pcoa
@@ -315,7 +309,6 @@ methylation_matrix_filtered <- methylation_matrix[rownames(methylation_matrix) %
 
 # Subset methylation_matrix to include only samples from these treatments
 methylation_matrix_filtered <- methylation_matrix_filtered[meta_for_heatmap$Sample.ID, ]
-
 
 # Define colors for treatments
 annotation_col <- meta_for_heatmap %>%
@@ -462,6 +455,18 @@ PCoA.DMG <- rasterGrob(DMG.PCoA, interpolate=TRUE)
 Figure2 <- plot_grid( DMG.volcano, PCoA.DMG, labels = c('A', 'B'), label_size = 14)
 
 ggsave(filename=paste0("RAnalysis/Output/DMG.volcano_pcoa.png"), plot=Figure2, dpi=300, width=10, height=5, units="in", limitsize = FALSE)
+
+# Add methylation status assignments to the significant results and ouput for topGO enrichment analysis
+merge_df <- final_df %>%
+  dplyr::rename(adj_pvalue_treatment = padj)
+
+merge_df <- merge_df %>%
+  dplyr::rename(pvalue_treatment = pvalue)
+
+# Merge for just significant genes for enrichment analysis
+DMGs_all <- merge(glm_results_significant, merge_df)
+
+write.csv(DMGs_all, "RAnalysis/Output/DMGs_all.csv")
 
 ```
 
