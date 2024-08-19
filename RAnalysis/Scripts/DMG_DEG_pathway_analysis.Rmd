@@ -84,9 +84,9 @@ Create Methylation Summary Table
 # Read in gene methylation data
 gene_dnam <- readRDS("RAnalysis/Data/filtered_bed_SNP_file.Rdata") #read in info
 
-#rename sample.ID to include corresponding E and C in front for enriched and control for later analysis
+#rename genewiz sample.ID to include corresponding E and C in front for enriched and control libraries for later analysis
 gene_dnam <- gene_dnam %>%
-    mutate(Sample.ID = recode(Sample.ID, '1' = 'E1', '2' = 'E2', '3' = 'E3', '4' = 'E4', '5' = 'E5', '6' = 'E6', '9' = 'E9','10' = 'E10', '11' = 'E11', '12' = 'E12','13' = 'E13', '14' = 'E14', '15' = 'E15', '16' = 'E16', '17' = 'C17', '18' = 'C18', '19' = 'C19', '20' = 'C20', '21' = 'C21', '22' = 'C22', '23' = 'C23', '24' = 'C24', '25' = 'C25', '26' = 'C26', '27' = 'C27', '29' = 'C29', '30' = 'C30', '31' = 'C31', '32' = 'C32'))
+    mutate(Sample.ID = recode(Sample.ID, '1' = 'E3', '3' = 'E14', '4' = 'C26', '5' = 'C31', '6' = 'C29', '7' = 'E13','8' = 'C20', '9' = 'C18', '10' = 'C24','11' = 'E10', '12' = 'C27', '13' = 'C22', '14' = 'E11', '15' = 'E4', '17' = 'E6', '18' = 'C21', '20' = 'E12', '21' = 'E5', '22' = 'C30', '23' = 'E1', '24' = 'C23', '25' = 'E16', '26' = 'C19', '27' = 'C25', '28' = 'E2', '29' = 'E9', '30' = 'C32', '31' = 'E15', '32' = 'C17'))
 
 #check to see all where renamed correctly
 unique(gene_dnam$Sample.ID)
@@ -104,30 +104,6 @@ meth <- gene_dnam %>%
   summarise(mean = mean(per.meth), n = n()) %>%
   spread(key = Sample.ID, value = mean)
 
-# Filter for a minimum of 5 CpG sites per gene
-meth_filtered <- meth[which(meth$n >= 5), ]
-
-# Count unique loci after filtering
-# Note: After filtering, we need to re-evaluate the original dataset to see which loci remain
-remaining_genes <- meth_filtered$gene
-
-# Filter original dataset to include only remaining genes
-gene_dnam_filtered <- gene_dnam %>%
-  filter(gene %in% remaining_genes)
-
-unique_loci_after <- gene_dnam_filtered %>%
-  summarise(unique_loci = n_distinct(paste(scaffold, position, sep = "_")))
-
-# Print the result
-print(paste("Unique loci after filtering:", unique_loci_after$unique_loci))
-
-
-#change from long to wide format
-meth <- data.frame (gene_dnam %>%
-                   group_by(Sample.ID, gene) %>%
-                   summarise(mean = mean(per.meth), n = n()) %>%
-                   spread(., key = Sample.ID, value = mean))
-
 #filter for a min 5 Cpg per gene
 meth <- meth[which(meth$n >= 5), ]
 cpg10xgene <- meth[,1:2]  
@@ -138,19 +114,20 @@ meth <- as.matrix(meth)
 meth <- meth/100
 saveRDS(meth, "RAnalysis/Data/meth_dataset.RData")
 
+# test meth dataframe to view
 meth.test <- data_frame(meth)
 
 ## Create a summary of methylation for each gene ##
 mean_meth <- rowMeans(meth)
 meta.data <- na.omit(meta.data)
 
-# create list for sample IDs from metadata and select from that list with filtering, pipe, row means
+# create list for sample IDs from metadata for treatment and select from that list with filtering, pipe, row means
 list_E <- filter(meta.data, treatment == "enriched") #filter only enriched data from metadata
 list_C <- filter(meta.data, treatment == "control") #filter only control data from metadata
 list_E <- as.list(list_E$Sample_ID) #make list of just enriched IDs
 list_C <- as.list(list_C$Sample_ID) #make list of just control IDs
 
-# mean gene meth enriched 
+# gene meth enriched 
 subset_meth_E <- meth[, colnames(meth)%in%list_E] #subset data from main m matrix for just enriched data
 
 mean_meth_E <- rowMeans(subset_meth_E)
@@ -270,7 +247,7 @@ saveRDS(gSum,"RAnalysis/Data/Multi_geneSummaryComplete.RData")
 saveRDS(gSum_red,"RAnalysis/Data/Multi_geneSummaryReduced.RData")
 ```
 
-#compare global mean meth vs express overall
+#compare gene level meth vs express overall
 ```{r}
 mat <- readRDS("RAnalysis/Output/Multi_geneSummaryReduced_all.RData") 
 
@@ -285,7 +262,7 @@ df$per_meth <- df$mean_meth * 100
 ks.test(df$gene_mean_express, "pnorm", mean = mean(df$gene_mean_express), sd = sd(df$gene_mean_express))
 ks.test(df$mean_meth, "pnorm", mean = mean(df$mean_meth), sd = sd(df$mean_meth))
 
-#plot of global express x meth
+#plot of gene level express x meth
 meth.express.compare <- ggplot(df, aes(x=per_meth, y=log_gene,)) + 
     geom_point() + ylim(0.5, 2.7) + xlim(0, 98) +
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
@@ -295,7 +272,7 @@ meth.express.compare <- ggplot(df, aes(x=per_meth, y=log_gene,)) +
     theme_cowplot();meth.express.compare
 
 ### Figure Mean Methylation vs Gene Expression###
-ggsave(meth.express.compare, filename="RAnalysis/Output/global_express_meth_correlation.png", height = 7, width = 10)
+ggsave(meth.express.compare, filename="RAnalysis/Output/gene_express_meth_correlation.png", height = 7, width = 10)
 
 ```
 
@@ -352,7 +329,7 @@ valid_rows <- df_filtered[!is.na(df_filtered$log_gene) & !is.na(df_filtered$per_
 num_genes_with_data <- nrow(valid_rows)
 
 # Display the result
-num_genes_with_data #355
+num_genes_with_data #378
 
 # Shapiro-Wilk Test for normality
 shapiro.test(df_filtered$gene_mean_express) # not normal
@@ -426,7 +403,6 @@ ggsave(filename=paste0("RAnalysis/Output/correlation_figures.png"), corr.figures
 ```
 
 
-
 Show fold chnage and z scores for change between enriched and control treatments in our genes of interest for gene expression
 ```{r}
 # next steps mean change in expression for fold change or z score in each gene that goes from control to enriched for target gene list, how much do they change between control and enriched and then show how they go up or down in control and enriched, does nutrient enrichment affect genes of interest or do genes of interest change with control and enriched 
@@ -458,8 +434,7 @@ ggplot(target_genes_summary, aes(x = gene, y = log2_fold_change, color = log2_fo
   geom_point(size = 3) +
   geom_hline(yintercept = 0, linetype = "dashed", color = "red", size = 1) +  # Line at fold change = 1
   theme_bw() +
-  labs(title = "log2fold Change in Gene Expression Genes of Interest Between Enriched and Control Treatments",
-       x = NULL,  # Remove x-axis label
+  labs(x = NULL,  # Remove x-axis label
        y = "log2 fold change") +
   theme(axis.text.x = element_blank(),  # Remove x-axis labels
         axis.ticks.x = element_blank(),  # Remove x-axis ticks
