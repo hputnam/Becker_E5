@@ -179,10 +179,9 @@ meth_summary <- cbind(mean_meth,mean_meth_E,mean_meth_C,cv_meth_E,cv_meth_C,cv_m
                       diff_Trt_meth) # bind all data frames with summary stats
 meth_summary[is.na(meth_summary)]<-0 #filter for all methylation data over 0
 meth_summary <- data.frame(gene_id = rownames(meth_summary),meth_summary) #change gene ID column name
-meth_annot <- left_join(cpg10xgene, meth_summary) #join Cpg and meth summary
 
 # Saving full meth_annot data.frame
-saveRDS(meth_annot,"RAnalysis/Data/meth_annot_full.RData")
+saveRDS(meth_summary,"RAnalysis/Data/meth_annot_full.RData")
 
 #### Summarize the gene expression data ####
 expression <- dge_gene$counts
@@ -254,7 +253,7 @@ gene_annot <- gene_annot[,-(9:13),drop=FALSE]
 saveRDS(gene_annot,"RAnalysis/Data/gene_annot_full.RData")
 
 # Combine gene expression, exon count and CpG (DNA mehtylation data)
-gSum <- full_join(meth_annot, gene_annot, by = "gene_id")
+gSum <- full_join(meth_summary, gene_annot, by = "gene_id")
 
 # Reducing the data.frame to include places were we have all the data.
 gSum_red<-gSum[!is.na(gSum$cov10_count),]
@@ -303,7 +302,7 @@ ggsave(meth.express.compare, filename="RAnalysis/Output/gene_express_meth_correl
 DEG <- read.csv("RAnalysis/Output/DEGSeq2.sig.results.host.csv")[-1]
 # Reorder columns to move gene_id to the first position
 DEG <- DEG %>%
-  select(gene_id, everything())
+  dplyr::select(gene_id, everything())
 
 # read in DMGs
 DMG <- read.csv("RAnalysis/Output/DMGs_all.csv")[-1]
