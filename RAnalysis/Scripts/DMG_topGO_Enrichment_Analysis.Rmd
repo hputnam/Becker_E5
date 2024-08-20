@@ -30,6 +30,7 @@ library("spdep")
 library("patchwork")
 #library("aDMGenet") 
 library("gridExtra")
+library("flextable")
 if (!requireNamespace("clusterProfiler", quietly = TRUE)) { BiocManager::install("clusterProfiler") }
 library("clusterProfiler")
 library("DataCombine")

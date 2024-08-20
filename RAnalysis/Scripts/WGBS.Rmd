@@ -146,10 +146,10 @@ sub_meth_table.10x  <- MD.10x %>%
   # create new column called 'group' based on loci position
   unite(Loc, scaffold, position, remove = FALSE, sep = " ") %>%
   
-  #filtering out loci that have a median methylation of <5% across all samples
+  #filtering out loci that have a median methylation of <1% across all samples
    group_by(Loc) %>%
    mutate(loci_median = median(per.meth)) %>%
-   filter(loci_median >= 5) %>% ungroup() %>%
+   filter(loci_median > 0) %>% ungroup() %>%
   
   # filtering out genes with less than 5 positions of data 
   dplyr::group_by(gene) %>%
@@ -160,7 +160,7 @@ gs.10x <- unique(sub_meth_table.10x$gene)
 
 ## Before loci filtering 1,118,733 rows for 3,910 genes
 ## After loci filtering 1,000,442 rows for 1,902 genes 
-## After filtering for 5 **methylated** positions filtering 150,916 rows for 342 genes (length of gs.10x above)
+## After filtering for 5 **methylated** positions filtering 246,993 rows for 557 genes (length of gs.10x above)
 ```
 
 Binomial GLM to test for differentially methylated genes. For 1,690 genes this took ~5-10 minutes. 
@@ -212,7 +212,7 @@ glm_results_significant <- glm_results %>%
 
 ## Before filteringc 1,902 rows for 1,902 genes
 ## After filtering 376 rows for 376 significantly differentially methylated genes 
-## With filtering for 5 methylated positions, 206 genes are significantly differentially methylated 
+## With filtering for 5 methylated positions, 290 genes are significantly differentially methylated 
 ```
 
 Adding gene annotation information and methylation data 
@@ -290,11 +290,10 @@ pcoa_coordinates %>%
     x = paste0("PCoA1 (", pc1_variance, "%)"),
     y = paste0("PCoA2 (", pc2_variance, "%)")
   ) +
-  annotate("text", x = -100, y = -97, label = "PERMANOVA p=0.01", 
+  annotate("text", x = -100, y = -97, label = "PERMANOVA p=0.007", 
            hjust = 0, #vjust = 1.1, 
            size = 3, color = "grey20");pcoa_coordinates
 
-ggsave("RAnalysis/Output/DMG_PCoA.png", width = 6.5, height = 5)
 
 # Run PCA for comparison for DMGs
 # Perform PCA on the methylation matrix
@@ -316,14 +315,16 @@ pca_coordinates %>%
   ggplot(aes(x = PC1, y = PC2, fill = treatment)) +
   geom_point(size = 3, shape = 21, color = "black") +
   theme_bw() +
-  stat_ellipse(alpha = 0.2, size = 1, level = 0.95) +  # Add ellipses with transparency 
+  stat_ellipse(alpha = 0.2, size = 1) +  # Add ellipses with transparency 
   scale_fill_manual(values = c("control" = "grey", "enriched" = "black")) +
   labs(fill = "Treatment",
        x = paste0("PC1 (", pc1_variance, "%)"),
        y = paste0("PC2 (", pc2_variance, "%)")
   ) +
-  annotate("text", x = -10, y = -10, label = "PERMANOVA p=0.01", 
+  annotate("text", x = -11, y = -11, label = "PERMANOVA p=0.006", 
            hjust = 0, size = 3, color = "grey20")
+
+ggsave("RAnalysis/Output/DMG_PCA.png", width = 6.5, height = 5)
 
 # Run PERMANOVA using the adonis2 function
 permanova_results <- adonis2(methylation_matrix ~ treatment, data = meta_for_permanova, method = 'bray')
@@ -333,7 +334,7 @@ print(permanova_results)
 
 ```
 
-Make heatmmap for DMGs 
+Make heatmap for DMGs 
 ```{r}
 # Filter metadata for the two treatments
 meta_for_heatmap <- meta_for_permanova %>%
@@ -424,7 +425,7 @@ gdds <- DESeqDataSetFromMatrix(countData = countData,
                               colData = samp.info,
                               design = ~treatment)
 
-# Run DESeq2 analysis
+# Run DMG analysis
 dds <- DESeq(gdds)
 
 # Extract log2fold change values
@@ -465,15 +466,15 @@ final_df$methylation_status <- ifelse(final_df$padj > 0.05, "Not Significant",
 colors <- c("Hypermethylated" = "red", "Hypomethylated" = "blue", "Not Significant" = "black")
 
 # Count specific statuses
-count_hypermethylated <- sum(final_df$methylation_status == 'Hypermethylated')
-count_hypomethylated <- sum(final_df$methylation_status == 'Hypomethylated')
+count_hypermethylated <- sum(final_df$methylation_status == 'Hypermethylated') #130
+count_hypomethylated <- sum(final_df$methylation_status == 'Hypomethylated') #158
 
 # Create the volcano plot using ggplot2
 DMG.volcano <- ggplot(final_df, aes(x = log2FoldChange, y = -log10(padj), color = methylation_status)) +
   geom_point(alpha = 0.7, size = 2) +
   scale_color_manual(values = colors, name = "Methylation Status", 
                      breaks = c("Hypermethylated", "Hypomethylated", "Not Significant"),
-                     labels = c("Hypermethylated (88)", "Hypomethylated (118)", "Not Significant"),
+                     labels = c("Hypermethylated (130)", "Hypomethylated (158)", "Not Significant"),
                      drop = FALSE) +  # Include all specified breaks in the legend
   labs(title = "", x = "log2FoldChange", y = "-log10(adjusted p-value)") +
   theme_bw() +
@@ -484,12 +485,12 @@ ggsave("RAnalysis/Output/DMG.volcano.png", DMG.volcano, width = 8, height = 6, u
 
 # Make volcano and PCoA plot together
 #load png image of DMG PCA
-DMG.PCoA <- readPNG("RAnalysis/Output/DMG_PCoA.png")
-PCoA.DMG <- rasterGrob(DMG.PCoA, interpolate=TRUE)
+DMG.PCA <- readPNG("RAnalysis/Output/DMG_PCA.png")
+PCA.DMG <- rasterGrob(DMG.PCA, interpolate=TRUE)
 
-Figure2 <- plot_grid( DMG.volcano, PCoA.DMG, labels = c('A', 'B'), label_size = 14)
+Figure2 <- plot_grid( DMG.volcano, PCA.DMG, labels = c('A', 'B'), label_size = 14)
 
-ggsave(filename=paste0("RAnalysis/Output/DMG.volcano_pcoa.png"), plot=Figure2, dpi=300, width=10, height=5, units="in", limitsize = FALSE)
+ggsave(filename=paste0("RAnalysis/Output/DMG.volcano_pca.png"), plot=Figure2, dpi=300, width=10, height=5, units="in", limitsize = FALSE)
 
 # Add methylation status assignments to the significant results and ouput for topGO enrichment analysis
 merge_df <- final_df %>%

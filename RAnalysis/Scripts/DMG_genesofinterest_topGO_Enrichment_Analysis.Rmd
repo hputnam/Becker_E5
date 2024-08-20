@@ -140,11 +140,11 @@ The annotation file now only contains genes that were detected in our dataset th
 
 Biological Processes topGO
 
-Use topGO for enrichment analysis on hypermethylated data
+Use topGO for enrichment analysis on Hypomethylated data
 ```{r}
 ### Generate vector with names in just the contrast we are analyzing
-ID.vector.hyper <- DMG.res_filtered %>%
-      filter(methylation_status == "hypermethylated") %>%
+ID.vector.hypo <- DMG.res_filtered %>%
+      filter(methylation_status == "Hypomethylated") %>%
       pull(gene_id)
     
 # Get a list of GO Terms for all genes detected in our dataset
@@ -157,49 +157,49 @@ geneID2GO <- split(as.character(GO.terms$GO.ID), GO.terms$gene_id)
 geneNames <- unique(GO.terms$gene_id)
 
 # Create a named vector for allGenes
-allGenes.hyper <- factor(as.integer(geneNames %in% ID.vector.hyper))
-names(allGenes.hyper) <- geneNames
+allGenes.hypo <- factor(as.integer(geneNames %in% ID.vector.hypo))
+names(allGenes.hypo) <- geneNames
 
 # Create a topGOdata object using the custom gene2GO mapping
-GOdata.hyper_BP <- new("topGOdata",
+GOdata.hypo_BP <- new("topGOdata",
               ontology = "BP",
-              allGenes = allGenes.hyper,
+              allGenes = allGenes.hypo,
               nodeSize = 10,
               annot = annFUN.gene2GO, 
               gene2GO = geneID2GO)
 
-GOdata.hyper_BP
+GOdata.hypo_BP
 
 # measures number sig genes
-numSigGenes(GOdata.hyper_BP) #2
+numSigGenes(GOdata.hypo_BP) #2
 
 ```
 
 
-Run topGO statistical analyses on compiled hypermethylated data
+Run topGO statistical analyses on compiled Hypomethylated data
 ```{r}
 # fisher exact test from topgo manual
-fisher.hyper_BP <- runTest(GOdata.hyper_BP, algorithm = "weight", statistic = "fisher")
+fisher.hypo_BP <- runTest(GOdata.hypo_BP, algorithm = "weight", statistic = "fisher")
 
 # Generate a results table
-allRes_hyper_BP <- GenTable(GOdata.hyper_BP, 
-                      classicFisher = fisher.hyper_BP, 
+allRes_hypo_BP <- GenTable(GOdata.hypo_BP, 
+                      classicFisher = fisher.hypo_BP, 
                       ranksOf = "classicFisher", 
-                      topNodes = length(score(fisher.hyper_BP)))
+                      topNodes = length(score(fisher.hypo_BP)))
 
 # Convert character columns to numeric
-allRes_hyper_BP$classicFisher <- as.numeric(allRes_hyper_BP$classicFisher)
+allRes_hypo_BP$classicFisher <- as.numeric(allRes_hypo_BP$classicFisher)
 
 ```
 
 
-Create node figrues of top 5-10 sig terms for hypermethylated genes
+Create node figrues of top 5-10 sig terms for Hypomethylated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.hyper_BP, score(fisher.hyper_BP), firstSigNodes = 5, useInfo = "all")
+showSigOfNodes(GOdata.hypo_BP, score(fisher.hypo_BP), firstSigNodes = 5, useInfo = "all")
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.hyper_BP, fisher.hyper_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_hypermethylated_genesofinterest_BP", useInfo = "def", pdfSW = TRUE)
+printGraph(GOdata.hypo_BP, fisher.hypo_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_genesofinterest_BP", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -209,50 +209,50 @@ Use topGO for enrichment analysis on hypomethylated data # NO GENES HYPOMETHYLAT
 
 Molecular Functions topGO
 
-Use topGO for enrichment analysis on hypermethylated data
+Use topGO for enrichment analysis on Hypomethylated data
 ```{r}
 
 # Create a topGOdata object using the custom gene2GO mapping
-GOdata.hyper_MF <- new("topGOdata",
+GOdata.hypo_MF <- new("topGOdata",
               ontology = "MF",
-              allGenes = allGenes.hyper,
+              allGenes = allGenes.hypo,
               nodeSize = 10,
               annot = annFUN.gene2GO, 
               gene2GO = geneID2GO)
 
-GOdata.hyper_MF
+GOdata.hypo_MF
 
 # measures number sig genes
-numSigGenes(GOdata.hyper_MF) #2
+numSigGenes(GOdata.hypo_MF) #2
 
 ```
 
 
-Run topGO statistical analyses on compiled hypermethylated data
+Run topGO statistical analyses on compiled Hypomethylated data
 ```{r}
 # fisher exact test from topgo manual
-fisher.hyper_MF <- runTest(GOdata.hyper_MF, algorithm = "weight", statistic = "fisher")
+fisher.hypo_MF <- runTest(GOdata.hypo_MF, algorithm = "weight", statistic = "fisher")
 
 # Generate a results table
-allRes_hyper_MF <- GenTable(GOdata.hyper_MF, 
-                      classicFisher = fisher.hyper_MF, 
+allRes_hypo_MF <- GenTable(GOdata.hypo_MF, 
+                      classicFisher = fisher.hypo_MF, 
                       ranksOf = "classicFisher", 
-                      topNodes = length(score(fisher.hyper_MF)))
+                      topNodes = length(score(fisher.hypo_MF)))
 
 # Convert character columns to numeric
-allRes_hyper_MF$classicFisher <- as.numeric(allRes_hyper_MF$classicFisher)
+allRes_hypo_MF$classicFisher <- as.numeric(allRes_hypo_MF$classicFisher)
 
 ```
 
 
 
-Create node figrues of top 5-10 sig terms for hypermethylated genes
+Create node figrues of top 5-10 sig terms for Hypomethylated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.hyper_MF, score(fisher.hyper_MF), firstSigNodes = 5, useInfo = 'all')
+showSigOfNodes(GOdata.hypo_MF, score(fisher.hypo_MF), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.hyper_MF, fisher.hyper_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_hypermethylated_genesofinterest_MF", useInfo = "def", pdfSW = TRUE)
+printGraph(GOdata.hypo_MF, fisher.hypo_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_genesofinterest_MF", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -261,49 +261,49 @@ printGraph(GOdata.hyper_MF, fisher.hyper_MF, firstSigNodes = 5, fn.prefix = "RAn
 
 Cellular Components topGO
 
-Use topGO for enrichment analysis on hypermethylated data
+Use topGO for enrichment analysis on Hypomethylated data
 ```{r}
 
 # Create a topGOdata object using the custom gene2GO mapping
-GOdata.hyper_CC <- new("topGOdata",
+GOdata.hypo_CC <- new("topGOdata",
               ontology = "CC",
-              allGenes = allGenes.hyper,
+              allGenes = allGenes.hypo,
               nodeSize = 10,
               annot = annFUN.gene2GO, 
               gene2GO = geneID2GO)
 
-GOdata.hyper_CC
+GOdata.hypo_CC
 
 # measures number sig genes
-numSigGenes(GOdata.hyper_CC) #2
+numSigGenes(GOdata.hypo_CC) #2
 
 ```
 
 
-Run topGO statistical analyses on compiled hypermethylated data
+Run topGO statistical analyses on compiled Hypomethylated data
 ```{r}
 # fisher exact test from topgo manual
-fisher.hyper_CC <- runTest(GOdata.hyper_CC, algorithm = "weight", statistic = "fisher")
+fisher.hypo_CC <- runTest(GOdata.hypo_CC, algorithm = "weight", statistic = "fisher")
 
 # Generate a results table
-allRes_hyper_CC <- GenTable(GOdata.hyper_CC, 
-                      classicFisher = fisher.hyper_CC, 
+allRes_hypo_CC <- GenTable(GOdata.hypo_CC, 
+                      classicFisher = fisher.hypo_CC, 
                       ranksOf = "classicFisher", 
-                      topNodes = length(score(fisher.hyper_CC)))
+                      topNodes = length(score(fisher.hypo_CC)))
 
 # Convert character columns to numeric
-allRes_hyper_CC$classicFisher <- as.numeric(allRes_hyper_CC$classicFisher)
+allRes_hypo_CC$classicFisher <- as.numeric(allRes_hypo_CC$classicFisher)
 
 ```
 
 
-Create node figrues of top 5-10 sig terms for hypermethylated genes
+Create node figrues of top 5-10 sig terms for Hypomethylated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.hyper_CC, score(fisher.hyper_CC), firstSigNodes = 5, useInfo = 'all')
+showSigOfNodes(GOdata.hypo_CC, score(fisher.hypo_CC), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.hyper_CC, fisher.hyper_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_hypermethylated_CC", useInfo = "def", pdfSW = TRUE)
+printGraph(GOdata.hypo_CC, fisher.hypo_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_CC", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -314,23 +314,23 @@ Print Tables
 ```{r}
 
 # Generate a results table
-allRes_hyper_BP_10 <- GenTable(GOdata.hyper_BP, 
-                      classicFisher = fisher.hyper_BP, 
+allRes_hypo_BP_10 <- GenTable(GOdata.hypo_BP, 
+                      classicFisher = fisher.hypo_BP, 
                       ranksOf = "classicFisher", 
                       topNodes = 10)
-allRes_hyper_BP_10$methylation_status <- "hypermethylated"
+allRes_hypo_BP_10$methylation_status <- "Hypomethylated"
 
 
 # Generate a results table
-allRes_hyper_MF_10 <- GenTable(GOdata.hyper_MF, 
-                      classicFisher = fisher.hyper_MF, 
+allRes_hypo_MF_10 <- GenTable(GOdata.hypo_MF, 
+                      classicFisher = fisher.hypo_MF, 
                       ranksOf = "classicFisher", 
                       topNodes = 10)
-allRes_hyper_MF_10$methylation_status <- "hypermethylated"
+allRes_hypo_MF_10$methylation_status <- "Hypomethylated"
 
 
-# Combine top results for hypo and hyperreagulated BP
-Enrichment_Res_BP_10 <- rbind(allRes_hyper_BP_10)
+# Combine top results for hypo and hyporeagulated BP
+Enrichment_Res_BP_10 <- rbind(allRes_hypo_BP_10)
 
 # Create publishable table
 Enrichment_Res_BP_10_table <- Enrichment_Res_BP_10 %>%
@@ -356,8 +356,8 @@ flex_enrich <- flex_enrich %>%
 png_file <- "RAnalysis/Output/DMG_top10_enrich_BP_table_genesofinterest.png"
 save_as_image(flex_enrich, path = png_file)
 
-# Combine top results for hypo and hyperreagulated MF
-Enrichment_Res_MF_10 <- rbind(allRes_hyper_MF_10)
+# Combine top results for hypo and hyporeagulated MF
+Enrichment_Res_MF_10 <- rbind(allRes_hypo_MF_10)
 
 # Create publishable table
 Enrichment_Res_MF_10_table <- Enrichment_Res_MF_10 %>%
