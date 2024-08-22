@@ -104,12 +104,9 @@ meth <- gene_dnam %>%
   summarise(mean = mean(per.meth), n = n()) %>%
   spread(key = Sample.ID, value = mean)
 
-# Filter for a minimum of 5 CpG sites per gene
-meth_filtered <- meth[which(meth$n >= 5), ]
-
 # Count unique loci after filtering
 # Note: After filtering, we need to re-evaluate the original dataset to see which loci remain
-remaining_genes <- meth_filtered$gene
+remaining_genes <- meth$gene
 
 # Filter original dataset to include only remaining genes
 gene_dnam_filtered <- gene_dnam %>%
@@ -122,7 +119,7 @@ unique_loci_after <- gene_dnam_filtered %>%
 print(paste("Unique loci after filtering:", unique_loci_after$unique_loci))
 
 
-#change from long to wide format
+#change from long to wide format for filtered ge
 meth <- data.frame (gene_dnam_filtered %>%
                    group_by(Sample.ID, gene) %>%
                    summarise(mean = mean(per.meth), n = n()) %>%
@@ -263,7 +260,7 @@ gSum_red<-gSum_red[!is.na(gSum_red$gene_mean_express),]
 saveRDS(gSum,"RAnalysis/Data/Multi_geneSummaryComplete.RData")
 
 # Saving the reduced data.frame
-saveRDS(gSum_red,"RAnalysis/Data/Multi_geneSummaryReduced.RData")
+#saveRDS(gSum_red,"RAnalysis/Data/Multi_geneSummaryReduced_all.RData")
 ```
 
 #compare gene level meth vs express overall
@@ -348,24 +345,45 @@ valid_rows <- df_filtered[!is.na(df_filtered$log_gene) & !is.na(df_filtered$per_
 num_genes_with_data <- nrow(valid_rows)
 
 # Display the result
-num_genes_with_data #213
+num_genes_with_data #313
 
 # Shapiro-Wilk Test for normality
 shapiro.test(df_filtered$gene_mean_express) # not normal
 shapiro.test(df_filtered$mean_meth) # not normal
 
+
 #plot of DMG METH EXPRESS, 239 DEGs do not have methylation data due to filtering for methylation so really a DMG correlation
-DMG.meth.express <- ggplot(df_filtered, aes(x=per_meth, y=log_gene,)) + 
-    geom_point() + ylim(0, 2.4) + xlim(0,50) +
+DMG.meth.express <- ggplot(df_filtered, aes(x=per_meth, y=log_gene)) + 
+    geom_point() + ylim(0, 2.4) + xlim(0,40) +
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-  stat_cor(method = "kendall", digits = 2.8, label.x = 40, label.y = 0.5 ) +
+  stat_cor(method = "kendall", digits = 2.8, label.x = 35, label.y = 0.5 ) +
     theme_cowplot();DMG.meth.express
 
 ### Figure Mean Methylation vs Gene Expression###
 ggsave(DMG.meth.express, filename="RAnalysis/Output/DMG_correlation.png", height = 10, width = 10)
 
+
+# look at just degs in df rename with methylaiton data
+# Filter df_filtered to include only rows with gene_id found in DEG
+df_DEG_rename <- df_rename %>%
+  dplyr::semi_join(DEG, by = "gene_id")
+
+#log gene expression x % methylation
+df_DEG_rename$log_gene <- log(df_DEG_rename$gene_mean_express+1.1)
+df_DEG_rename$per_meth <- df_DEG_rename$mean_meth * 100
+
+DEG.meth.express <- ggplot(df_DEG_rename, aes(x=per_meth, y=log_gene)) + 
+    geom_point() + ylim(0, 2.4) + xlim(0,20) +
+    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+  stat_cor(method = "kendall", digits = 2.8, label.x = 10, label.y = 0.5 ) +
+    theme_cowplot();DEG.meth.express
+
+### Figure Mean Methylation vs Gene Expression###
+ggsave(DEG.meth.express, filename="RAnalysis/Output/DEG_correlation.png", height = 10, width = 10)
 
 ```
 
@@ -405,6 +423,9 @@ gene_filtered <- df_rename %>%
 shapiro.test(df_filtered$gene_mean_express) # not normal
 shapiro.test(df_filtered$mean_meth) # not normal
 
+# Check how many rows have non-NA values for both log_gene and per_meth
+valid_rows <- gene_filtered[!is.na(gene_filtered$log_gene) & !is.na(gene_filtered$per_meth), ]
+
 #plot of DEG X DMG METH EXPRESS
 hypoth_compare <- ggplot(gene_filtered, aes(x=per_meth, y=log_gene,)) + 
     geom_point() + #ylim(0, 2.1) + xlim(0,7.5) +
@@ -415,7 +436,7 @@ hypoth_compare <- ggplot(gene_filtered, aes(x=per_meth, y=log_gene,)) +
     theme_cowplot();hypoth_compare
 
 # Combine three figures 
-corr.figures <- plot_grid(meth.express.compare, DMG.meth.express, hypoth_compare, labels = c('A', 'B', 'C'), label_size = 16)
+corr.figures <- plot_grid(meth.express.compare, DEG.meth.express, DMG.meth.express, hypoth_compare, labels = c('A', 'B', 'C', 'D'), label_size = 16)
 
 ggsave(filename=paste0("RAnalysis/Output/correlation_figures.png"), corr.figures, dpi=300, width=20, height=10, units="in", limitsize = FALSE)
 
