@@ -1,42 +1,4 @@
 ﻿GO.ID,Term,Annotated,Significant,Expected,classicFisher,ontology,direction
-GO:0097154,GABAergic neuron differentiation,13,2,0.05,0.0011,BP,downregulated
-GO:2000678,negative regulation of transcription reg...,18,2,0.07,0.0021,BP,downregulated
-GO:1903214,regulation of protein targeting to mitoc...,19,2,0.07,0.0023,BP,downregulated
-GO:2000273,positive regulation of signaling recepto...,23,2,0.09,0.0034,BP,downregulated
-GO:0030326,embryonic limb morphogenesis,175,4,0.66,0.0043,BP,downregulated
-GO:0009954,proximal/distal pattern formation,26,2,0.1,0.0043,BP,downregulated
-GO:0031398,positive regulation of protein ubiquitin...,100,3,0.38,0.0063,BP,downregulated
-GO:0045746,negative regulation of Notch signaling p...,33,2,0.12,0.0068,BP,downregulated
-GO:0045671,negative regulation of osteoclast differ...,41,2,0.15,0.0104,BP,downregulated
-GO:0042472,inner ear morphogenesis,142,4,0.54,0.0129,BP,downregulated
-GO:0030178,negative regulation of Wnt signaling pat...,144,3,0.54,0.017,BP,downregulated
-GO:0007623,circadian rhythm,167,4,0.63,0.0191,BP,downregulated
-GO:0043161,proteasome-mediated ubiquitin-dependent ...,281,4,1.06,0.0214,BP,downregulated
-GO:0060122,inner ear receptor cell stereocilium org...,62,2,0.23,0.0229,BP,downregulated
-GO:0007189,adenylate cyclase-activating G protein-c...,62,2,0.23,0.0229,BP,downregulated
-GO:0071560,cellular response to transforming growth...,139,3,0.52,0.0294,BP,downregulated
-GO:0035282,segmentation,189,3,0.71,0.0344,BP,downregulated
-GO:0032875,regulation of DNA endoreduplication,10,1,0.04,0.0371,BP,downregulated
-GO:0031152,aggregation involved in sorocarp develop...,10,1,0.04,0.0371,BP,downregulated
-GO:0045842,positive regulation of mitotic metaphase...,10,1,0.04,0.0371,BP,downregulated
-GO:0032006,regulation of TOR signaling,84,2,0.32,0.04,BP,downregulated
-GO:0042921,glucocorticoid receptor signaling pathwa...,11,1,0.04,0.0407,BP,downregulated
-GO:0042256,cytosolic ribosome assembly,11,1,0.04,0.0407,BP,downregulated
-GO:1903376,regulation of oxidative stress-induced n...,11,1,0.04,0.0407,BP,downregulated
-GO:0010753,positive regulation of cGMP-mediated sig...,11,1,0.04,0.0407,BP,downregulated
-GO:2000831,regulation of steroid hormone secretion,11,1,0.04,0.0407,BP,downregulated
-GO:0046533,negative regulation of photoreceptor cel...,12,1,0.05,0.0443,BP,downregulated
-GO:1900120,regulation of receptor binding,12,1,0.05,0.0443,BP,downregulated
-GO:0045721,negative regulation of gluconeogenesis,12,1,0.05,0.0443,BP,downregulated
-GO:0006488,dolichol-linked oligosaccharide biosynth...,12,1,0.05,0.0443,BP,downregulated
-GO:1901836,regulation of transcription of nucleolar...,12,1,0.05,0.0443,BP,downregulated
-GO:0018195,peptidyl-arginine modification,12,1,0.05,0.0443,BP,downregulated
-GO:0014912,negative regulation of smooth muscle cel...,13,1,0.05,0.0479,BP,downregulated
-GO:0032048,cardiolipin metabolic process,13,1,0.05,0.0479,BP,downregulated
-GO:0048715,negative regulation of oligodendrocyte d...,13,1,0.05,0.0479,BP,downregulated
-GO:0043327,chemotaxis to cAMP,13,1,0.05,0.0479,BP,downregulated
-GO:0090151,establishment of protein localization to...,13,1,0.05,0.0479,BP,downregulated
-GO:0045669,positive regulation of osteoblast differ...,95,2,0.36,0.0499,BP,downregulated
 GO:0035095,behavioral response to nicotine,20,4,0.18,0.000026,BP,upregulated
 GO:0051260,protein homooligomerization,180,8,1.6,0.00021,BP,upregulated
 GO:0007271,"synaptic transmission, cholinergic",23,3,0.2,0.00107,BP,upregulated
@@ -157,18 +119,6 @@ GO:0046906,tetrapyrrole binding,151,4,1.23,0.03483,MF,upregulated
 GO:0051087,protein-folding chaperone binding,93,3,0.76,0.04016,MF,upregulated
 GO:0090079,"translation regulator activity, nucleic ...",96,3,0.78,0.04346,MF,upregulated
 GO:0008236,serine-type peptidase activity,167,4,1.36,0.04745,MF,upregulated
-GO:0017147,Wnt-protein binding,63,3,0.25,0.0019,MF,downregulated
-GO:0000978,RNA polymerase II cis-regulatory region ...,313,5,1.22,0.0075,MF,downregulated
-GO:0016765,"transferase activity, transferring alkyl...",47,2,0.18,0.0145,MF,downregulated
-GO:0003924,GTPase activity,289,4,1.13,0.0265,MF,downregulated
-GO:0016886,"ligase activity, forming phosphoric este...",10,1,0.04,0.0385,MF,downregulated
-GO:0008191,metalloendopeptidase inhibitor activity,12,1,0.05,0.046,MF,downregulated
-GO:0003841,1-acylglycerol-3-phosphate O-acyltransfe...,12,1,0.05,0.046,MF,downregulated
-GO:0004602,glutathione peroxidase activity,12,1,0.05,0.046,MF,downregulated
-GO:0016742,"hydroxymethyl-, formyl- and related tran...",12,1,0.05,0.046,MF,downregulated
-GO:0009881,photoreceptor activity,12,1,0.05,0.046,MF,downregulated
-GO:0005525,GTP binding,346,4,1.35,0.0464,MF,downregulated
-GO:0016274,protein-arginine N-methyltransferase act...,13,1,0.05,0.0497,MF,downregulated
 GO:0098981,cholinergic synapse,21,3,0.19,0.00082,CC,upregulated
 GO:0005892,acetylcholine-gated channel complex,26,3,0.23,0.00155,CC,upregulated
 GO:0098802,plasma membrane signaling receptor compl...,102,5,0.91,0.00217,CC,upregulated
@@ -189,6 +139,56 @@ GO:0032590,dendrite membrane,27,2,0.24,0.02389,CC,upregulated
 GO:0045211,postsynaptic membrane,127,4,1.13,0.02683,CC,upregulated
 GO:0034702,monoatomic ion channel complex,194,5,1.73,0.02978,CC,upregulated
 GO:0030054,cell junction,1866,24,16.62,0.04,CC,upregulated
+GO:0097154,GABAergic neuron differentiation,13,2,0.05,0.0011,BP,downregulated
+GO:2000678,negative regulation of transcription reg...,18,2,0.07,0.0021,BP,downregulated
+GO:1903214,regulation of protein targeting to mitoc...,19,2,0.07,0.0023,BP,downregulated
+GO:2000273,positive regulation of signaling recepto...,23,2,0.09,0.0034,BP,downregulated
+GO:0030326,embryonic limb morphogenesis,175,4,0.66,0.0043,BP,downregulated
+GO:0009954,proximal/distal pattern formation,26,2,0.1,0.0043,BP,downregulated
+GO:0031398,positive regulation of protein ubiquitin...,100,3,0.38,0.0063,BP,downregulated
+GO:0045746,negative regulation of Notch signaling p...,33,2,0.12,0.0068,BP,downregulated
+GO:0045671,negative regulation of osteoclast differ...,41,2,0.15,0.0104,BP,downregulated
+GO:0042472,inner ear morphogenesis,142,4,0.54,0.0129,BP,downregulated
+GO:0030178,negative regulation of Wnt signaling pat...,144,3,0.54,0.017,BP,downregulated
+GO:0007623,circadian rhythm,167,4,0.63,0.0191,BP,downregulated
+GO:0043161,proteasome-mediated ubiquitin-dependent ...,281,4,1.06,0.0214,BP,downregulated
+GO:0060122,inner ear receptor cell stereocilium org...,62,2,0.23,0.0229,BP,downregulated
+GO:0007189,adenylate cyclase-activating G protein-c...,62,2,0.23,0.0229,BP,downregulated
+GO:0071560,cellular response to transforming growth...,139,3,0.52,0.0294,BP,downregulated
+GO:0035282,segmentation,189,3,0.71,0.0344,BP,downregulated
+GO:0032875,regulation of DNA endoreduplication,10,1,0.04,0.0371,BP,downregulated
+GO:0031152,aggregation involved in sorocarp develop...,10,1,0.04,0.0371,BP,downregulated
+GO:0045842,positive regulation of mitotic metaphase...,10,1,0.04,0.0371,BP,downregulated
+GO:0032006,regulation of TOR signaling,84,2,0.32,0.04,BP,downregulated
+GO:0042921,glucocorticoid receptor signaling pathwa...,11,1,0.04,0.0407,BP,downregulated
+GO:0042256,cytosolic ribosome assembly,11,1,0.04,0.0407,BP,downregulated
+GO:1903376,regulation of oxidative stress-induced n...,11,1,0.04,0.0407,BP,downregulated
+GO:0010753,positive regulation of cGMP-mediated sig...,11,1,0.04,0.0407,BP,downregulated
+GO:2000831,regulation of steroid hormone secretion,11,1,0.04,0.0407,BP,downregulated
+GO:0046533,negative regulation of photoreceptor cel...,12,1,0.05,0.0443,BP,downregulated
+GO:1900120,regulation of receptor binding,12,1,0.05,0.0443,BP,downregulated
+GO:0045721,negative regulation of gluconeogenesis,12,1,0.05,0.0443,BP,downregulated
+GO:0006488,dolichol-linked oligosaccharide biosynth...,12,1,0.05,0.0443,BP,downregulated
+GO:1901836,regulation of transcription of nucleolar...,12,1,0.05,0.0443,BP,downregulated
+GO:0018195,peptidyl-arginine modification,12,1,0.05,0.0443,BP,downregulated
+GO:0014912,negative regulation of smooth muscle cel...,13,1,0.05,0.0479,BP,downregulated
+GO:0032048,cardiolipin metabolic process,13,1,0.05,0.0479,BP,downregulated
+GO:0048715,negative regulation of oligodendrocyte d...,13,1,0.05,0.0479,BP,downregulated
+GO:0043327,chemotaxis to cAMP,13,1,0.05,0.0479,BP,downregulated
+GO:0090151,establishment of protein localization to...,13,1,0.05,0.0479,BP,downregulated
+GO:0045669,positive regulation of osteoblast differ...,95,2,0.36,0.0499,BP,downregulated
+GO:0017147,Wnt-protein binding,63,3,0.25,0.0019,MF,downregulated
+GO:0000978,RNA polymerase II cis-regulatory region ...,313,5,1.22,0.0075,MF,downregulated
+GO:0016765,"transferase activity, transferring alkyl...",47,2,0.18,0.0145,MF,downregulated
+GO:0003924,GTPase activity,289,4,1.13,0.0265,MF,downregulated
+GO:0016886,"ligase activity, forming phosphoric este...",10,1,0.04,0.0385,MF,downregulated
+GO:0008191,metalloendopeptidase inhibitor activity,12,1,0.05,0.046,MF,downregulated
+GO:0003841,1-acylglycerol-3-phosphate O-acyltransfe...,12,1,0.05,0.046,MF,downregulated
+GO:0004602,glutathione peroxidase activity,12,1,0.05,0.046,MF,downregulated
+GO:0016742,"hydroxymethyl-, formyl- and related tran...",12,1,0.05,0.046,MF,downregulated
+GO:0009881,photoreceptor activity,12,1,0.05,0.046,MF,downregulated
+GO:0005525,GTP binding,346,4,1.35,0.0464,MF,downregulated
+GO:0016274,protein-arginine N-methyltransferase act...,13,1,0.05,0.0497,MF,downregulated
 GO:0019005,SCF ubiquitin ligase complex,41,2,0.16,0.011,CC,downregulated
 GO:0031526,brush border membrane,50,2,0.19,0.016,CC,downregulated
 GO:0005776,autophagosome,69,2,0.27,0.03,CC,downregulated
