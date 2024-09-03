@@ -1,30 +1,30 @@
-﻿GO.ID,Term,Annotated,Significant,Expected,classicFisher,ontology,methylation_status
-GO:0006259,DNA metabolic process,548,51,17.26,1.80E-15,BP,hypermethylated
-GO:0045727,positive regulation of translation,16,4,0.5,0.0013,BP,hypermethylated
-GO:0009411,response to UV,10,2,0.31,0.0375,BP,hypermethylated
-GO:0007093,mitotic cell cycle checkpoint signaling,11,2,0.35,0.0449,BP,hypermethylated
-GO:0051236,establishment of RNA localization,11,2,0.35,0.0449,BP,hypermethylated
-GO:0032196,transposition,26,3,0.82,0.0466,BP,hypermethylated
-GO:0090304,nucleic acid metabolic process,885,74,35.06,5.10E-15,BP,hypomethylated
-GO:0006278,RNA-templated DNA biosynthetic process,103,11,4.08,0.0021,BP,hypomethylated
-GO:0009100,glycoprotein metabolic process,40,5,1.58,0.0194,BP,hypomethylated
-GO:0022613,ribonucleoprotein complex biogenesis,34,4,1.35,0.0434,BP,hypomethylated
-GO:0003676,nucleic acid binding,702,54,23.46,1.60E-11,MF,hypermethylated
-GO:0034061,DNA polymerase activity,112,17,3.74,9.00E-08,MF,hypermethylated
-GO:0004518,nuclease activity,106,13,3.54,3.70E-05,MF,hypermethylated
-GO:0046914,transition metal ion binding,343,24,11.46,0.00027,MF,hypermethylated
-GO:0043021,ribonucleoprotein complex binding,13,4,0.43,0.00067,MF,hypermethylated
-GO:0045182,translation regulator activity,14,3,0.47,0.02678,MF,hypermethylated
-GO:0008238,exopeptidase activity,21,3,0.7,0.03115,MF,hypermethylated
-GO:0003676,nucleic acid binding,702,70,29.7,1.30E-14,MF,hypomethylated
-GO:0008270,zinc ion binding,303,29,12.82,1.50E-05,MF,hypomethylated
-GO:0016787,hydrolase activity,556,44,23.52,0.00033,MF,hypomethylated
-GO:0034061,DNA polymerase activity,112,12,4.74,0.00236,MF,hypomethylated
-GO:0004518,nuclease activity,106,12,4.48,0.00641,MF,hypomethylated
-GO:0016758,hexosyltransferase activity,28,4,1.18,0.02851,MF,hypomethylated
-GO:0008194,UDP-glycosyltransferase activity,20,3,0.85,0.04986,MF,hypomethylated
-GO:0005634,nucleus,546,19,10.6,0.0052,CC,hypermethylated
-GO:0033643,host cell part,12,2,0.23,0.0216,CC,hypermethylated
-GO:0005634,nucleus,546,25,14.14,0.0023,CC,hypomethylated
-GO:0033643,host cell part,12,3,0.31,0.0031,CC,hypomethylated
-GO:0060076,excitatory synapse,14,2,0.36,0.0492,CC,hypomethylated
+﻿GO.ID,Term,Annotated,Significant,Expected,classicFisher,ontology
+GO:0006259,DNA metabolic process,548,51,17.26,1.80E-15,BP
+GO:0045727,positive regulation of translation,16,4,0.5,0.0013,BP
+GO:0009411,response to UV,10,2,0.31,0.0375,BP
+GO:0007093,mitotic cell cycle checkpoint signaling,11,2,0.35,0.0449,BP
+GO:0051236,establishment of RNA localization,11,2,0.35,0.0449,BP
+GO:0032196,transposition,26,3,0.82,0.0466,BP
+GO:0090304,nucleic acid metabolic process,885,74,35.06,5.10E-15,BP
+GO:0006278,RNA-templated DNA biosynthetic process,103,11,4.08,0.0021,BP
+GO:0009100,glycoprotein metabolic process,40,5,1.58,0.0194,BP
+GO:0022613,ribonucleoprotein complex biogenesis,34,4,1.35,0.0434,BP
+GO:0003676,nucleic acid binding,702,54,23.46,1.60E-11,MF
+GO:0034061,DNA polymerase activity,112,17,3.74,9.00E-08,MF
+GO:0004518,nuclease activity,106,13,3.54,3.70E-05,MF
+GO:0046914,transition metal ion binding,343,24,11.46,0.00027,MF
+GO:0043021,ribonucleoprotein complex binding,13,4,0.43,0.00067,MF
+GO:0045182,translation regulator activity,14,3,0.47,0.02678,MF
+GO:0008238,exopeptidase activity,21,3,0.7,0.03115,MF
+GO:0003676,nucleic acid binding,702,70,29.7,1.30E-14,MF
+GO:0008270,zinc ion binding,303,29,12.82,1.50E-05,MF
+GO:0016787,hydrolase activity,556,44,23.52,0.00033,MF
+GO:0034061,DNA polymerase activity,112,12,4.74,0.00236,MF
+GO:0004518,nuclease activity,106,12,4.48,0.00641,MF
+GO:0016758,hexosyltransferase activity,28,4,1.18,0.02851,MF
+GO:0008194,UDP-glycosyltransferase activity,20,3,0.85,0.04986,MF
+GO:0005634,nucleus,546,19,10.6,0.0052,CC
+GO:0033643,host cell part,12,2,0.23,0.0216,CC
+GO:0005634,nucleus,546,25,14.14,0.0023,CC
+GO:0033643,host cell part,12,3,0.31,0.0031,CC
+GO:0060076,excitatory synapse,14,2,0.36,0.0492,CC

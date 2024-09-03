@@ -61,6 +61,12 @@ annot_GO <- annot_GO %>%
   summarise(GO.ID = paste(GO.ID, collapse = ";")) %>%
   ungroup()
 
+# Count the number of unique gene_id values
+num_unique_genes <- length(unique(annot_GO$gene_id))
+
+# Display the count
+print(num_unique_genes) #24,037
+
 ```
 
 # Load in DMG results
@@ -197,7 +203,7 @@ Create node figrues of top 5-10 sig terms for Hypermethylated genes
 showSigOfNodes(GOdata.hyper_BP, score(fisher.hyper_BP), firstSigNodes = 5, useInfo = "all")
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.hyper_BP, fisher.hyper_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypermethylated_BP", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.hyper_BP, fisher.hyper_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypermethylated_BP", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -263,7 +269,7 @@ Create node figrues of top 5-10 sig terms for Hypomethylated genes
 showSigOfNodes(GOdata.hypo_BP, score(fisher.hypo_BP), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.hypo_BP, fisher.hypo_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_BP", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.hypo_BP, fisher.hypo_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_BP", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -313,7 +319,7 @@ Create node figrues of top 5-10 sig terms for Hypermethylated genes
 showSigOfNodes(GOdata.hyper_MF, score(fisher.hyper_MF), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.hyper_MF, fisher.hyper_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypermethylated_MF", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.hyper_MF, fisher.hyper_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypermethylated_MF", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -362,7 +368,7 @@ Create node figrues of top 5-10 sig terms for Hypomethylated genes
 showSigOfNodes(GOdata.hypo_MF, score(fisher.hypo_MF), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.hypo_MF, fisher.hypo_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_MF", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.hypo_MF, fisher.hypo_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_MF", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -411,7 +417,7 @@ Create node figrues of top 5-10 sig terms for Hypermethylated genes
 showSigOfNodes(GOdata.hyper_CC, score(fisher.hyper_CC), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.hyper_CC, fisher.hyper_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypermethylated_CC", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.hyper_CC, fisher.hyper_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypermethylated_CC", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -460,7 +466,7 @@ Create node figrues of top 5-10 sig terms for Hypomethylated genes
 showSigOfNodes(GOdata.hypo_CC, score(fisher.hypo_CC), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.hypo_CC, fisher.hypo_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_CC", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.hypo_CC, fisher.hypo_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_CC", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -501,7 +507,7 @@ Enrichment_Res_BP_10 <- rbind(allRes_hyper_BP_10,allRes_hypo_BP_10)
 
 # Create publishable table
 Enrichment_Res_BP_10_table <- Enrichment_Res_BP_10 %>%
-  dplyr::select(-Expected)  # Remove the 'expected' column
+  dplyr::select(-Expected, -methylation_status)  # Remove the 'expected' and 'methylation_status" column
 
 # Create flextable object
 flex_enrich <- flextable(Enrichment_Res_BP_10_table)
@@ -528,7 +534,7 @@ Enrichment_Res_MF_10 <- rbind(allRes_hyper_MF_10,allRes_hypo_MF_10)
 
 # Create publishable table
 Enrichment_Res_MF_10_table <- Enrichment_Res_MF_10 %>%
-  dplyr::select(-Expected)  # Remove the 'expected' column
+  dplyr::select(-Expected, -methylation_status)  # Remove the 'expected' and 'methylation_status" column
 
 # Create flextable object
 flex_enrich <- flextable(Enrichment_Res_MF_10_table)

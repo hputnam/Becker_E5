@@ -195,7 +195,7 @@ Create node figrues of top 5-10 sig terms for upregulated genes
 showSigOfNodes(GOdata.up_BP, score(fisher.up_BP), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.up_BP, fisher.up_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_BP", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.up_BP, fisher.up_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_BP", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -271,7 +271,7 @@ Create node figrues of top 5-10 sig terms for downregulated genes
 showSigOfNodes(GOdata.down_BP, score(fisher.down_BP), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.down_BP, fisher.down_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_BP", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.down_BP, fisher.down_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_BP", useInfo = "def", pdfSW = TRUE)
 ```
 
 
@@ -342,7 +342,7 @@ Create node figrues of top 5-10 sig terms for upregulated genes
 showSigOfNodes(GOdata.up_MF, score(fisher.up_MF), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.up_MF, fisher.up_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_MF", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.up_MF, fisher.up_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_MF", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -409,7 +409,7 @@ Create node figrues of top 5-10 sig terms for downregulated genes
 showSigOfNodes(GOdata.down_MF, score(fisher.down_MF), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters
-printGraph(GOdata.down_MF, fisher.down_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_MF", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.down_MF, fisher.down_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_MF", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -479,7 +479,7 @@ Create node figrues of top 5-10 sig terms for upregulated genes
 showSigOfNodes(GOdata.up_CC, score(fisher.up_CC), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.up_CC, fisher.up_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_CC", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.up_CC, fisher.up_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_CC", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -546,7 +546,7 @@ Create node figrues of top 5-10 sig terms for downregulated genes
 showSigOfNodes(GOdata.down_CC, score(fisher.down_CC), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters
-printGraph(GOdata.down_CC, fisher.down_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_CC", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.down_CC, fisher.down_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_CC", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -587,7 +587,7 @@ Enrichment_Res_BP_10 <- rbind(allRes_up_BP_10,allRes_down_BP_10)
 
 # Create publishable table
 Enrichment_Res_BP_10_table <- Enrichment_Res_BP_10 %>%
-  dplyr::select(-Expected)  # Remove the 'expected' column
+  dplyr::select(-Expected, -Direction)  # Remove the 'expected' and 'direction" column
 
 # Create flextable object
 flex_enrich <- flextable(Enrichment_Res_BP_10_table)
@@ -615,7 +615,7 @@ Enrichment_Res_MF_10 <- rbind(allRes_up_MF_10,allRes_down_MF_10)
 
 # Create publishable table
 Enrichment_Res_MF_10_table <- Enrichment_Res_MF_10 %>%
-  dplyr::select(-Expected)  # Remove the 'expected' column
+ dplyr::select(-Expected, -Direction)  # Remove the 'expected' and 'direction" column
 
 # Create flextable object
 flex_enrich <- flextable(Enrichment_Res_MF_10_table)
