@@ -256,16 +256,16 @@ gSum <- full_join(meth_summary, gene_annot, by = "gene_id")
 gSum_red<-gSum[!is.na(gSum$cov10_count),]
 gSum_red<-gSum_red[!is.na(gSum_red$gene_mean_express),]
 
-# Saving reduced data.frame
+# Saving full data.frame
 saveRDS(gSum,"RAnalysis/Data/Multi_geneSummaryComplete.RData")
 
 # Saving the reduced data.frame
-#saveRDS(gSum_red,"RAnalysis/Data/Multi_geneSummaryReduced_all.RData")
+#saveRDS(gSum_red,"RAnalysis/Output/Multi_geneSummaryReduced.RData")
 ```
 
 #compare gene level meth vs express overall
 ```{r}
-mat <- readRDS("RAnalysis/Output/Multi_geneSummaryReduced_all.RData") 
+mat <- readRDS("RAnalysis/Output/Multi_geneSummaryReduced.RData") 
 
 ## Mean Methylation vs Gene Expression following Liew et al
 df <- mat
@@ -305,10 +305,10 @@ DEG <- DEG %>%
 DMG <- read.csv("RAnalysis/Output/DMGs_all.csv")[-1]
 # Rename column from 'gene' to 'gene_id'
 DMG <- DMG %>%
-  rename(gene_id = gene)
+  dplyr::rename(gene_id = gene)
 
 # Remove extra characters in df and DMGs to match DEG
-df_rename <- gSum
+df_rename <- mat
 df_rename$gene_id <-  gsub("_gene_g","_g",df_rename$gene_id) #sub gene_g with _g
 df_rename$gene_id <-  gsub("_gene_","_",df_rename$gene_id) #remove extra _
 df_rename$gene_id <- gsub("-.*", "", df_rename$gene_id) # Modify the gene_id column to remove the dash and anything after it
@@ -345,7 +345,7 @@ valid_rows <- df_filtered[!is.na(df_filtered$log_gene) & !is.na(df_filtered$per_
 num_genes_with_data <- nrow(valid_rows)
 
 # Display the result
-num_genes_with_data #34
+num_genes_with_data #451
 
 # Shapiro-Wilk Test for normality
 shapiro.test(df_filtered$gene_mean_express) # not normal
@@ -361,7 +361,7 @@ df_DEG_rename$log_gene <- log(df_DEG_rename$gene_mean_express+1.1)
 df_DEG_rename$per_meth <- df_DEG_rename$mean_meth * 100
 
 DEG.meth.express <- ggplot(df_DEG_rename, aes(x=per_meth, y=log_gene)) + 
-    geom_point() + ylim(0, 2.4) + xlim(0,20) +
+    geom_point() +
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
@@ -408,7 +408,7 @@ missing_in_rename <- setdiff(gene_list_vector, df_rename$gene_id) # 39 gene_ids 
 common_gene_ids <- intersect(gene_list_vector, df_rename$gene_id)
 
 # Number of common gene IDs
-length(common_gene_ids) #unique gene_ids = 3,210
+length(common_gene_ids) #unique gene_ids = 2,069
 
 # Filter the df_rename dataframe for only the gene_id values that are found in the gene_list_cleaned
 gene_filtered <- df_rename %>%
@@ -430,14 +430,14 @@ combined_data$per_meth <- combined_data$mean_meth * 100
 # Count rows with non-missing values in both 'mean_meth' and 'gene_mean_express'
 count_non_missing <- combined_data %>%
   filter(!is.na(mean_meth) & !is.na(gene_mean_express)) %>%
-  tally() #574 genes with meth and express data
+  tally() #2,580 genes with meth and express data
 
 # Select only the 'gene_mean_express' and 'per_meth' columns from the 'gene_filtered' dataframe
 final_df <- combined_data %>%
   dplyr::select(gene_id, GO.term, Function, gene_mean_express, per_meth)
 
 # write dataframe
-write.csv(final_df, "RAnalysis/Output/gene_list_meth_express_cleaned.csv")
+write.csv(final_df, "Bioinformatics/Output/gene_list_meth_express_cleaned.csv")
 
 # Shapiro-Wilk Test for normality
 shapiro.test(combined_data$gene_mean_express) # not normal
