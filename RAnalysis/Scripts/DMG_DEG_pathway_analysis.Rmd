@@ -345,25 +345,11 @@ valid_rows <- df_filtered[!is.na(df_filtered$log_gene) & !is.na(df_filtered$per_
 num_genes_with_data <- nrow(valid_rows)
 
 # Display the result
-num_genes_with_data #313
+num_genes_with_data #34
 
 # Shapiro-Wilk Test for normality
 shapiro.test(df_filtered$gene_mean_express) # not normal
 shapiro.test(df_filtered$mean_meth) # not normal
-
-
-#plot of DMG METH EXPRESS, 239 DEGs do not have methylation data due to filtering for methylation so really a DMG correlation
-DMG.meth.express <- ggplot(df_filtered, aes(x=per_meth, y=log_gene)) + 
-    geom_point() + ylim(0, 2.4) + xlim(0,40) +
-    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
-    scale_color_viridis() +
-    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-  stat_cor(method = "kendall", digits = 2.8, label.x = 35, label.y = 0.5 ) +
-    theme_cowplot();DMG.meth.express
-
-### Figure Mean Methylation vs Gene Expression###
-ggsave(DMG.meth.express, filename="RAnalysis/Output/DMG_correlation.png", height = 10, width = 10)
-
 
 # look at just degs in df rename with methylaiton data
 # Filter df_filtered to include only rows with gene_id found in DEG
@@ -391,7 +377,7 @@ ggsave(DEG.meth.express, filename="RAnalysis/Output/DEG_correlation.png", height
 # Import the data files 
 ```{r}
 # Read in hypothesis informed gene list
-gene_list <- read.csv("Bioinformatics/Output/Nutrient_genesofinterest_Pverr.csv")[-1]
+gene_list <- read.csv("Bioinformatics/Output/targetgenelist_meth_express.csv")[-1]
 
 # Format gene list and make all individual Pver genes have an individual row and remove any spaces before or after gene id
 gene_list_separated <- gene_list %>%
@@ -440,95 +426,6 @@ corr.figures <- plot_grid(meth.express.compare, DEG.meth.express, DMG.meth.expre
 
 ggsave(filename=paste0("RAnalysis/Output/correlation_figures.png"), corr.figures, dpi=300, width=20, height=10, units="in", limitsize = FALSE)
 
-```
-
-
-Show fold chnage and z scores for change between enriched and control treatments in our genes of interest for gene expression
-```{r}
-# next steps mean change in expression for fold change or z score in each gene that goes from control to enriched for target gene list, how much do they change between control and enriched and then show how they go up or down in control and enriched, does nutrient enrichment affect genes of interest or do genes of interest change with control and enriched 
-
-# next steps mean change in methylation for fold change or z score in each gene that goes from control to enriched for target gene list, how much do they change between control and enriched and then show how they go up or down in control and enriched, does nutrient enrichment affect genes of interest or do genes of interest change with control and enriched 
-
-# x axis treatment then calculating relative change between control and enriched gene expression and some may go down and some may go up and then same for methylation (relative change in control and enriched) show relative change in expression and methylation in our genes of interest that are represented in gene expression and x out of x in 
-
-# Remove extra characters in gene_summary to match gene_list
-express.change <- gene_summary
-express.change$gene_id <-  gsub("_gene_g","_g",express.change$gene_id) #sub gene_g with _g
-express.change$gene_id <-  gsub("_gene_","_",express.change$gene_id) #remove extra _
-express.change$gene_id <- gsub("-.*", "", express.change$gene_id) # Modify the gene_id column to remove the dash and anything after it
-express.change$gene_id <-  gsub("Pver_split_", "Pver_",express.change$gene_id) #remove the extra _gene_ after split
-colnames(express.change)[colnames(express.change) == "gene_id"] <- "gene" # Rename gene_id to gene
-
-# Calculate for gene expression data:
-# Filter gene_summary for the genes of interest
-target_genes_summary <- express.change[express.change$gene %in% gene_list_vector,]
-
-# Calculate log2 fold change for the target genes
-target_genes_summary$log2_fold_change <- log2(mean_express_E[rownames(target_genes_summary)] / mean_express_C[rownames(target_genes_summary)])
-
-# Handle infinite and NaN values
-target_genes_summary$log2_fold_change[is.infinite(target_genes_summary$log2_fold_change) | is.nan(target_genes_summary$log2_fold_change)] <- NA
-
-# Scatterplot of fold change with y-axis intervals and customized text sizes
-ggplot(target_genes_summary, aes(x = gene, y = log2_fold_change, color = log2_fold_change)) +
-  geom_point(size = 3) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "red", size = 1) +  # Line at fold change = 1
-  theme_bw() +
-  labs(x = NULL,  # Remove x-axis label
-       y = "log2 fold change") +
-  theme(axis.text.x = element_blank(),  # Remove x-axis labels
-        axis.ticks.x = element_blank(),  # Remove x-axis ticks
-        axis.text.y = element_text(size = 14),  # Increase y-axis text size
-        axis.title.y = element_text(size = 16),  # Increase y-axis title size
-        plot.title = element_text(size = 18, face = "bold"),  # Increase plot title size
-        legend.text = element_text(size = 14),  # Increase legend text size
-        legend.title = element_text(size = 16)) +  # Increase legend title size
-  scale_color_viridis_c()   # Optional: use a color scale for better visibility
-  #scale_y_continuous(breaks = seq(min(target_genes_summary$log2_fold_change, na.rm = TRUE), 
- #                                 max(target_genes_summary$log2_fold_change, na.rm = TRUE), by = 0.6))  # Set y-axis intervals at 1
-
-```
-
-
-Show fold chnage and z scores for change between enriched and control treatments in our genes of interest for methylation
-```{r}
-
-# Remove extra characters in gene_summary to match gene_list
-meth.change <- meth_summary
-meth.change$gene_id <-  gsub("_gene_g","_g",meth.change$gene_id) #sub gene_g with _g
-meth.change$gene_id <-  gsub("_gene_","_",meth.change$gene_id) #remove extra _
-meth.change$gene_id <- gsub("-.*", "", meth.change$gene_id) # Modify the gene_id column to remove the dash and anything after it
-meth.change$gene_id <-  gsub("Pver_split_", "Pver_",meth.change$gene_id) #remove the extra _gene_ after split
-colnames(meth.change)[colnames(meth.change) == "gene_id"] <- "gene" # Rename gene_id to gene
-
-# Calculate for gene expression data:
-# Filter gene_summary for the genes of interest
-target_meth_summary <- meth.change[meth.change$gene %in% gene_list_vector,]
-
-# Calculate log2 fold change for the target meth
-target_meth_summary$log2_fold_change <- log2(mean_express_E[rownames(target_meth_summary)] / mean_express_C[rownames(target_meth_summary)])
-
-# Handle infinite and NaN values
-target_meth_summary$log2_fold_change[is.infinite(target_meth_summary$log2_fold_change) | is.nan(target_meth_summary$log2_fold_change)] <- NA
-
-# Scatterplot of fold change with y-axis intervals and customized text sizes
-ggplot(target_meth_summary, aes(x = gene, y = log2_fold_change, color = log2_fold_change)) +
-  geom_point(size = 3) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "red", size = 1) +  # Line at fold change = 1
-  theme_bw() +
-  labs(title = "log2fold Change in Methylation in Genes of Interest Between Enriched and Control Treatments",
-       x = NULL,  # Remove x-axis label
-       y = "log2 fold change") +
-  theme(axis.text.x = element_blank(),  # Remove x-axis labels
-        axis.ticks.x = element_blank(),  # Remove x-axis ticks
-        axis.text.y = element_text(size = 14),  # Increase y-axis text size
-        axis.title.y = element_text(size = 16),  # Increase y-axis title size
-        plot.title = element_text(size = 18, face = "bold"),  # Increase plot title size
-        legend.text = element_text(size = 14),  # Increase legend text size
-        legend.title = element_text(size = 16)) +  # Increase legend title size
-  scale_color_viridis_c()   # Optional: use a color scale for better visibility
-  #scale_y_continuous(breaks = seq(min(target_genes_summary$log2_fold_change, na.rm = TRUE), 
- #                                 max(target_genes_summary$log2_fold_change, na.rm = TRUE), by = 0.6))  # Set y-axis intervals at 1
 ```
 
 
