@@ -318,7 +318,7 @@ df_rename$gene_id <-  gsub("Pver_split_", "Pver_",df_rename$gene_id) #remove the
 DMG_rename <- DMG
 DMG_rename$gene_id <-  gsub("_gene_g","_g",DMG_rename$gene_id) #sub gene_g with _g
 DMG_rename$gene_id <-  gsub("_gene_","_",DMG_rename$gene_id) #remove extra _
-DMG_rename$gene_id <- gsub("-.*", "", DMG_rename$gene_id) # Modify the gene_id column to remove the dash and anything after it
+DMG_rename$gene_id <- gsub("-.*", "", DMG_rename$gene_id) # Modify the gene_id column to remove the dash and anything after 
 DMG_rename$gene_id <-  gsub("Pver_split_", "Pver_",DMG_rename$gene_id) #remove the extra _gene_ after split
 
 #log gene expression x % methylation
@@ -377,20 +377,29 @@ ggsave(DEG.meth.express, filename="RAnalysis/Output/DEG_correlation.png", height
 # Import the data files 
 ```{r}
 # Read in hypothesis informed gene list
-gene_list <- read.csv("Bioinformatics/Output/targetgenelist_meth_express.csv")[-1]
+gene_list <- read.csv("Bioinformatics/Output/targetgenelist_GOterms.csv")
 
-# Format gene list and make all individual Pver genes have an individual row and remove any spaces before or after gene id
-gene_list_separated <- gene_list %>%
-  separate_rows(Pverr.gene.ID, sep = "; |;|,") %>%
-  mutate(Pverr.gene.ID = str_trim(Pverr.gene.ID)) %>%
-  mutate(Pverr.gene.ID = str_replace(Pverr.gene.ID, "^Pver_novel_model_", "Pver_novel_")) %>%
-  rename(gene_id = Pverr.gene.ID)
+# Remove duplicates based on both Gene.ID and GO.term, so if duplicate gene IDs by GO term its removed
+cleaned_data <- gene_list %>%
+  distinct(Gene.ID, GO.term, .keep_all = TRUE)
 
-# write dataframe
-write.csv(gene_list_separated, "RAnalysis/Output/gene_list_separated.csv")
+# Count the number of unique genes based on 'gene_id'
+unique_genes_count <- cleaned_data %>%
+  distinct(Gene.ID) %>%
+  tally() #3519
 
-# Ensure gene_list_separated is a vector of gene IDs
-gene_list_vector <- gene_list_separated$gene_id
+# Remove extra characters in df to match gene_id in all genes dataframe
+gene_list_cleaned <- cleaned_data %>%
+  dplyr::rename(gene_id = Gene.ID) %>%  # Rename Gene.ID to gene_id
+  mutate(gene_id = gsub("_gene_g", "_g", gene_id),          # Replace "_gene_g" with "_g"
+         gene_id = gsub("_gene_", "_", gene_id),            # Remove extra "_gene_"
+         gene_id = gsub("-.*", "", gene_id),                # Remove dash and anything after it
+         gene_id = gsub("Pver_split_", "Pver_", gene_id),   # Remove "Pver_split_"
+         gene_id = gsub("\\..*", "", gene_id),              # Remove anything after the last period
+         gene_id = gsub("_model", "", gene_id))             # Remove "_model"
+
+# Ensure gene_list_cleaned is a vector of gene IDs
+gene_list_vector <- gene_list_cleaned$gene_id
 
 # Check if any gene ids are missing from df_rename
 missing_in_rename <- setdiff(gene_list_vector, df_rename$gene_id) # 39 gene_ids missing did not have >0 gene counts
@@ -399,30 +408,90 @@ missing_in_rename <- setdiff(gene_list_vector, df_rename$gene_id) # 39 gene_ids 
 common_gene_ids <- intersect(gene_list_vector, df_rename$gene_id)
 
 # Number of common gene IDs
-length(common_gene_ids) #unique gene_ids = 386
+length(common_gene_ids) #unique gene_ids = 3,210
 
-# Filter the df_rename dataframe for only the gene_id values that are found in the gene_list_separated
+# Filter the df_rename dataframe for only the gene_id values that are found in the gene_list_cleaned
 gene_filtered <- df_rename %>%
   filter(gene_id %in% gene_list_vector)
 
+# Select only the 'gene_mean_express' and 'mean_meth' columns from the 'gene_filtered' dataframe
+selected_columns <- gene_filtered %>%
+  dplyr::select(gene_id, gene_mean_express, mean_meth)
+
+# Combine with gene_list_cleaned to output for github with meth and express values for genes 
+# Combine 'selected_columns' with 'gene_list_cleaned'
+combined_data <- gene_list_cleaned %>%
+  left_join(selected_columns, by = "gene_id")
+
+#log gene expression x % methylation
+combined_data$log_gene <- log(combined_data$gene_mean_express+1.1)
+combined_data$per_meth <- combined_data$mean_meth * 100
+
+# Count rows with non-missing values in both 'mean_meth' and 'gene_mean_express'
+count_non_missing <- combined_data %>%
+  filter(!is.na(mean_meth) & !is.na(gene_mean_express)) %>%
+  tally() #574 genes with meth and express data
+
+# Select only the 'gene_mean_express' and 'per_meth' columns from the 'gene_filtered' dataframe
+final_df <- combined_data %>%
+  dplyr::select(gene_id, GO.term, Function, gene_mean_express, per_meth)
+
+# write dataframe
+write.csv(final_df, "RAnalysis/Output/gene_list_meth_express_cleaned.csv")
+
 # Shapiro-Wilk Test for normality
-shapiro.test(df_filtered$gene_mean_express) # not normal
-shapiro.test(df_filtered$mean_meth) # not normal
+shapiro.test(combined_data$gene_mean_express) # not normal
+shapiro.test(combined_data$mean_meth) # not normal
 
 # Check how many rows have non-NA values for both log_gene and per_meth
-valid_rows <- gene_filtered[!is.na(gene_filtered$log_gene) & !is.na(gene_filtered$per_meth), ]
+valid_rows <- combined_data[!is.na(combined_data$log_gene) & !is.na(combined_data$per_meth), ] #574
 
-#plot of DEG X DMG METH EXPRESS
-hypoth_compare <- ggplot(gene_filtered, aes(x=per_meth, y=log_gene,)) + 
-    geom_point() + #ylim(0, 2.1) + xlim(0,7.5) +
-    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
-    scale_color_viridis() +
-    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-  stat_cor(method = "spearman", digits = 2.8, label.x = 5, label.y = 0.5 ) +
-    theme_cowplot();hypoth_compare
+# Make three plots for each function category
+
+# Filter data for 'Nutrient metabolism'
+nutrient_metabolism_data <- combined_data %>%
+  filter(Function == "Nutrient metabolism")
+
+# Plot for 'Nutrient metabolism'
+nutrient_metabolism_plot <- ggplot(nutrient_metabolism_data, aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + 
+  geom_smooth(method=lm, colour="orange", size=2, na.rm = TRUE) +
+  scale_color_viridis() +
+  labs(x="DNA Methylation (%)", y = "log10 (mean expression + 1)") +
+  ggtitle("A. Nutrient Metabolism") +  # Add title
+  stat_cor(method = "kendall", digits = 2, label.x = 5, label.y = 0.5) +
+  theme_cowplot();nutrient_metabolism_plot
+
+# Filter data for 'Symbiotic maintenance'
+symbiotic_maintenance_data <- combined_data %>%
+  filter(Function == "Symbiotic maintenance")
+
+# Plot for 'Symbiotic maintenance'
+symbiotic_maintenance_plot <- ggplot(symbiotic_maintenance_data, aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + 
+  geom_smooth(method=lm, colour="orange", size=2, na.rm = TRUE) +
+  scale_color_viridis() +
+  labs(x="DNA Methylation (%)", y = "log10 (mean expression + 1)") +
+  ggtitle("B. Symbiotic Maintenance") +  # Add title
+  stat_cor(method = "kendall", digits = 2, label.x = 5, label.y = 0.5) +
+  theme_cowplot();symbiotic_maintenance_plot
+
+# Filter data for 'Symbiotic nutrient exchange and signaling pathways'
+symbiotic_exchange_data <- combined_data %>%
+  filter(Function == "Symbiotic nutrient exchange and signaling pathways")
+
+# Plot for 'Symbiotic nutrient exchange and signaling pathways'
+symbiotic_exchange_plot <- ggplot(symbiotic_exchange_data, aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + 
+  geom_smooth(method=lm, colour="orange", size=2, na.rm = TRUE) +
+  scale_color_viridis() +
+  labs(x="DNA Methylation (%)", y = "log10 (mean expression + 1)") +
+  ggtitle("C. Symbiotic Nutrient Exchange and Signaling Pathways") +  # Add title
+  stat_cor(method = "kendall", digits = 2, label.x = 5, label.y = 0.5) +
+  theme_cowplot();symbiotic_exchange_plot
 
 # Combine three figures 
-corr.figures <- plot_grid(meth.express.compare, DEG.meth.express, DMG.meth.express, hypoth_compare, labels = c('A', 'B', 'C', 'D'), label_size = 16)
+corr.figures <- plot_grid(meth.express.compare, DEG.meth.express, , labels = c('A', 'B', 'C', 'D'), label_size = 16)
 
 ggsave(filename=paste0("RAnalysis/Output/correlation_figures.png"), corr.figures, dpi=300, width=20, height=10, units="in", limitsize = FALSE)
 
