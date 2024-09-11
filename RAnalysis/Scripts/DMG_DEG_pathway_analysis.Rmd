@@ -284,7 +284,8 @@ meth.express.compare <- ggplot(df, aes(x=per_meth, y=log_gene,)) +
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-  stat_cor(method = "kendall", digits = 2.8, label.x = 60, label.y = 0.5) +
+  ggtitle("All genes (global analysis)") +  # Add title
+  stat_cor(method = "kendall", digits = 2, label.x = 60, label.y = 0.5) +
     theme_cowplot();meth.express.compare
 
 ### Figure Mean Methylation vs Gene Expression###
@@ -365,7 +366,8 @@ DEG.meth.express <- ggplot(df_DEG_rename, aes(x=per_meth, y=log_gene)) +
     geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
     scale_color_viridis() +
     labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
-  stat_cor(method = "kendall", digits = 2.8, label.x = 10, label.y = 0.5 ) +
+  ggtitle("DEGs (significant expression)") +  # Add title
+  stat_cor(method = "kendall", digits = 2, label.x = 10, label.y = 0.5 ) +
     theme_cowplot();DEG.meth.express
 
 ### Figure Mean Methylation vs Gene Expression###
@@ -459,8 +461,8 @@ nutrient_metabolism_plot <- ggplot(nutrient_metabolism_data, aes(x=per_meth, y=l
   geom_smooth(method=lm, colour="orange", size=2, na.rm = TRUE) +
   scale_color_viridis() +
   labs(x="DNA Methylation (%)", y = "log10 (mean expression + 1)") +
-  ggtitle("A. Nutrient Metabolism") +  # Add title
-  stat_cor(method = "kendall", digits = 2, label.x = 5, label.y = 0.5) +
+  ggtitle("Nutrient Metabolism") +  # Add title
+  stat_cor(method = "kendall", digits = 2, label.x = 55, label.y = 0.2, size = 5) +
   theme_cowplot();nutrient_metabolism_plot
 
 # Filter data for 'Symbiotic maintenance'
@@ -473,8 +475,8 @@ symbiotic_maintenance_plot <- ggplot(symbiotic_maintenance_data, aes(x=per_meth,
   geom_smooth(method=lm, colour="orange", size=2, na.rm = TRUE) +
   scale_color_viridis() +
   labs(x="DNA Methylation (%)", y = "log10 (mean expression + 1)") +
-  ggtitle("B. Symbiotic Maintenance") +  # Add title
-  stat_cor(method = "kendall", digits = 2, label.x = 5, label.y = 0.5) +
+  ggtitle("Symbiotic Maintenance") +  # Add title
+  stat_cor(method = "kendall", digits = 2, label.x = 60, label.y = 0.2, size = 5) +
   theme_cowplot();symbiotic_maintenance_plot
 
 # Filter data for 'Symbiotic nutrient exchange and signaling pathways'
@@ -487,14 +489,60 @@ symbiotic_exchange_plot <- ggplot(symbiotic_exchange_data, aes(x=per_meth, y=log
   geom_smooth(method=lm, colour="orange", size=2, na.rm = TRUE) +
   scale_color_viridis() +
   labs(x="DNA Methylation (%)", y = "log10 (mean expression + 1)") +
-  ggtitle("C. Symbiotic Nutrient Exchange and Signaling Pathways") +  # Add title
-  stat_cor(method = "kendall", digits = 2, label.x = 5, label.y = 0.5) +
+  ggtitle("Symbiotic Nutrient Exchange and Signaling Pathways") +  # Add title
+  stat_cor(method = "kendall", digits = 2, label.x = 45, label.y = 0.2, size = 5) +
   theme_cowplot();symbiotic_exchange_plot
 
+
+# Plot for all functions
+all_functions <- ggplot(combined_data, aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + 
+  geom_smooth(method=lm, colour="orange", size=2, na.rm = TRUE) +
+  scale_color_viridis() +
+  labs(x="DNA Methylation (%)", y = "log10 (mean expression + 1)") +
+  ggtitle("Genes from functions of interest (key genes of interest)") +  # Add title
+  stat_cor(method = "kendall", digits = 2, label.x = 45, label.y = 0.2, size = 5) +
+  theme_cowplot();all_functions
+
 # Combine three figures 
-corr.figures <- plot_grid(meth.express.compare, DEG.meth.express, , labels = c('A', 'B', 'C', 'D'), label_size = 16)
+corr.figures <- plot_grid(meth.express.compare, DEG.meth.express, all_functions, labels = c('A', 'B', 'C'), label_size = 16)
 
 ggsave(filename=paste0("RAnalysis/Output/correlation_figures.png"), corr.figures, dpi=300, width=20, height=10, units="in", limitsize = FALSE)
+
+```
+
+
+Make a heatmap showing genes found in genes of interest categories whether present in DEG and DMG datasets and heatmap of upregulated or downregulated or hypermethylated and hypomethylated
+```{r}
+# Step 1: Combine DEG and DMG with combined_data
+data <- combined_data %>%
+  left_join(DEG, by = "gene_id") %>%
+  left_join(DMG_rename, by = "gene_id") %>%
+  mutate(
+    DEG_status = ifelse(!is.na(direction), direction, "Not in DEG"),
+    DMG_status = ifelse(!is.na(methylation_status), methylation_status, "Not in DMG"))
+
+# Reshape data for heatmap
+heatmap_data <- data %>%
+  pivot_longer(cols = c(DEG_status, DMG_status), names_to = "Type", values_to = "Status") %>%
+  mutate(
+    Status = case_when(
+      Type == "DEG_status" & Status == "Upregulated" ~ "Upregulated (DEG)",
+      Type == "DEG_status" & Status == "Downregulated" ~ "Downregulated (DEG)",
+      Type == "DMG_status" & Status == "Hypermethylated" ~ "Hypermethylated (DMG)",
+      Type == "DMG_status" & Status == "Hypomethylated" ~ "Hypomethylated (DMG)"
+    )
+  ) %>%
+  pivot_wider(names_from = "Status", values_from = "Status", values_fill = "Not Present") %>%
+  group_by(Function, gene_id) %>%
+  mutate(row_id = paste(gene_id, Function, Type,sep = "_")) %>%
+  ungroup()
+
+# Prepare the matrix for heatmap
+heatmap_matrix <- heatmap_data %>%
+  dplyr::select(-Function, -gene_id) %>%
+  column_to_rownames(var = "row_id") %>%
+  as.matrix()
 
 ```
 
