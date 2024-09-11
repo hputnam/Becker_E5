@@ -432,9 +432,10 @@ count_non_missing <- combined_data %>%
   filter(!is.na(mean_meth) & !is.na(gene_mean_express)) %>%
   tally() #2,580 genes with meth and express data
 
-# Select only the 'gene_mean_express' and 'per_meth' columns from the 'gene_filtered' dataframe
+# Select only the 'gene_mean_express' and 'per_meth' columns from the 'gene_filtered' dataframe and filter for only genes with gene expression and methylation data
 final_df <- combined_data %>%
-  dplyr::select(gene_id, GO.term, Function, gene_mean_express, per_meth)
+  dplyr::select(gene_id, GO.term, Function, gene_mean_express, per_meth) %>%
+  dplyr::filter(!is.na(gene_mean_express) & !is.na(per_meth))
 
 # write dataframe
 write.csv(final_df, "Bioinformatics/Output/gene_list_meth_express_cleaned.csv")
