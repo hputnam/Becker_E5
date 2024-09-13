@@ -79,10 +79,14 @@ annot_GO <- annot_GO %>%
 DEG.res <- read.csv("RAnalysis/Output/DEGSeq2.sig.results.host.csv")[-1]
 
 # Read in genes of interest file 
-genes_of_interest <- read.csv("RAnalysis/Output/gene_list_separated.csv")
+genes_of_interest <- read.csv("RAnalysis/Output/gene_list_cleaned.csv")[-1]
+
+# Remove duplicate gene_id entries, keeping the first occurrence
+genes_of_interest_unique <- genes_of_interest %>%
+  distinct(gene_id, .keep_all = TRUE)
 
 # Filter DEG.res to only include genes of interest
-DEG.res_filtered <- DEG.res[DEG.res$gene_id %in% genes_of_interest$gene_id, ]
+DEG.res_filtered <- DEG.res[DEG.res$gene_id %in% genes_of_interest_unique$gene_id, ]
 
 # Get all genes from background dataset
 gcount_filt <- read.csv("RAnalysis/Output/gene_count_matrix_filtered.csv")
@@ -148,8 +152,6 @@ GOdata.up_BP <- new("topGOdata",
 
 GOdata.up_BP
 
-# Tells you how many signifcant genes there was in the analysis 
-numSigGenes(GOdata.up_BP) #137
 ```
 
 
@@ -167,20 +169,16 @@ allRes_up_BP <- GenTable(GOdata.up_BP,
 # Convert character columns to numeric
 allRes_up_BP$classicFisher <- as.numeric(allRes_up_BP$classicFisher)
 
-# Apply p value adjustment
-sig_Res_up_BP <- allRes_up_BP %>% filter(classicFisher < 0.01)
-
-
 
 ```
 
 Create node figrues of top 5-10 sig terms for upregulated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.up_BP, score(fisher.up_BP), firstSigNodes = 5, useInfo = 'all')
+#showSigOfNodes(GOdata.up_BP, score(fisher.up_BP), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.up_BP, fisher.up_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_genesofinterest_BP", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.up_BP, fisher.up_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_genesofinterest_BP", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -204,9 +202,6 @@ GOdata.down_BP <- new("topGOdata",
               gene2GO = geneID2GO)
 
 GOdata.down_BP
-
-# Tells you how many signifcant genes there was in the analysis 
-numSigGenes(GOdata.down_BP) # 2
 ```
 
 
@@ -224,18 +219,16 @@ allRes_down_BP <- GenTable(GOdata.down_BP,
 # Convert character columns to numeric
 allRes_down_BP$classicFisher <- as.numeric(allRes_down_BP$classicFisher)
 
-# Apply p value adjustment
-sig_Res_down_BP <- allRes_down_BP %>% filter(classicFisher < 0.01)
 
 ```
 
 Create node figrues of top 5-10 sig terms for downregulated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.down_BP, score(fisher.down_BP), firstSigNodes = 5, useInfo = 'all')
+#showSigOfNodes(GOdata.down_BP, score(fisher.down_BP), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.down_BP, fisher.down_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_genesofinterest_BP", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.down_BP, fisher.down_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_genesofinterest_BP", useInfo = "def", pdfSW = TRUE)
 ```
 
 
@@ -255,8 +248,6 @@ GOdata.up_MF <- new("topGOdata",
 
 GOdata.up_MF
 
-# Tells you how many signifcant genes there was in the analysis 
-numSigGenes(GOdata.up_MF) #9
 ```
 
 
@@ -274,18 +265,16 @@ allRes_up_MF <- GenTable(GOdata.up_MF,
 # Convert character columns to numeric
 allRes_up_MF$classicFisher <- as.numeric(allRes_up_MF$classicFisher)
 
-# Apply p value adjustment
-sig_Res_up_MF <- allRes_up_MF %>% filter(classicFisher < 0.01)
 
 ```
 
 Create node figrues of top 5-10 sig terms for upregulated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.up_MF, score(fisher.up_MF), firstSigNodes = 5, useInfo = 'all')
+#showSigOfNodes(GOdata.up_MF, score(fisher.up_MF), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.up_MF, fisher.up_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_genesofinterest_MF", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.up_MF, fisher.up_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_genesofinterest_MF", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -300,9 +289,6 @@ GOdata.down_MF <- new("topGOdata",
               gene2GO = geneID2GO)
 
 GOdata.down_MF
-
-# Tells you how many signifcant genes there was in the analysis 
-numSigGenes(GOdata.down_MF) #2
 ```
 
 
@@ -320,18 +306,16 @@ allRes_down_MF <- GenTable(GOdata.down_MF,
 # Convert character columns to numeric
 allRes_down_MF$classicFisher <- as.numeric(allRes_down_MF$classicFisher)
 
-# Apply p value adjustment
-sig_Res_down_MF <- allRes_down_MF %>% filter(classicFisher < 0.01)
 
 ```
 
 Create node figrues of top 5-10 sig terms for downregulated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.down_MF, score(fisher.down_MF), firstSigNodes = 5, useInfo = 'all')
+#showSigOfNodes(GOdata.down_MF, score(fisher.down_MF), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters
-printGraph(GOdata.down_MF, fisher.down_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_genesofinterest_MF", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.down_MF, fisher.down_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_genesofinterest_MF", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -350,9 +334,6 @@ GOdata.up_CC <- new("topGOdata",
               gene2GO = geneID2GO)
 
 GOdata.up_CC
-
-# Tells you how many signifcant genes there was in the analysis 
-numSigGenes(GOdata.up_CC) #8
 ```
 
 
@@ -370,18 +351,16 @@ allRes_up_CC <- GenTable(GOdata.up_CC,
 # Convert character columns to numeric
 allRes_up_CC$classicFisher <- as.numeric(allRes_up_CC$classicFisher)
 
-# Apply p value adjustment
-sig_Res_up_CC <- allRes_up_CC %>% filter(classicFisher < 0.01)
 
 ```
 
 Create node figrues of top 5-10 sig terms for upregulated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.up_CC, score(fisher.up_CC), firstSigNodes = 5, useInfo = 'all')
+#showSigOfNodes(GOdata.up_CC, score(fisher.up_CC), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
-printGraph(GOdata.up_CC, fisher.up_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_genesofinterest_CC", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.up_CC, fisher.up_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_upregulated_genesofinterest_CC", useInfo = "def", pdfSW = TRUE)
 
 ```
 
@@ -397,8 +376,6 @@ GOdata.down_CC <- new("topGOdata",
 
 GOdata.down_CC
 
-# Tells you how many signifcant genes there was in the analysis 
-numSigGenes(GOdata.down_CC) #2
 ```
 
 
@@ -416,28 +393,22 @@ allRes_down_CC <- GenTable(GOdata.down_CC,
 # Convert character columns to numeric
 allRes_down_CC$classicFisher <- as.numeric(allRes_down_CC$classicFisher)
 
-# Apply p value adjustment
-sig_Res_down_CC <- allRes_down_CC %>% filter(classicFisher < 0.01)
 
 ```
 
 Create node figrues of top 5-10 sig terms for downregulated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.down_CC, score(fisher.down_CC), firstSigNodes = 5, useInfo = 'all')
+#showSigOfNodes(GOdata.down_CC, score(fisher.down_CC), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters
-printGraph(GOdata.down_CC, fisher.down_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_genesofinterest_CC", useInfo = "def", pdfSW = TRUE)
+#printGraph(GOdata.down_CC, fisher.down_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_downregulated_genesofinterest_CC", useInfo = "def", pdfSW = TRUE)
 
 ```
 
 
-
-
-
 Print Tables
 ```{r}
-
 # Generate a results table
 allRes_up_BP_10 <- GenTable(GOdata.up_BP, 
                       classicFisher = fisher.up_BP, 
@@ -467,11 +438,11 @@ allRes_down_MF_10 <- GenTable(GOdata.down_MF,
 allRes_down_MF_10$Direction <- "Down-Regulated"
 
 # Combine top results for down and upreagulated BP
-Enrichment_Res_BP_10 <- rbind(allRes_up_BP_10,allRes_down_BP_10)
+Enrichment_Res_BP_10 <- rbind(allRes_up_BP_10, allRes_down_BP_10)
 
 # Create publishable table
 Enrichment_Res_BP_10_table <- Enrichment_Res_BP_10 %>%
-  dplyr::select(-Expected)  # Remove the 'expected' column
+  dplyr::select(-Expected, -Direction)  # Remove the 'expected' and 'direction" column
 
 # Create flextable object
 flex_enrich <- flextable(Enrichment_Res_BP_10_table)
@@ -485,7 +456,7 @@ flex_enrich <- flex_enrich %>%
     Significant = "Significant",
     classicFisher = "Fisher p-value") %>%
   colformat_double(digits = 4) %>%
-  bold(j = "classicFisher", i = ~ as.numeric(classicFisher) < 0.05) %>%  # Bold values < 0.055, including scientific notation
+  bold(j = "classicFisher") %>%  # Bold all values in classicFisher column
   add_header_lines(values = "Top 10 Enriched GO Terms (Biological Process)") %>%
   autofit() %>%
   theme_box()
@@ -499,7 +470,7 @@ Enrichment_Res_MF_10 <- rbind(allRes_up_MF_10,allRes_down_MF_10)
 
 # Create publishable table
 Enrichment_Res_MF_10_table <- Enrichment_Res_MF_10 %>%
-  dplyr::select(-Expected)  # Remove the 'expected' column
+ dplyr::select(-Expected, -Direction)  # Remove the 'expected' and 'direction" column
 
 # Create flextable object
 flex_enrich <- flextable(Enrichment_Res_MF_10_table)
@@ -513,7 +484,7 @@ flex_enrich <- flex_enrich %>%
     Significant = "Significant",
     classicFisher = "Fisher p-value") %>%
   colformat_double(digits = 4) %>%
-  bold(j = "classicFisher", i = ~ as.numeric(classicFisher) < 0.05) %>%  # Bold values < 0.055, including scientific notation
+  bold(j = "classicFisher") %>%  # Bold all values in classicFisher column
   add_header_lines(values = "Top 10 Enriched GO Terms (Molecular Function)") %>%
   autofit() %>%
   theme_box()

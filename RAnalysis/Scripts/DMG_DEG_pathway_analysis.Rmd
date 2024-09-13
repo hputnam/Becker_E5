@@ -190,6 +190,9 @@ gene_list_cleaned <- cleaned_data %>%
          gene_id = gsub("\\..*", "", gene_id),              # Remove anything after the last period
          gene_id = gsub("_model", "", gene_id))             # Remove "_model"
 
+# write dataframe
+write.csv(gene_list_cleaned, "RAnalysis/Output/gene_list_cleaned.csv")
+
 # Ensure gene_list_cleaned is a vector of gene IDs
 gene_list_vector <- gene_list_cleaned$gene_id
 
@@ -303,35 +306,120 @@ ggsave(filename=paste0("RAnalysis/Output/correlation_figures.png"), corr.figures
 
 Make a heatmap showing genes found in genes of interest categories whether present in DEG and DMG datasets and heatmap of upregulated or downregulated or hypermethylated and hypomethylated
 ```{r}
-# Step 1: Combine DEG and DMG with combined_data
-data <- combined_data %>%
+# Combine DEG and DMG with combined_data
+data <- final_df %>%
   left_join(DEG, by = "gene_id") %>%
   left_join(DMG_rename, by = "gene_id") %>%
   mutate(
     DEG_status = ifelse(!is.na(direction), direction, "Not in DEG"),
     DMG_status = ifelse(!is.na(methylation_status), methylation_status, "Not in DMG"))
 
-# Reshape data for heatmap
-heatmap_data <- data %>%
-  pivot_longer(cols = c(DEG_status, DMG_status), names_to = "Type", values_to = "Status") %>%
+# Count number of genes per function
+gene_counts_by_function <- data %>%
+  group_by(Function) %>%
+  summarise(gene_count = n_distinct(gene_id)) %>%
+  arrange(desc(gene_count))
+
+print(gene_counts_by_function)
+
+# Prepare the data
+plot_data <- data %>%
+  dplyr::select(gene_id, Function, DEG_status, DMG_status) %>%
+  distinct() %>%
   mutate(
-    Status = case_when(
-      Type == "DEG_status" & Status == "Upregulated" ~ "Upregulated (DEG)",
-      Type == "DEG_status" & Status == "Downregulated" ~ "Downregulated (DEG)",
-      Type == "DMG_status" & Status == "Hypermethylated" ~ "Hypermethylated (DMG)",
-      Type == "DMG_status" & Status == "Hypomethylated" ~ "Hypomethylated (DMG)"
+    DEG_status = case_when(
+      DEG_status == "Upregulated" ~ "Up",
+      DEG_status == "Downregulated" ~ "Down",
+      TRUE ~ "Not in DEG"
+    ),
+    DMG_status = case_when(
+      DMG_status == "Hypermethylated" ~ "Hyper",
+      DMG_status == "Hypomethylated" ~ "Hypo",
+      TRUE ~ "Not in DMG"
     )
   ) %>%
-  pivot_wider(names_from = "Status", values_from = "Status", values_fill = "Not Present") %>%
-  group_by(Function, gene_id) %>%
-  mutate(row_id = paste(gene_id, Function, Type,sep = "_")) %>%
-  ungroup()
+  pivot_longer(cols = c(DEG_status, DMG_status), 
+               names_to = "Category", 
+               values_to = "Status")
 
-# Prepare the matrix for heatmap
-heatmap_matrix <- heatmap_data %>%
-  dplyr::select(-Function, -gene_id) %>%
-  column_to_rownames(var = "row_id") %>%
-  as.matrix()
+# Create the plot
+ggplot(plot_data, aes(x = Category, y = gene_id, fill = Status)) +
+  geom_tile(color = "white") +
+  facet_grid(Function ~ ., scales = "free_y", space = "free_y") +
+  scale_fill_manual(values = c(
+    "Up" = "red", 
+    "Down" = "blue", 
+    "Hyper" = "darkred", 
+    "Hypo" = "darkblue", 
+    "Not in DEG" = "lightgrey",
+    "Not in DMG" = "lightgrey"
+  )) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 8),
+    strip.text.y = element_text(angle = 0),
+    panel.spacing = unit(0.1, "lines"),
+    strip.background = element_rect(fill = "lightgrey")
+  ) +
+  labs(x = "", y = "", fill = "Status", 
+       title = "DEG and DMG Status by Gene and Function")
+
+# Save the plot
+ggsave("Bioinformatics/Output/gene_func_plot.png", width = 15, height = 15)
+
+# Assuming your data is in a dataframe called 'gene_data'
+
+# Filter for nutrient metabolism genes and prepare the data
+nutrient_data <- data %>%
+  filter(Function == "Nutrient metabolism") %>%
+  dplyr::select(gene_id, DEG_status, DMG_status) %>%
+  distinct() %>%
+  mutate(
+    DEG_status = case_when(
+      DEG_status == "Upregulated" ~ "Up",
+      DEG_status == "Downregulated" ~ "Down",
+      TRUE ~ "Not in DEG"
+    ),
+    DMG_status = case_when(
+      DMG_status == "Hypermethylated" ~ "Hyper",
+      DMG_status == "Hypomethylated" ~ "Hypo",
+      TRUE ~ "Not in DMG"
+    )
+  ) %>%
+  pivot_longer(cols = c(DEG_status, DMG_status), 
+               names_to = "Category", 
+               values_to = "Status")
+
+# Create the plot
+ggplot(nutrient_data, aes(x = Category, y = gene_id, fill = Status)) +
+  geom_tile(color = "white") +
+  scale_fill_manual(values = c(
+    "Up" = "red", 
+    "Down" = "blue", 
+    "Hyper" = "darkred", 
+    "Hypo" = "darkblue", 
+    "Not in DEG" = "lightgrey",
+    "Not in DMG" = "lightgrey"
+  )) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 8),
+    panel.spacing = unit(0.1, "lines")
+  ) +
+  labs(x = "", y = "", fill = "Status", 
+       title = "DEG and DMG Status for Nutrient Metabolism Genes")
+
+# Save the plot
+ggsave("Bioinformatics/Output/gene_func_nutrients.png", width = 15, height = 20)
+
+# Count unique gene_ids
+unique_gene_count <- length(unique(rownames(nutrient_data)))
+
+# Print the result
+print(paste("Number of unique gene_ids:", unique_gene_count))
+
 
 ```
 

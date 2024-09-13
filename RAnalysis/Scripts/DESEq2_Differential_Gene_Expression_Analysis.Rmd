@@ -625,8 +625,8 @@ gene_summary[is.na(gene_summary)]<-0
 colnames(gene_summary) <- paste0("gene_",colnames(gene_summary))
 gene_summary <- data.frame(gene_id = rownames(gene_summary),gene_summary)
 
-# transcriptomic data
-transcriptomic <- read.csv("RAnalysis/Output/rename_structure_gff3.csv") #load annotation GFF3 file
+# rename annotation file for use below
+transcriptomic <- GFF3
 
 #remove first three columns in data frame
 transcriptomic <- transcriptomic[,-(1:3),drop=FALSE]

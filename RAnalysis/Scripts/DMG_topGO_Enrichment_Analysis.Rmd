@@ -84,9 +84,7 @@ DMG.res$gene_id <-  gsub("_gene_","_",DMG.res$gene_id) #remove extra _
 DMG.res$gene_id <-  gsub("_split_","_",DMG.res$gene_id) #remove split naming in gene id
 
 # Use the new MD.10x file that has now been filtered for SNPs
-
 meth_filt <- readRDS("RAnalysis/Data/filtered_bed_SNP_file.Rdata") #read in info
-
 
 # Rename gene column to gene_id and select only necessary columns, summarize meth
 meth_filt_select <- meth_filt  %>%
@@ -200,7 +198,7 @@ allRes_hyper_BP$classicFisher <- as.numeric(allRes_hyper_BP$classicFisher)
 Create node figrues of top 5-10 sig terms for Hypermethylated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.hyper_BP, score(fisher.hyper_BP), firstSigNodes = 5, useInfo = "all")
+##showSigOfNodes(GOdata.hyper_BP, score(fisher.hyper_BP), firstSigNodes = 5, useInfo = "all")
 
 # Print graph with specific parameters and save to directory
 #printGraph(GOdata.hyper_BP, fisher.hyper_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypermethylated_BP", useInfo = "def", pdfSW = TRUE)
@@ -266,7 +264,7 @@ allRes_hypo_BP$classicFisher <- as.numeric(allRes_hypo_BP$classicFisher)
 Create node figrues of top 5-10 sig terms for Hypomethylated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.hypo_BP, score(fisher.hypo_BP), firstSigNodes = 5, useInfo = 'all')
+#showSigOfNodes(GOdata.hypo_BP, score(fisher.hypo_BP), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
 #printGraph(GOdata.hypo_BP, fisher.hypo_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_BP", useInfo = "def", pdfSW = TRUE)
@@ -316,7 +314,7 @@ allRes_hyper_MF$classicFisher <- as.numeric(allRes_hyper_MF$classicFisher)
 Create node figrues of top 5-10 sig terms for Hypermethylated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.hyper_MF, score(fisher.hyper_MF), firstSigNodes = 5, useInfo = 'all')
+#showSigOfNodes(GOdata.hyper_MF, score(fisher.hyper_MF), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
 #printGraph(GOdata.hyper_MF, fisher.hyper_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypermethylated_MF", useInfo = "def", pdfSW = TRUE)
@@ -365,7 +363,7 @@ allRes_hypo_MF$classicFisher <- as.numeric(allRes_hypo_MF$classicFisher)
 Create node figrues of top 5-10 sig terms for Hypomethylated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.hypo_MF, score(fisher.hypo_MF), firstSigNodes = 5, useInfo = 'all')
+#showSigOfNodes(GOdata.hypo_MF, score(fisher.hypo_MF), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
 #printGraph(GOdata.hypo_MF, fisher.hypo_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_MF", useInfo = "def", pdfSW = TRUE)
@@ -414,7 +412,7 @@ allRes_hyper_CC$classicFisher <- as.numeric(allRes_hyper_CC$classicFisher)
 Create node figrues of top 5-10 sig terms for Hypermethylated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.hyper_CC, score(fisher.hyper_CC), firstSigNodes = 5, useInfo = 'all')
+#showSigOfNodes(GOdata.hyper_CC, score(fisher.hyper_CC), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
 #printGraph(GOdata.hyper_CC, fisher.hyper_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypermethylated_CC", useInfo = "def", pdfSW = TRUE)
@@ -463,7 +461,7 @@ allRes_hypo_CC$classicFisher <- as.numeric(allRes_hypo_CC$classicFisher)
 Create node figrues of top 5-10 sig terms for Hypomethylated genes
 ```{r}
 # Plot significant nodes
-showSigOfNodes(GOdata.hypo_CC, score(fisher.hypo_CC), firstSigNodes = 5, useInfo = 'all')
+#showSigOfNodes(GOdata.hypo_CC, score(fisher.hypo_CC), firstSigNodes = 5, useInfo = 'all')
 
 # Print graph with specific parameters and save to directory
 #printGraph(GOdata.hypo_CC, fisher.hypo_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_CC", useInfo = "def", pdfSW = TRUE)
