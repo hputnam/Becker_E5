@@ -1,0 +1,481 @@
+---
+title: "DMG_DEG_pathway_analysis"
+author: "Danielle M. Becker"
+date: "20220720"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+#### Gene Expression and DNA Methylation comparison ####
+## Used to compare general relationship between DNA methylation and gene expression
+## Code developed from Javier A Rodriguez-Casariego paper: https://onlinelibrary.wiley.com/doi/pdf/10.1111/mec.16246?casa_token=DGoNlwKZByAAAAAA:i6JDcylh98txNEMQnr6dUTFxKd1sX7xotbSMZJq-DDOyqZGUPHObc30PhaWOAqpEufHMcJJ_wlQbQvbG
+## https://github.com/jarcasariego/ACER_clonal_divergence/blob/main/GE_GbM_association/rmd/GE_DNAm_control.Rmd
+
+```{r load packages}
+
+## load packages
+if (!requireNamespace("ggpmisc", quietly = TRUE)) { BiocManager::install("ggpmisc") }
+library(ComplexHeatmap)
+library(clusterProfiler)
+library(pheatmap)
+library(magrittr)
+library(rtracklayer)
+library(GenomicRanges)
+library(png)
+library(stats)
+library(GO.db)
+library(ggpmisc)
+library(AnnotationDbi)
+library(viridis)
+library(janitor)
+library(rtracklayer) # on bioconducter
+library(dplyr)
+library(nortest)
+library(edgeR)
+library(factoextra)
+library(cowplot)
+library(adegenet)
+library(ggplot2)
+library(matrixStats)
+library(grid)
+library(gridExtra)
+library(RColorBrewer)
+library(patchwork)
+library(stringr)
+library(tidyverse)
+library(ggpubr)
+pal <- brewer.pal(n = 3, name = "PRGn")
+```
+
+Load in methylation and gene expression summary dataframes
+```{r}
+# Load in gene expression summary data
+gene_sum <- readRDS("RAnalysis/Output/gene_summary.RData") 
+
+# Load in mmethylation summary data
+meth_sum <- readRDS("RAnalysis/Output/meth_summary.RData") 
+```
+
+Compare gene expression and methylation for all genes
+```{r}
+# Combine gene expression and methylation dataframes
+gSum <- full_join(gene_sum, meth_sum, by = "gene_id")
+
+## Mean Methylation vs Gene Expression following Liew et al
+#log gene expression x % methylation
+gSum$log_gene <- log(gSum$gene_mean_express+1.1)
+gSum$per_meth <- gSum$mean_meth * 100
+
+# Test for normality
+ks.test(gSum$gene_mean_express, "pnorm", mean = mean(gSum$gene_mean_express), sd = sd(gSum$gene_mean_express))
+ks.test(gSum$mean_meth, "pnorm", mean = mean(gSum$mean_meth), sd = sd(gSum$mean_meth))
+
+# Run the linear regression model
+model <- lm(log_gene ~ per_meth, data = gSum)
+
+# Summary of the model to see the results
+model_summary <- summary(model)
+
+# Extract coefficients and R-squared
+r_squared.all <- model_summary$r.squared
+
+#plot of gene level express x meth
+meth.express.compare <- ggplot(gSum, aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + ylim(0.5, 2.5) + xlim(0, 100) +
+    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+    annotate("text", x = 60, y = 2.0, 
+             label = paste("R² =", round(r_squared.all, 2)), 
+             size = 5, hjust = -1, vjust = 20, color = "blue") +
+  theme_cowplot();meth.express.compare
+
+### Figure Mean Methylation vs Gene Expression###
+ggsave(meth.express.compare, filename="RAnalysis/Output/gene_express_meth_correlation.png", height = 7, width = 10)
+
+```
+
+Analysis of comparisons between methylation and expression data from differentially expressed genes
+```{r}
+# read in DEGs
+DEG <- read.csv("RAnalysis/Output/DEGSeq2.sig.results.host.csv")[-1]
+# Reorder columns to move gene_id to the first position
+DEG <- DEG %>%
+  dplyr::select(gene_id, everything())
+
+# read in DMGs
+DMG <- read.csv("RAnalysis/Output/DMGs_all.csv")[-1]
+# Rename column from 'gene' to 'gene_id'
+DMG <- DMG %>%
+  dplyr::rename(gene_id = gene)
+
+# Remove extra characters in df and DMGs to match DEG
+df_rename <- gSum
+df_rename$gene_id <-  gsub("_gene_g","_g",df_rename$gene_id) #sub gene_g with _g
+df_rename$gene_id <-  gsub("_gene_","_",df_rename$gene_id) #remove extra _
+df_rename$gene_id <- gsub("-.*", "", df_rename$gene_id) # Modify the gene_id column to remove the dash and anything after it
+df_rename$gene_id <-  gsub("Pver_split_", "Pver_",df_rename$gene_id) #remove the extra _gene_ after split
+
+# Remove characters in DMG to match DEG
+DMG_rename <- DMG
+DMG_rename$gene_id <-  gsub("_gene_g","_g",DMG_rename$gene_id) #sub gene_g with _g
+DMG_rename$gene_id <-  gsub("_gene_","_",DMG_rename$gene_id) #remove extra _
+DMG_rename$gene_id <- gsub("-.*", "", DMG_rename$gene_id) # Modify the gene_id column to remove the dash and anything after 
+DMG_rename$gene_id <-  gsub("Pver_split_", "Pver_",DMG_rename$gene_id) #remove the extra _gene_ after split
+
+#log gene expression x % methylation
+df_rename$log_gene <- log(df_rename$gene_mean_express+1.1)
+df_rename$per_meth <- df_rename$mean_meth * 100
+
+# Double check that all gene_ids found in DEG and DMGs are in df_rename
+missing_in_df_rename_DEG <- setdiff(DEG$gene_id, df_rename$gene_id) 
+missing_in_df_rename_DMG <- setdiff(DMG_rename$gene_id, df_rename$gene_id) 
+
+#Check which are missing from DEG in DMG dataset
+missing_in_DMG_rename_DEG <- setdiff(DEG$gene_id, DMG_rename$gene_id) # 249 without methylation info, only 3 genes in both DEG and DMG datasets
+
+# Create a combined list of unique gene_ids from both DMG and DEG
+combined_gene_ids <- unique(c(DMG_rename$gene_id, DEG$gene_id)) 
+
+# Filter df_rename to keep only rows with gene_ids in combined_gene_ids
+df_filtered <- df_rename[df_rename$gene_id %in% combined_gene_ids, ]
+
+# Check how many rows have non-NA values for both log_gene and per_meth
+valid_rows <- df_filtered[!is.na(df_filtered$log_gene) & !is.na(df_filtered$per_meth), ]
+
+# Count the number of such rows (genes)
+num_genes_with_data <- nrow(valid_rows)
+
+# Display the result
+num_genes_with_data #451
+
+# Shapiro-Wilk Test for normality
+shapiro.test(df_filtered$gene_mean_express) # not normal
+shapiro.test(df_filtered$mean_meth) # not normal
+
+# look at just degs in df rename with methylaiton data
+# Filter df_filtered to include only rows with gene_id found in DEG
+df_DEG_rename <- df_rename %>%
+  dplyr::semi_join(DEG, by = "gene_id")
+
+#log gene expression x % methylation
+df_DEG_rename$log_gene <- log(df_DEG_rename$gene_mean_express+1.1)
+df_DEG_rename$per_meth <- df_DEG_rename$mean_meth * 100
+
+
+# Run the linear regression model
+model <- lm(log_gene ~ per_meth, data = df_DEG_rename)
+
+# Summary of the model to see the results
+model_summary <- summary(model)
+
+# Extract coefficients and R-squared
+r_squared.DEG <- model_summary$r.squared
+
+DEG.meth.express <- ggplot(df_DEG_rename, aes(x=per_meth, y=log_gene)) + 
+    geom_point() +
+    geom_smooth(method=lm,colour="orange",size=2,na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x="DNA Methylation (%)", y = "log10 (mean expression +1)") +
+  ggtitle("DEGs (significant expression)") +  # Add title
+    annotate("text", x = 60, y = 2.0, 
+             label = paste("R² =", round(r_squared.DEG, 2)), 
+             size = 5, hjust = 0, vjust = 18, color = "blue") +
+    theme_cowplot();DEG.meth.express
+
+### Figure Mean Methylation vs Gene Expression###
+ggsave(DEG.meth.express, filename="RAnalysis/Output/DEG_correlation.png", height = 10, width = 10)
+
+```
+
+Analysis of comparisons between methylation and expression data from hypothesis driven genes
+```{r}
+# Read in hypothesis informed gene list
+gene_list <- read.csv("Bioinformatics/Output/targetgenelist_GOterms.csv")
+
+# Remove duplicates based on both Gene.ID and GO.term, so if duplicate gene IDs by GO term its removed
+cleaned_data <- gene_list %>%
+  distinct(Gene.ID, GO.term, .keep_all = TRUE)
+
+# Count the number of unique genes based on 'gene_id'
+unique_genes_count <- cleaned_data %>%
+  distinct(Gene.ID) %>%
+  tally() #3518
+
+# Remove extra characters in df to match gene_id in all genes dataframe
+gene_list_cleaned <- cleaned_data %>%
+  dplyr::rename(gene_id = Gene.ID) %>%  # Rename Gene.ID to gene_id
+  mutate(gene_id = gsub("_gene_g", "_g", gene_id),          # Replace "_gene_g" with "_g"
+         gene_id = gsub("_gene_", "_", gene_id),            # Remove extra "_gene_"
+         gene_id = gsub("-.*", "", gene_id),                # Remove dash and anything after it
+         gene_id = gsub("Pver_split_", "Pver_", gene_id),   # Remove "Pver_split_"
+         gene_id = gsub("\\..*", "", gene_id),              # Remove anything after the last period
+         gene_id = gsub("_model", "", gene_id))             # Remove "_model"
+
+# write dataframe
+write.csv(gene_list_cleaned, "RAnalysis/Output/gene_list_cleaned.csv")
+
+# Ensure gene_list_cleaned is a vector of gene IDs
+gene_list_vector <- gene_list_cleaned$gene_id
+
+# Check if any gene ids are missing from df_rename
+missing_in_rename <- setdiff(gene_list_vector, df_rename$gene_id) # 39 gene_ids missing did not have >0 gene counts
+
+# Check common gene IDs
+common_gene_ids <- intersect(gene_list_vector, df_rename$gene_id)
+
+# Number of common gene IDs
+length(common_gene_ids) #unique gene_ids = 2,069
+
+# Filter the df_rename dataframe for only the gene_id values that are found in the gene_list_cleaned
+gene_filtered <- df_rename %>%
+  filter(gene_id %in% gene_list_vector)
+
+# Select only the 'gene_mean_express' and 'mean_meth' columns from the 'gene_filtered' dataframe
+selected_columns <- gene_filtered %>%
+  dplyr::select(gene_id, gene_mean_express, mean_meth)
+
+# Combine with gene_list_cleaned to output for github with meth and express values for genes 
+# Combine 'selected_columns' with 'gene_list_cleaned'
+combined_data <- gene_list_cleaned %>%
+  left_join(selected_columns, by = "gene_id")
+
+#log gene expression x % methylation
+combined_data$log_gene <- log(combined_data$gene_mean_express+1.1)
+combined_data$per_meth <- combined_data$mean_meth * 100
+
+# Count rows with non-missing values in both 'mean_meth' and 'gene_mean_express'
+count_non_missing <- combined_data %>%
+  filter(!is.na(mean_meth) & !is.na(gene_mean_express)) %>%
+  tally() #2,580 genes with meth and express data
+
+# Select only the 'gene_mean_express' and 'per_meth' columns from the 'gene_filtered' dataframe and filter for only genes with gene expression and methylation data
+final_df <- combined_data %>%
+  dplyr::select(gene_id, GO.term, Function, gene_mean_express, per_meth) %>%
+  dplyr::filter(!is.na(gene_mean_express) & !is.na(per_meth))
+
+# write dataframe
+write.csv(final_df, "Bioinformatics/Output/gene_list_meth_express_cleaned.csv")
+
+# Shapiro-Wilk Test for normality
+shapiro.test(combined_data$gene_mean_express) # not normal
+shapiro.test(combined_data$mean_meth) # not normal
+
+# Check how many rows have non-NA values for both log_gene and per_meth
+valid_rows <- combined_data[!is.na(combined_data$log_gene) & !is.na(combined_data$per_meth), ] #574
+
+# Run the linear regression model
+model <- lm(log_gene ~ per_meth, data = combined_data)
+
+# Summary of the model to see the results
+model_summary <- summary(model)
+
+# Extract coefficients and R-squared
+r_squared.interest <- model_summary$r.squared
+
+# Create plot with model results
+all_functions <- ggplot(combined_data, aes(x = per_meth, y = log_gene)) + 
+    geom_point() + 
+    geom_smooth(method = lm, colour = "orange", size = 2, na.rm = TRUE) +
+    scale_color_viridis() +
+    labs(x = "DNA Methylation (%)", y = "log10 (mean expression + 1)") +
+    ggtitle("Genes from functions of interest (key genes of interest)") +  # Add title
+    annotate("text", x = 60, y = 2.0, 
+             label = paste("R² =", round(r_squared.interest, 2)), 
+             size = 5, hjust = -1, vjust = 16, color = "blue") +
+    theme_cowplot();all_functions
+
+# Make three plots for each function category
+
+# Filter data for 'Nutrient metabolism'
+nutrient_metabolism_data <- combined_data %>%
+  filter(Function == "Nutrient metabolism")
+
+# Plot for 'Nutrient metabolism'
+nutrient_metabolism_plot <- ggplot(nutrient_metabolism_data, aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + 
+  geom_smooth(method=lm, colour="orange", size=2, na.rm = TRUE) +
+  scale_color_viridis() +
+  labs(x="DNA Methylation (%)", y = "log10 (mean expression + 1)") +
+  ggtitle("Nutrient Metabolism") +  # Add title
+  stat_cor(method = "kendall", digits = 2, label.x = 55, label.y = 0.2, size = 5) +
+  theme_cowplot();nutrient_metabolism_plot
+
+# Filter data for 'Symbiotic maintenance'
+symbiotic_maintenance_data <- combined_data %>%
+  filter(Function == "Symbiotic maintenance")
+
+# Plot for 'Symbiotic maintenance'
+symbiotic_maintenance_plot <- ggplot(symbiotic_maintenance_data, aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + 
+  geom_smooth(method=lm, colour="orange", size=2, na.rm = TRUE) +
+  scale_color_viridis() +
+  labs(x="DNA Methylation (%)", y = "log10 (mean expression + 1)") +
+  ggtitle("Symbiotic Maintenance") +  # Add title
+  stat_cor(method = "kendall", digits = 2, label.x = 60, label.y = 0.2, size = 5) +
+  theme_cowplot();symbiotic_maintenance_plot
+
+# Filter data for 'Symbiotic nutrient exchange and signaling pathways'
+symbiotic_exchange_data <- combined_data %>%
+  filter(Function == "Symbiotic nutrient exchange and signaling pathways")
+
+# Plot for 'Symbiotic nutrient exchange and signaling pathways'
+symbiotic_exchange_plot <- ggplot(symbiotic_exchange_data, aes(x=per_meth, y=log_gene,)) + 
+    geom_point() + 
+  geom_smooth(method=lm, colour="orange", size=2, na.rm = TRUE) +
+  scale_color_viridis() +
+  labs(x="DNA Methylation (%)", y = "log10 (mean expression + 1)") +
+  ggtitle("Symbiotic Nutrient Exchange and Signaling Pathways") +  # Add title
+  stat_cor(method = "kendall", digits = 2, label.x = 45, label.y = 0.2, size = 5) +
+  theme_cowplot();symbiotic_exchange_plot
+
+# Combine three figures 
+corr.figures <- plot_grid(meth.express.compare, DEG.meth.express, all_functions, labels = c('A', 'B', 'C'), label_size = 16)
+
+ggsave(filename=paste0("RAnalysis/Output/correlation_figures.png"), corr.figures, dpi=300, width=20, height=10, units="in", limitsize = FALSE)
+
+```
+
+
+Make a heatmap showing genes found in genes of interest categories whether present in DEG and DMG datasets and heatmap of upregulated or downregulated or hypermethylated and hypomethylated
+```{r}
+# Combine DEG and DMG with combined_data
+data <- final_df %>%
+  left_join(DEG, by = "gene_id") %>%
+  left_join(DMG_rename, by = "gene_id") %>%
+  mutate(
+    DEG_status = ifelse(!is.na(direction), direction, "Not in DEG"),
+    DMG_status = ifelse(!is.na(methylation_status), methylation_status, "Not in DMG"))
+
+# Count number of genes per function
+gene_counts_by_function <- data %>%
+  group_by(Function) %>%
+  summarise(gene_count = n_distinct(gene_id)) %>%
+  arrange(desc(gene_count))
+
+print(gene_counts_by_function)
+
+# Prepare the data
+plot_data <- data %>%
+  dplyr::select(gene_id, Function, DEG_status, DMG_status) %>%
+  distinct() %>%
+  mutate(
+    DEG_status = case_when(
+      DEG_status == "Upregulated" ~ "Up",
+      DEG_status == "Downregulated" ~ "Down",
+      TRUE ~ "Not in DEG"
+    ),
+    DMG_status = case_when(
+      DMG_status == "Hypermethylated" ~ "Hyper",
+      DMG_status == "Hypomethylated" ~ "Hypo",
+      TRUE ~ "Not in DMG"
+    )
+  ) %>%
+  pivot_longer(cols = c(DEG_status, DMG_status), 
+               names_to = "Category", 
+               values_to = "Status")
+
+# Create the plot
+ggplot(plot_data, aes(x = Category, y = gene_id, fill = Status)) +
+  geom_tile(color = "white") +
+  facet_grid(Function ~ ., scales = "free_y", space = "free_y") +
+  scale_fill_manual(values = c(
+    "Up" = "red", 
+    "Down" = "blue", 
+    "Hyper" = "darkred", 
+    "Hypo" = "darkblue", 
+    "Not in DEG" = "lightgrey",
+    "Not in DMG" = "lightgrey"
+  )) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 8),
+    strip.text.y = element_text(angle = 0),
+    panel.spacing = unit(0.1, "lines"),
+    strip.background = element_rect(fill = "lightgrey")
+  ) +
+  labs(x = "", y = "", fill = "Status", 
+       title = "DEG and DMG Status by Gene and Function")
+
+# Save the plot
+ggsave("Bioinformatics/Output/gene_func_plot.png", width = 15, height = 15)
+
+# Assuming your data is in a dataframe called 'gene_data'
+
+# Filter for nutrient metabolism genes and prepare the data
+nutrient_data <- data %>%
+  filter(Function == "Nutrient metabolism") %>%
+  dplyr::select(gene_id, DEG_status, DMG_status) %>%
+  distinct() %>%
+  mutate(
+    DEG_status = case_when(
+      DEG_status == "Upregulated" ~ "Up",
+      DEG_status == "Downregulated" ~ "Down",
+      TRUE ~ "Not in DEG"
+    ),
+    DMG_status = case_when(
+      DMG_status == "Hypermethylated" ~ "Hyper",
+      DMG_status == "Hypomethylated" ~ "Hypo",
+      TRUE ~ "Not in DMG"
+    )
+  ) %>%
+  pivot_longer(cols = c(DEG_status, DMG_status), 
+               names_to = "Category", 
+               values_to = "Status")
+
+# Create the plot
+ggplot(nutrient_data, aes(x = Category, y = gene_id, fill = Status)) +
+  geom_tile(color = "white") +
+  scale_fill_manual(values = c(
+    "Up" = "red", 
+    "Down" = "blue", 
+    "Hyper" = "darkred", 
+    "Hypo" = "darkblue", 
+    "Not in DEG" = "lightgrey",
+    "Not in DMG" = "lightgrey"
+  )) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 8),
+    panel.spacing = unit(0.1, "lines")
+  ) +
+  labs(x = "", y = "", fill = "Status", 
+       title = "DEG and DMG Status for Nutrient Metabolism Genes")
+
+# Save the plot
+ggsave("Bioinformatics/Output/gene_func_nutrients.png", width = 15, height = 20)
+
+# Count unique gene_ids
+unique_gene_count <- length(unique(rownames(nutrient_data)))
+
+# Print the result
+print(paste("Number of unique gene_ids:", unique_gene_count))
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,553 @@
+---
+title: "GO_Term_Enrichment_Analysis"
+author: "daniellembecker"
+edited by: "daniellembecker"
+date: "9/20/2021"
+output: html_document
+---
+
+# Molecular Underpinnings Chronic Nutrient Enrichment Project
+
+## RNAseq Gene Ontology (GO) Enrichment Analysis 
+## Previous steps include RNAseq workflow in Bioinformatics>RNAseq>RNAseq workflow and Differential Gene Expression statistical analysis in RAnalysis>Scripts>RNAseq_Differential_Gene_Expression to make DMG statistical data sheet
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load libraries
+if (!requireNamespace("DESeq2", quietly = TRUE)) { BiocManager::install("DESeq2") }
+library("DESeq2")
+library("tidyr")
+library("tidyverse")
+library("dplyr")
+library("pheatmap")
+library("RColorBrewer")
+if (!requireNamespace("genefilter", quietly = TRUE)) { BiocManager::install("genefilter") }
+library("genefilter")
+library("ggplot2")
+library("gplots")
+library("spdep") 
+library("patchwork")
+#library("aDMGenet") 
+library("gridExtra")
+if (!requireNamespace("clusterProfiler", quietly = TRUE)) { BiocManager::install("clusterProfiler") }
+library("clusterProfiler")
+library("DataCombine")
+if (!requireNamespace("GSEABase", quietly = TRUE)) { BiocManager::install("GSEABase") }
+library("GSEABase")
+library("data.table")
+if ("rrvgo" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("rrvgo")
+library("rrvgo")
+if ("org.Ce.eg.db" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("org.Ce.eg.db")
+library(org.Ce.eg.db)
+if ("topGO" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("topGO")
+library(topGO)
+if ("Rgraphviz" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("Rgraphviz")
+library(Rgraphviz)
+```
+
+# Import the data files 
+```{r, echo=FALSE}
+# Load go terms from functional annotation file
+annot_GO <- read.csv("RAnalysis/Output/annot_GO.terms.host.csv")[-1]
+
+# Remove rows where 'GO.ID' is 'unknown'
+annot_GO <- subset(annot_GO, GO.ID != 'unknown')
+
+# edit annot_GO to list GO terms all in one row per gene
+annot_GO <- annot_GO %>%
+  group_by(gene_id) %>%
+  summarise(GO.ID = paste(GO.ID, collapse = ";")) %>%
+  ungroup()
+
+```
+
+# Load in DMG results
+```{r}
+#DMG results
+DMG.res <- read.csv("RAnalysis/Output/DMGs_all.csv")[-1]
+
+colnames(DMG.res)[1] <-"gene_id" # make colnames a true column called gene_id
+#remove the extra "gene" to match the "Pver_gene_g#" format
+DMG.res$gene_id <-  gsub("Pver_gene_novel_gene_","Pver_novel_gene_", DMG.res$gene_id)
+DMG.res$gene_id <-  gsub("Pver_gene_split_gene_", "Pver_gene_", DMG.res$gene_id)
+#remove extra characters to match annot
+DMG.res$gene_id <-  gsub("_gene_g","_g",DMG.res$gene_id) #sub gene_g with _g
+DMG.res$gene_id <-  gsub("_gene_","_",DMG.res$gene_id) #remove extra _
+DMG.res$gene_id <-  gsub("_split_","_",DMG.res$gene_id) #remove split naming in gene id
+
+# Read in genes of interest file 
+genes_of_interest <- read.csv("RAnalysis/Output/gene_list_cleaned.csv")[-1]
+
+# Remove duplicate gene_id entries, keeping the first occurrence
+genes_of_interest_unique <- genes_of_interest %>%
+  distinct(gene_id, .keep_all = TRUE)
+
+# Filter DEG.res to only include genes of interest
+DMG.res_filtered <- DMG.res[DMG.res$gene_id %in% genes_of_interest_unique$gene_id, ]
+
+# Use the new MD.10x file that has now been filtered for SNPs
+meth_filt <- readRDS("RAnalysis/Data/filtered_bed_SNP_file.Rdata") #read in info
+
+# Rename gene column to gene_id and select only necessary columns, summarize meth
+meth_filt_select <- meth_filt  %>%
+  dplyr::select(Sample.ID, meth, gene) %>%
+  dplyr::rename(gene_id = gene)
+
+# Reshape the data
+meth_wide <- meth_filt_select %>%
+  group_by(gene_id, Sample.ID) %>%
+  summarize(total_meth = sum(meth, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = Sample.ID, values_from = total_meth, values_fill = 0)
+
+#remove the extra "gene" to match the "Pver_gene_g#" format
+meth_wide$gene_id <-  gsub("Pver_gene_novel_gene_","Pver_novel_gene_", meth_wide$gene_id)
+meth_wide$gene_id <-  gsub("Pver_gene_split_gene_", "Pver_gene_", meth_wide$gene_id)
+#remove extra characters to match annot
+meth_wide$gene_id <-  gsub("_gene_g","_g", meth_wide$gene_id) #sub gene_g with _g
+meth_wide$gene_id <-  gsub("_gene_","_", meth_wide$gene_id) #remove extra _
+meth_wide$gene_id <-  gsub("_split_","_", meth_wide$gene_id) #remove split naming in gene id
+meth_wide$gene_id <-  gsub("-.*","",meth_wide$gene_id) #remove the extra g number after the dash
+
+# Check if all gene IDs in GFF3 are included in  annot_GO
+unmatched_genes <- setdiff(meth_wide$gene_id, annot_GO$gene_id)
+# Print the unmatched gene IDs
+print(unmatched_genes)
+
+# Only genes that don't match after edited are the unknowns we filtered above
+```
+
+Match up genes in gene list file to annotation file
+```{r}
+names(annot_GO)
+
+gcount_filt2annot = match(meth_wide$gene_id, annot_GO$gene_id) #match genes in gcount_filt to annot_GO
+
+# The following is the number of probes without annotation 
+sum(is.na(gcount_filt2annot))
+
+row_nas<-which(is.na(gcount_filt2annot))
+
+#view the genes that do not have a match in the annotation file
+missing<-as.data.frame(gcount_filt2annot[row_nas])
+
+```
+390 genes in mmethylation data do not have GO annotations
+
+Reduce annotation file to only contain genes detected in our dataset.  
+```{r}
+filtered_Pverr.annot <- annot_GO[annot_GO$gene_id %in% meth_wide$gene_id, ]
+dim(filtered_Pverr.annot)
+
+```
+
+The annotation file now only contains genes that were detected in our dataset that have annotation information. This is 3,520 out of the 3,910 genes in our dataset at 10x coverage. 
+
+Biological Processes topGO
+
+Use topGO for enrichment analysis on Hypermethylated data
+```{r}
+### Generate vector with names in just the contrast we are analyzing
+ID.vector.hyper <- DMG.res_filtered %>%
+      filter(methylation_status == "Hypermethylated") %>%
+      pull(gene_id)
+    
+# Get a list of GO Terms for all genes detected in our dataset
+GO.terms <- filtered_Pverr.annot %>%
+  dplyr::select(gene_id, GO.ID) %>%
+  separate_rows(GO.ID, sep = ";")
+
+# Create a gene-to-GO mapping list
+geneID2GO <- split(as.character(GO.terms$GO.ID), GO.terms$gene_id)
+geneNames <- unique(GO.terms$gene_id)
+
+# Create a named vector for allGenes
+allGenes.hyper <- factor(as.integer(geneNames %in% ID.vector.hyper))
+names(allGenes.hyper) <- geneNames
+
+# Create a topGOdata object using the custom gene2GO mapping
+GOdata.hyper_BP <- new("topGOdata",
+              ontology = "BP",
+              allGenes = allGenes.hyper,
+              nodeSize = 10,
+              annot = annFUN.gene2GO, 
+              gene2GO = geneID2GO)
+
+GOdata.hyper_BP
+
+```
+
+
+Run topGO statistical analyses on compiled Hypermethylated data
+```{r}
+# fisher exact test from topgo manual
+fisher.hyper_BP <- runTest(GOdata.hyper_BP, algorithm = "weight", statistic = "fisher")
+
+# Generate a results table
+allRes_hyper_BP <- GenTable(GOdata.hyper_BP, 
+                      classicFisher = fisher.hyper_BP, 
+                      ranksOf = "classicFisher", 
+                      topNodes = length(score(fisher.hyper_BP)))
+
+# Convert character columns to numeric
+allRes_hyper_BP$classicFisher <- as.numeric(allRes_hyper_BP$classicFisher)
+
+```
+
+
+Create node figrues of top 5-10 sig terms for Hypermethylated genes
+```{r}
+# Plot significant nodes
+#showSigOfNodes(GOdata.hyper_BP, score(fisher.hyper_BP), firstSigNodes = 5, useInfo = "all")
+
+# Print graph with specific parameters and save to directory
+#printGraph(GOdata.hyper_BP, fisher.hyper_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypermethylated_genesofinterest_BP", useInfo = "def", pdfSW = TRUE)
+
+```
+
+
+Use topGO for enrichment analysis on Hypermethylated data # NO GENES Hypermethylated, so removed from analyses
+
+
+Molecular Functions topGO
+
+Use topGO for enrichment analysis on Hypermethylated data
+```{r}
+
+# Create a topGOdata object using the custom gene2GO mapping
+GOdata.hyper_MF <- new("topGOdata",
+              ontology = "MF",
+              allGenes = allGenes.hyper,
+              nodeSize = 10,
+              annot = annFUN.gene2GO, 
+              gene2GO = geneID2GO)
+
+GOdata.hyper_MF
+
+```
+
+
+Run topGO statistical analyses on compiled Hypermethylated data
+```{r}
+# fisher exact test from topgo manual
+fisher.hyper_MF <- runTest(GOdata.hyper_MF, algorithm = "weight", statistic = "fisher")
+
+# Generate a results table
+allRes_hyper_MF <- GenTable(GOdata.hyper_MF, 
+                      classicFisher = fisher.hyper_MF, 
+                      ranksOf = "classicFisher", 
+                      topNodes = length(score(fisher.hyper_MF)))
+
+# Convert character columns to numeric
+allRes_hyper_MF$classicFisher <- as.numeric(allRes_hyper_MF$classicFisher)
+
+```
+
+
+
+Create node figrues of top 5-10 sig terms for Hypermethylated genes
+```{r}
+# Plot significant nodes
+#showSigOfNodes(GOdata.hyper_MF, score(fisher.hyper_MF), firstSigNodes = 5, useInfo = 'all')
+
+# Print graph with specific parameters and save to directory
+#printGraph(GOdata.hyper_MF, fisher.hyper_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypermethylated_genesofinterest_MF", useInfo = "def", pdfSW = TRUE)
+
+```
+
+
+
+
+Cellular Components topGO
+
+Use topGO for enrichment analysis on Hypermethylated data
+```{r}
+
+# Create a topGOdata object using the custom gene2GO mapping
+GOdata.hyper_CC <- new("topGOdata",
+              ontology = "CC",
+              allGenes = allGenes.hyper,
+              nodeSize = 10,
+              annot = annFUN.gene2GO, 
+              gene2GO = geneID2GO)
+
+GOdata.hyper_CC
+```
+
+
+Run topGO statistical analyses on compiled Hypermethylated data
+```{r}
+# fisher exact test from topgo manual
+fisher.hyper_CC <- runTest(GOdata.hyper_CC, algorithm = "weight", statistic = "fisher")
+
+# Generate a results table
+allRes_hyper_CC <- GenTable(GOdata.hyper_CC, 
+                      classicFisher = fisher.hyper_CC, 
+                      ranksOf = "classicFisher", 
+                      topNodes = length(score(fisher.hyper_CC)))
+
+# Convert character columns to numeric
+allRes_hyper_CC$classicFisher <- as.numeric(allRes_hyper_CC$classicFisher)
+
+```
+
+
+Create node figrues of top 5-10 sig terms for Hypermethylated genes
+```{r}
+# Plot significant nodes
+#showSigOfNodes(GOdata.hyper_CC, score(fisher.hyper_CC), firstSigNodes = 5, useInfo = 'all')
+
+# Print graph with specific parameters and save to directory
+#printGraph(GOdata.hyper_CC, fisher.hyper_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypermethylated_CC", useInfo = "def", pdfSW = TRUE)
+
+```
+
+Biological Processes topGO
+
+Use topGO for enrichment analysis on Hypomethylated data
+```{r}
+### Generate vector with names in just the contrast we are analyzing
+ID.vector.hypo <- DMG.res_filtered %>%
+      filter(methylation_status == "Hypomethylated") %>%
+      pull(gene_id)
+    
+# Get a list of GO Terms for all genes detected in our dataset
+GO.terms <- filtered_Pverr.annot %>%
+  dplyr::select(gene_id, GO.ID) %>%
+  separate_rows(GO.ID, sep = ";")
+
+# Create a gene-to-GO mapping list
+geneID2GO <- split(as.character(GO.terms$GO.ID), GO.terms$gene_id)
+geneNames <- unique(GO.terms$gene_id)
+
+# Create a named vector for allGenes
+allGenes.hypo <- factor(as.integer(geneNames %in% ID.vector.hypo))
+names(allGenes.hypo) <- geneNames
+
+# Create a topGOdata object using the custom gene2GO mapping
+GOdata.hypo_BP <- new("topGOdata",
+              ontology = "BP",
+              allGenes = allGenes.hypo,
+              nodeSize = 10,
+              annot = annFUN.gene2GO, 
+              gene2GO = geneID2GO)
+
+GOdata.hypo_BP
+
+```
+
+
+Run topGO statistical analyses on compiled Hypomethylated data
+```{r}
+# fisher exact test from topgo manual
+fisher.hypo_BP <- runTest(GOdata.hypo_BP, algorithm = "weight", statistic = "fisher")
+
+# Generate a results table
+allRes_hypo_BP <- GenTable(GOdata.hypo_BP, 
+                      classicFisher = fisher.hypo_BP, 
+                      ranksOf = "classicFisher", 
+                      topNodes = length(score(fisher.hypo_BP)))
+
+# Convert character columns to numeric
+allRes_hypo_BP$classicFisher <- as.numeric(allRes_hypo_BP$classicFisher)
+
+```
+
+
+Create node figrues of top 5-10 sig terms for Hypomethylated genes
+```{r}
+# Plot significant nodes
+#showSigOfNodes(GOdata.hypo_BP, score(fisher.hypo_BP), firstSigNodes = 5, useInfo = "all")
+
+# Print graph with specific parameters and save to directory
+#printGraph(GOdata.hypo_BP, fisher.hypo_BP, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_genesofinterest_BP", useInfo = "def", pdfSW = TRUE)
+
+```
+
+
+Use topGO for enrichment analysis on hypomethylated data # NO GENES HYPOMETHYLATED, so removed from analyses
+
+
+Molecular Functions topGO
+
+Use topGO for enrichment analysis on Hypomethylated data
+```{r}
+
+# Create a topGOdata object using the custom gene2GO mapping
+GOdata.hypo_MF <- new("topGOdata",
+              ontology = "MF",
+              allGenes = allGenes.hypo,
+              nodeSize = 10,
+              annot = annFUN.gene2GO, 
+              gene2GO = geneID2GO)
+
+GOdata.hypo_MF
+
+```
+
+
+Run topGO statistical analyses on compiled Hypomethylated data
+```{r}
+# fisher exact test from topgo manual
+fisher.hypo_MF <- runTest(GOdata.hypo_MF, algorithm = "weight", statistic = "fisher")
+
+# Generate a results table
+allRes_hypo_MF <- GenTable(GOdata.hypo_MF, 
+                      classicFisher = fisher.hypo_MF, 
+                      ranksOf = "classicFisher", 
+                      topNodes = length(score(fisher.hypo_MF)))
+
+# Convert character columns to numeric
+allRes_hypo_MF$classicFisher <- as.numeric(allRes_hypo_MF$classicFisher)
+
+```
+
+
+
+Create node figrues of top 5-10 sig terms for Hypomethylated genes
+```{r}
+# Plot significant nodes
+#showSigOfNodes(GOdata.hypo_MF, score(fisher.hypo_MF), firstSigNodes = 5, useInfo = 'all')
+
+# Print graph with specific parameters and save to directory
+#printGraph(GOdata.hypo_MF, fisher.hypo_MF, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_genesofinterest_MF", useInfo = "def", pdfSW = TRUE)
+
+```
+
+
+
+
+Cellular Components topGO
+
+Use topGO for enrichment analysis on Hypomethylated data
+```{r}
+
+# Create a topGOdata object using the custom gene2GO mapping
+GOdata.hypo_CC <- new("topGOdata",
+              ontology = "CC",
+              allGenes = allGenes.hypo,
+              nodeSize = 10,
+              annot = annFUN.gene2GO, 
+              gene2GO = geneID2GO)
+
+GOdata.hypo_CC
+
+
+```
+
+
+Run topGO statistical analyses on compiled Hypomethylated data
+```{r}
+# fisher exact test from topgo manual
+fisher.hypo_CC <- runTest(GOdata.hypo_CC, algorithm = "weight", statistic = "fisher")
+
+# Generate a results table
+allRes_hypo_CC <- GenTable(GOdata.hypo_CC, 
+                      classicFisher = fisher.hypo_CC, 
+                      ranksOf = "classicFisher", 
+                      topNodes = length(score(fisher.hypo_CC)))
+
+# Convert character columns to numeric
+allRes_hypo_CC$classicFisher <- as.numeric(allRes_hypo_CC$classicFisher)
+
+```
+
+
+Create node figrues of top 5-10 sig terms for Hypomethylated genes
+```{r}
+# Plot significant nodes
+#showSigOfNodes(GOdata.hypo_CC, score(fisher.hypo_CC), firstSigNodes = 5, useInfo = 'all')
+
+# Print graph with specific parameters and save to directory
+#printGraph(GOdata.hypo_CC, fisher.hypo_CC, firstSigNodes = 5, fn.prefix = "RAnalysis/Output/tGO_graph_Hypomethylated_CC", useInfo = "def", pdfSW = TRUE)
+
+```
+
+
+
+
+Print Tables
+```{r}
+
+# Generate a results table
+allRes_hyper_BP_10 <- GenTable(GOdata.hyper_BP, 
+                      classicFisher = fisher.hyper_BP, 
+                      ranksOf = "classicFisher", 
+                      topNodes = 10)
+allRes_hyper_BP_10$methylation_status <- "Hypermethylated"
+
+# Generate a results table
+allRes_hypo_BP_10 <- GenTable(GOdata.hypo_BP, 
+                      classicFisher = fisher.hypo_BP, 
+                      ranksOf = "classicFisher", 
+                      topNodes = 10)
+allRes_hypo_BP_10$methylation_status <- "Hypomethylated"
+
+# Generate a results table
+allRes_hyper_MF_10 <- GenTable(GOdata.hyper_MF, 
+                      classicFisher = fisher.hyper_MF, 
+                      ranksOf = "classicFisher", 
+                      topNodes = 10)
+allRes_hyper_MF_10$methylation_status <- "Hypermethylated"
+
+# Generate a results table
+allRes_hypo_MF_10 <- GenTable(GOdata.hypo_MF, 
+                      classicFisher = fisher.hypo_MF, 
+                      ranksOf = "classicFisher", 
+                      topNodes = 10)
+allRes_hypo_MF_10$methylation_status <- "Hypomethylated"
+
+# Combine top results for hypo and hyperreagulated BP
+Enrichment_Res_BP_10 <- rbind(allRes_hyper_BP_10,allRes_hypo_BP_10)
+
+# Create publishable table
+Enrichment_Res_BP_10_table <- Enrichment_Res_BP_10 %>%
+  dplyr::select(-Expected, -methylation_status)  # Remove the 'expected' and 'methylation_status" column
+
+# Create flextable object
+flex_enrich <- flextable(Enrichment_Res_BP_10_table)
+
+flex_enrich <- flex_enrich %>%
+  set_header_labels(
+    GO.ID = "GO ID",
+    Term = "Term",
+    Annotated = "Annotated",
+    Significant = "Significant",
+    classicFisher = "Fisher p-value") %>%
+  colformat_double(digits = 4) %>%
+  bold(j = "classicFisher", i = ~ as.numeric(classicFisher) < 0.05) %>%  # Bold values < 0.055, including scientific notation
+  add_header_lines(values = "Top 10 Enriched GO Terms (Biological Process)") %>%
+  autofit() %>%
+  theme_box()
+
+# Save flextable as PNG
+png_file <- "RAnalysis/Output/DMG_top10_enrich_BP_table_genesofinterest.png"
+save_as_image(flex_enrich, path = png_file)
+
+# Combine top results for hypo and hyperreagulated MF
+Enrichment_Res_MF_10 <- rbind(allRes_hyper_MF_10,allRes_hypo_MF_10)
+
+# Create publishable table
+Enrichment_Res_MF_10_table <- Enrichment_Res_MF_10 %>%
+  dplyr::select(-Expected, -methylation_status)  # Remove the 'expected' and 'methylation_status" column
+
+# Create flextable object
+flex_enrich <- flextable(Enrichment_Res_MF_10_table)
+
+# Customize the flextable
+flex_enrich <- flex_enrich %>%
+  set_header_labels(
+    GO.ID = "GO ID",
+    Term = "Term",
+    Annotated = "Annotated",
+    Significant = "Significant",
+    classicFisher = "Fisher p-value") %>%
+  colformat_double(digits = 4) %>%
+  bold(j = "classicFisher", i = ~ as.numeric(classicFisher) < 0.05) %>%  # Bold values < 0.055, including scientific notation
+  add_header_lines(values = "Top 10 Enriched GO Terms (Molecular Functions)") %>%
+  autofit() %>%
+  theme_box()
+
+# Save flextable as PNG
+png_file <- "RAnalysis/Output/DMG_top10_enrich_MF_table_genesofinterest.png"
+save_as_image(flex_enrich, path = png_file)
+```

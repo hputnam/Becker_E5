@@ -1,0 +1,109 @@
+---
+title: "BS-SNPer.filter"
+author: "daniellembecker"
+date: "2024-03-11"
+output: html_document
+---
+
+# Filtering SNPs found from BS-SNper, following this workflow: https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2024-02-12-BS-SNPer-Molec-Underpinnings-WGBS.md
+
+# Using .tab output file and CT-SNP specific .vcf file from BS-SNPer to filter SNPs found in 10x .bed files made following this workflow: https://github.com/daniellembecker/DanielleBecker_Lab_Notebook/blob/master/_posts/2022-12-10-P.verrucosa-WGBS-Workflow-Host.md and combined with this script: https://github.com/hputnam/Becker_E5/blob/master/RAnalysis/Scripts/WGBS/WGBS.Rmd
+
+# Load libraries 
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(poppr)
+library(vcfR)
+library(SNPRelate)
+library(adegenet)
+library(gtools)
+library(gdsfmt)
+
+```
+
+# Load data
+
+```{r}
+# load merged .bed files at 10x coverage
+# this file has sampleID and methylation information
+bed_data <- readRDS("RAnalysis/Output/sample_all_methylated_data_10x.Rdata") #read in info
+
+unique_genes <- unique(bed_data$gene)
+
+# read in CT-SNP.vcf following Stevens approach: https://github.com/hputnam/Geoduck_Meth/blob/master/code/15-filtering-ct-snps.Rmd
+
+# first download .vcf file from andromeda because it is too large to store on github
+ct <- read.csv("../../../Downloads/CT-SNP.vcf", header = FALSE, sep = "\t")
+```
+
+# Filter CT-SNPs from .bed mmasterdata file
+
+```{r}
+# make new column combining scaffold and position like above 
+ct2 <- ct %>% 
+  mutate(loci = paste0(V1, "_", V2))
+
+# make new column combining scaffold and position like above 
+bed2 <- bed_data %>%
+  mutate(loci = paste0(scaffold, "_", position))
+
+# join data frames based on matching values in loci column
+inner.join.dat <- inner_join(bed2, ct2, by = "loci")
+#1740 SNPs that match my bed files dataframe
+#for unique SNPs
+
+#  find rows in the first data frame that do not have a match in the second data frame based on loci column
+anti.join.dat <- bed2 %>%
+  anti_join(ct2, by = "loci")
+# 1,120,473 unique data in my bed2 files, this matches that there are 1,740 SNPs in my bed data frame
+
+# Use anti.join.dat as the filtered bed data file moving forward 
+# Write the filtered data to a new .bed file save as R object as it is too large
+
+saveRDS(anti.join.dat, "RAnalysis/Data/filtered_bed_SNP_file.Rdata")
+
+
+```
+
+Calculate genetic relatedness after BS-SNPer, ran on URI HPC Andromeda due to memory limits: submitted batch job 334119 for the script below
+```{r}
+# Need to add column names and source to be recognized for vcf
+# Read the data lines
+# Read the SNP candidates file
+snp_candidates <- read.delim("../../../Downloads/SNP-candidates.out", header = TRUE, sep = "\t")
+
+# Formmat the correct header for the file
+vcf_header <- c(
+  "##fileformat=VCFv4.2",
+  "##source=BS-Snper",
+  "##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Total Depth\">",
+  "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",
+  "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tSample1"
+)
+
+# Create a VCF data frame
+vcf_data <- snp_candidates %>%
+  mutate(
+    ID = ".",  # Placeholder for ID
+    QUAL = 100,  # Placeholder quality score
+    FILTER = "PASS",  # Placeholder filter status
+    INFO = paste0("DP=", rowSums(select(., starts_with("Number_of_watson")) + select(., starts_with("Number_of_crick")))),
+    FORMAT = "GT:DP",
+    Sample1 = paste0("0/1:", rowSums(select(., starts_with("Number_of_watson")) + select(., starts_with("Number_of_crick"))))
+  ) %>%
+  select(CHROM = `#CHROM`, POS, ID, REF, ALT, QUAL, FILTER, INFO, FORMAT, Sample1)
+
+
+
+```
+
+
+
+
+
+
+
+
+
