@@ -28,7 +28,7 @@ library(gdsfmt)
 ```{r}
 # load merged .bed files at 10x coverage
 # this file has sampleID and methylation information
-bed_data <- readRDS("RAnalysis/Output/sample_all_methylated_data_10x.Rdata") #read in info
+bed_data <- readRDS("../../RAnalysis/Output/sample_all_methylated_data_10x.Rdata") #read in info
 
 unique_genes <- unique(bed_data$gene)
 
