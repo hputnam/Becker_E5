@@ -6,12 +6,10 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --account=pi_hputnam_uri_edu
+#SBATCH --constraint=avx512
 
-# Script created in /project/pi_hputnam_uri_edu/dbecks/Becker_RNASeq/scripts
-# Change to scratch workspace for fast I/O
 cd /scratch4/workspace/danielle_becker_uri_edu-becker_exon_usage
 
-# Paths
 WS=/scratch4/workspace/danielle_becker_uri_edu-becker_exon_usage
 OUT_DIR=${WS}/exon_usage
 GTF=${WS}/refs/Pocillopora_verrucosa_modified_HIv1.gtf
@@ -19,21 +17,13 @@ BAM_DIR=/project/pi_hputnam_uri_edu/dbecks/Becker_RNASeq/data/mapped
 
 mkdir -p "${OUT_DIR}"
 
-# Load modules
-module load python/3.8.18
+# Load modules (Rsubread/featureCounts comes with R-bundle-Bioconductor)
+module load uri/main R-bundle-Bioconductor/3.15-foss-2022a-R-4.2.1
 module load samtools/1.19.2
 
 echo "Starting exon usage pipeline at $(date)"
 
-# 1) Flatten GTF → exon bins (DEXSeq style)
-FLAT_GFF=${OUT_DIR}/Pverr_flattened_exon_bins.gff
-if [ ! -f "${FLAT_GFF}" ]; then
-    echo "Flattening GTF..."
-    dexseq_prepare_annotation.py "${GTF}" "${FLAT_GFF}"
-    echo "Flattened GFF created: $(wc -l ${FLAT_GFF}) lines"
-fi
-
-# 2) Index BAMs (safe to run multiple times)
+# 1) Index BAMs
 echo "Indexing BAMs..."
 for BAM in "${BAM_DIR}"/*.bam; do
     if [ ! -f "${BAM}.bai" ]; then
@@ -42,38 +32,38 @@ for BAM in "${BAM_DIR}"/*.bam; do
     fi
 done
 
-# 3) Count reads per exon bin for each sample
-echo "Counting reads per exon bin (this takes time)..."
-N_BAMS=$(ls "${BAM_DIR}"/*.bam | wc -l)
-echo "Processing ${N_BAMS} BAM files..."
+# 2) featureCounts via Rscript (DEXSeq compatible output)
+BAM_LIST=$(echo "${BAM_DIR}"/*.bam | tr ' ' '\n' | paste -s -d ' ')
+echo "Processing BAMs: ${BAM_LIST}"
 
-for BAM in "${BAM_DIR}"/*.bam; do
-    SAMPLE=$(basename "${BAM}" .sam.sorted.bam)
-    COUNTS_FILE=${OUT_DIR}/${SAMPLE}.exon_counts.txt
+Rscript -e "
+library(Rsubread)
 
-    if [ -f "${COUNTS_FILE}" ]; then
-        echo "✓ ${SAMPLE}: counts exist ($(wc -l < "${COUNTS_FILE}") lines)"
-        continue
-    fi
+# List of BAM files
+bams <- c(${BAM_LIST//./\"\\\"\n\"\\\"} )
 
-    echo "Counting for ${SAMPLE}..."
-    dexseq_count.py \
-        -p yes \                    # paired-end (change to 'no' if single-end)
-        -s no \                     # unstranded (change to 'yes'/'reverse' if needed)
-        "${FLAT_GFF}" \
-        "${BAM}" \
-        "${COUNTS_FILE}"
+# Run featureCounts
+fc <- featureCounts(
+    files = bams,
+    annot.ext = '${GTF}',
+    isGTFAnnotationFile = TRUE,
+    GTF.featureType = 'exon',
+    GTF.attrType = 'gene_id',  # or 'gene_name' if your GTF uses that
+    isPairedEnd = TRUE,
+    strandSpecific = 0,
+    nthreads = 4,
+    countMultiMappingReads = FALSE
+)
 
-    if [ $? -eq 0 ]; then
-        echo "✓ ${SAMPLE}: $(wc -l < "${COUNTS_FILE}") exon bins counted"
-    else
-        echo "✗ ${SAMPLE}: dexseq_count.py failed"
-    fi
-done
+# Save counts matrix (DEXSeq ready)
+counts <- fc\$counts
+write.table(counts, file='${OUT_DIR}/Pverr_exon_counts.txt', sep='\t', quote=FALSE, row.names=TRUE, col.names=TRUE)
+
+cat('featureCounts complete. Output shape:', dim(counts), '\n')
+cat('Saved to: ${OUT_DIR}/Pverr_exon_counts.txt\n')
+"
 
 echo "Pipeline complete at $(date)"
-echo "Exon counts saved to: ${OUT_DIR}"
-ls -lh ${OUT_DIR}/*.exon_counts.txt | head -5
-EOF
-
-chmod +x run_exon_usage_pverr.sh
+echo "Exon counts saved to: ${OUT_DIR}/Pverr_exon_counts.txt"
+head -20 "${OUT_DIR}/Pverr_exon_counts.txt"
+ls -lh "${OUT_DIR}"/*.txt
